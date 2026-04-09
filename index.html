@@ -190,6 +190,7 @@ img{max-width:100%;display:block;}
 .success-toast.show{opacity:1;}
 
     * { touch-action: manipulation; }
+    .quick-btns{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
     button, label, .nav-btn, .iso, .img-select-trigger, .stack-toggle, .upload-zone { cursor: pointer; -webkit-user-select: none; user-select: none; }
     input, textarea, select { -webkit-user-select: text; user-select: text; }
 </style>
@@ -256,8 +257,16 @@ img{max-width:100%;display:block;}
           <label for="profitshare">Profitshare</label>
         </div>
         <div class="grid2">
-          <div class="field"><label>Einkaufspreis</label><select class="select" id="purchasePrice" required></select></div>
-          <div class="field"><label>Sonstiges</label><select class="select" id="shippingPrice"></select></div>
+          <div class="field">
+            <label>Einkaufspreis</label>
+            <select class="select" id="purchasePrice" required></select>
+            <div class="quick-btns" id="ekQuick"></div>
+          </div>
+          <div class="field">
+            <label>Sonstiges</label>
+            <select class="select" id="shippingPrice"></select>
+            <div class="quick-btns" id="sonstQuick"></div>
+          </div>
         </div>
         <div class="field"><label>Gruppe</label><select class="select" id="group" required onchange="onGroupChange()"></select></div>
         <div class="field"><label>Produkttyp</label><select class="select" id="productType" required onchange="onProductTypeChange()"><option value="">– Gruppe wählen –</option></select></div>
@@ -513,9 +522,16 @@ function fillSel(el, vals, ph) {
   el.innerHTML = `<option value="">${ph}</option>` + vals.map(v=>`<option value="${v}">${v}</option>`).join('');
 }
 function fillPrices() {
-  const o = Array.from({length:1001},(_,i)=>`<option value="${i}">${i} €</option>`).join('');
-  g('purchasePrice').innerHTML = o;
-  g('shippingPrice').innerHTML = o;
+  // Einkaufspreis: 0-50 in 5er Schritten, dann 55-500 in 5er Schritten
+  const ekVals = [];
+  for (let i = 0; i <= 50; i += 5)  ekVals.push(i);
+  for (let i = 55; i <= 500; i += 5) ekVals.push(i);
+  g('purchasePrice').innerHTML = ekVals.map(i=>`<option value="${i}">${i} €</option>`).join('');
+
+  // Sonstiges: 0-200 in 10er Schritten
+  const sonstVals = [];
+  for (let i = 0; i <= 200; i += 10) sonstVals.push(i);
+  g('shippingPrice').innerHTML = sonstVals.map(i=>`<option value="${i}">${i} €</option>`).join('');
   g('shippingPrice').value = '0';
 }
 function fillMasterDropdowns() {
@@ -1187,6 +1203,14 @@ fillPrices();
 initDemoCatalog();
 fillMasterDropdowns();
 render();
+// Schnellauswahl-Buttons
+(function(){
+  const ekBtns  = [0,5,10,15,20,25,30,35,40,45,50];
+  const sonstBtns = [0,10,20,30,40,50];
+  const style = 'padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;';
+  g('ekQuick').innerHTML    = ekBtns.map(v=>`<button type="button" style="${style}" onclick="g('purchasePrice').value='${v}'">${v}€</button>`).join('');
+  g('sonstQuick').innerHTML = sonstBtns.map(v=>`<button type="button" style="${style}" onclick="g('shippingPrice').value='${v}'">${v}€</button>`).join('');
+})();
 
 // Manifest ist jetzt extern als manifest.json
 </script>
