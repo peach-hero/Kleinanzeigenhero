@@ -11,29 +11,9 @@
   <meta name="apple-mobile-web-app-title" content="Kleinanzeigen Hero">
   <meta name="theme-color" content="#01696f">
   <meta name="description" content="Kleinanzeigen Hero – Stapel, Sets, Statistik">
+  <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%2301696f'/%3E%3Crect x='40' y='48' width='112' height='96' rx='20' fill='none' stroke='white' stroke-width='10'/%3E%3Cpath d='M64 80h64M64 104h40' stroke='white' stroke-width='10' stroke-linecap='round'/%3E%3Ccircle cx='136' cy='120' r='16' fill='white'/%3E%3C/svg%3E">
-  <script>
-    // Inline Manifest als Blob
-    const manifest = {
-      name: "Kleinanzeigen Hero",
-      short_name: "Artikel",
-      description: "Stapel · Sets · Statistik · Export",
-      start_url: ".",
-      display: "standalone",
-      background_color: "#f7f6f2",
-      theme_color: "#01696f",
-      orientation: "portrait-primary",
-      icons: [
-        { src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%2301696f'/%3E%3Crect x='40' y='48' width='112' height='96' rx='20' fill='none' stroke='white' stroke-width='10'/%3E%3Cpath d='M64 80h64M64 104h40' stroke='white' stroke-width='10' stroke-linecap='round'/%3E%3Ccircle cx='136' cy='120' r='16' fill='white'/%3E%3C/svg%3E", sizes: "192x192", type: "image/svg+xml" },
-        { src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%2301696f'/%3E%3Crect x='100' y='120' width='312' height='272' rx='48' fill='none' stroke='white' stroke-width='24'/%3E%3Cpath d='M168 208h176M168 272h112' stroke='white' stroke-width='24' stroke-linecap='round'/%3E%3Ccircle cx='368' cy='320' r='44' fill='white'/%3E%3C/svg%3E", sizes: "512x512", type: "image/svg+xml" }
-      ]
-    };
-    const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
-    const mUrl = URL.createObjectURL(blob);
-    const link = document.createElement('link');
-    link.rel = 'manifest'; link.href = mUrl;
-    document.head.appendChild(link);
-  </script>
+
   <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1114,18 +1094,7 @@ document.addEventListener('click', e => {
 // SERVICE WORKER (Offline-Fähigkeit)
 // ═══════════════════════════════════════════════════
 if ('serviceWorker' in navigator) {
-  const swCode = `
-    const CACHE = 'amp-v1';
-    self.addEventListener('install', e => {
-      e.waitUntil(caches.open(CACHE).then(c => c.addAll(['.'])));
-    });
-    self.addEventListener('fetch', e => {
-      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
-    });
-  `;
-  const swBlob = new Blob([swCode], {type:'text/javascript'});
-  const swUrl  = URL.createObjectURL(swBlob);
-  navigator.serviceWorker.register(swUrl).catch(()=>{});
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
 
 // ═══════════════════════════════════════════════════
@@ -1219,26 +1188,7 @@ initDemoCatalog();
 fillMasterDropdowns();
 render();
 
-// ── PWA MANIFEST (nach DOM ready) ─────────────────────────────────
-(function() {
-  const manifest = {
-    name:"Kleinanzeigen Hero",short_name:"Artikel",
-    description:"Stapel · Sets · Statistik · Export",
-    start_url:".",display:"standalone",
-    background_color:"#f7f6f2",theme_color:"#01696f",
-    orientation:"portrait-primary",
-    icons:[
-      {src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%2301696f'/%3E%3Crect x='40' y='48' width='112' height='96' rx='20' fill='none' stroke='white' stroke-width='10'/%3E%3Cpath d='M64 80h64M64 104h40' stroke='white' stroke-width='10' stroke-linecap='round'/%3E%3Ccircle cx='136' cy='120' r='16' fill='white'/%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml"},
-      {src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%2301696f'/%3E%3Crect x='100' y='120' width='312' height='272' rx='48' fill='none' stroke='white' stroke-width='24'/%3E%3Cpath d='M168 208h176M168 272h112' stroke='white' stroke-width='24' stroke-linecap='round'/%3E%3Ccircle cx='368' cy='320' r='44' fill='white'/%3E%3C/svg%3E",sizes:"512x512",type:"image/svg+xml"}
-    ]
-  };
-  try {
-    const blob = new Blob([JSON.stringify(manifest)],{type:'application/json'});
-    const link = document.createElement('link');
-    link.rel='manifest'; link.href=URL.createObjectURL(blob);
-    document.head.appendChild(link);
-  } catch(e){}
-})();
+// Manifest ist jetzt extern als manifest.json
 </script>
 </body>
 </html>
