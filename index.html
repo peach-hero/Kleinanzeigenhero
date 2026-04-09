@@ -190,7 +190,7 @@ img{max-width:100%;display:block;}
 .success-toast.show{opacity:1;}
 
     * { touch-action: manipulation; }
-    .quick-btns{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+    .quick-btns{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;justify-content:center;}
     button, label, .nav-btn, .iso, .img-select-trigger, .stack-toggle, .upload-zone { cursor: pointer; -webkit-user-select: none; user-select: none; }
     input, textarea, select { -webkit-user-select: text; user-select: text; }
 </style>
@@ -224,7 +224,7 @@ img{max-width:100%;display:block;}
 <!-- PAGES -->
 <div class="scroll-container">
 <!-- ① STATISTIK -->
-<section class="page active" id="page-stats">
+<section class="page" id="page-stats">
   <div class="page-head">
     <h2>Statistik</h2>
     <div class="sub">Auswertung nach Jahr</div>
@@ -244,7 +244,7 @@ img{max-width:100%;display:block;}
 </section>
 
 <!-- ② NEU -->
-<section class="page" id="page-new">
+<section class="page active" id="page-new">
   <div class="page-head">
     <h2>Neuer Artikel</h2>
     <div class="sub">Gleiche Artikel werden automatisch gestapelt.</div>
@@ -256,21 +256,18 @@ img{max-width:100%;display:block;}
           <input id="profitshare" type="checkbox">
           <label for="profitshare">Profitshare</label>
         </div>
-        <div class="grid2">
-          <div class="field">
-            <label>Einkaufspreis</label>
-            <select class="select" id="purchasePrice" required></select>
-            <div class="quick-btns" id="ekQuick"></div>
-          </div>
-          <div class="field">
-            <label>Sonstiges</label>
-            <select class="select" id="shippingPrice"></select>
-            <div class="quick-btns" id="sonstQuick"></div>
-          </div>
+        <div class="field">
+          <label>Einkaufspreis</label>
+          <select class="select" id="purchasePrice" required></select>
+          <div class="quick-btns" id="ekQuick" style="justify-content:center;"></div>
+        </div>
+        <div class="field">
+          <label>Sonstiges</label>
+          <select class="select" id="shippingPrice"></select>
         </div>
         <div class="field"><label>Gruppe</label><select class="select" id="group" required onchange="onGroupChange()"></select></div>
         <div class="field"><label>Produkttyp</label><select class="select" id="productType" required onchange="onProductTypeChange()"><option value="">– Gruppe wählen –</option></select></div>
-        <div class="field"><label>Artikelname</label><select class="select" id="article" required><option value="">– Produkttyp wählen –</option></select></div>
+        <div class="field"><label>Artikelname <span style="color:var(--faint);font-weight:400;">(optional)</span></label><select class="select" id="article"><option value="">– optional –</option></select></div>
         <div class="grid2">
           <div class="field"><label>Größe</label><select class="select" id="size"></select></div>
           <div class="field"><label>Farbe</label><select class="select" id="color"></select></div>
@@ -278,7 +275,7 @@ img{max-width:100%;display:block;}
         <div class="field"><label>Mängel <span style="color:var(--faint);font-weight:400;">(optional)</span></label><textarea class="textarea" id="defect" placeholder="z.B. Kratzer, fehlende Schraube…" style="min-height:60px;"></textarea></div>
         <!-- BILD -->
         <div class="field">
-          <label>Bild</label>
+          <label>Bild <span style="color:var(--faint);font-weight:400;">(optional)</span></label>
           <div class="img-select-wrap" id="imgWrap">
             <div class="img-select-trigger" id="imgTrigger">
               <div class="isp" id="imgPreview">📷</div>
@@ -301,7 +298,7 @@ img{max-width:100%;display:block;}
             <div style="font-size:var(--text-xs);color:var(--faint);margin-top:var(--sp1);" id="uploadPreviewLbl"></div>
           </div>
         </div>
-        <div class="field"><label>Kommentar</label><textarea class="textarea" id="comment"></textarea></div>
+        <div class="field"><label>Kommentar <span style="color:var(--faint);font-weight:400;">(optional)</span></label><textarea class="textarea" id="comment"></textarea></div>
         <button type="submit" class="btn btn-primary btn-full">✚ Eintrag hinzufügen</button>
       </form>
     </div>
@@ -312,7 +309,7 @@ img{max-width:100%;display:block;}
 <section class="page" id="page-open">
   <div class="page-head">
     <h2>Offene Artikel</h2>
-    <div class="sub">Einzelne Artikel wählen → Als Set verkaufen</div>
+    <div class="sub">Einzelne Artikel wählen → Verkaufen</div>
   </div>
   <!-- SET BUILDER -->
   <div class="set-builder" id="setBuilder">
@@ -338,7 +335,7 @@ img{max-width:100%;display:block;}
       </div>
       <div class="muted" id="selSummary">0 Artikel gewählt.</div>
       <div class="grid2">
-        <button id="createSetBtn" class="btn btn-primary">✓ Als Set verkaufen</button>
+        <button id="createSetBtn" class="btn btn-primary">✓ Verkaufen</button>
         <button id="clearSelBtn" class="btn btn-ghost">Auswahl leeren</button>
       </div>
     </div>
@@ -354,7 +351,7 @@ img{max-width:100%;display:block;}
   </div>
   <div class="card" style="margin-bottom:var(--sp4);">
     <div class="card-body">
-      <input class="input" id="soldSearch" type="text" placeholder="🔍 Setname suchen…">
+      <input class="input" id="soldSearch" type="text" placeholder="🔍 Suchen…">
     </div>
   </div>
   <div id="soldContent"></div>
@@ -370,8 +367,10 @@ img{max-width:100%;display:block;}
     <div class="card-head"><h3 class="card-title">Neuer Eintrag</h3></div>
     <div class="card-body">
       <form id="masterForm" class="grid">
-        <div class="field"><label>Kategorie</label>
-          <select class="select" id="masterType" onchange="onMasterTypeChange()">
+
+        <div class="field">
+          <label>Kategorie</label>
+          <select class="select" id="masterType">
             <option value="groups">Gruppe</option>
             <option value="producttypes">Produkttyp</option>
             <option value="articles">Artikelname</option>
@@ -380,22 +379,22 @@ img{max-width:100%;display:block;}
             <option value="images">Bilder (Upload)</option>
           </select>
         </div>
-        <!-- Kontextfelder je nach Kategorie -->
-        <div class="field" id="masterGrpField" style="display:none;">
+
+        <div class="field mf-grp" style="display:none;">
           <label>Gruppe</label>
-          <input class="input" id="masterGroup" type="text" list="masterGroupList" placeholder="z.B. Besta">
-          <datalist id="masterGroupList"></datalist>
+          <select class="select" id="masterGroup"></select>
         </div>
-        <div class="field" id="masterProdTypeField" style="display:none;">
+
+        <div class="field mf-typ" style="display:none;">
           <label>Produkttyp</label>
-          <input class="input" id="masterProdType" type="text" list="masterProdTypeList" placeholder="z.B. Tür">
-          <datalist id="masterProdTypeList"></datalist>
+          <select class="select" id="masterProdType"></select>
         </div>
-        <div class="field" id="masterValueField">
-          <label id="masterValueLabel">Wert</label>
-          <input class="input" id="masterValue" type="text" placeholder="">
+
+        <div class="field mf-val">
+          <label id="masterValueLabel">Gruppenname</label>
+          <input class="input" id="masterValue" type="text" placeholder="z.B. Besta" autocomplete="off">
         </div>
-        <!-- Bild Upload -->
+
         <label class="upload-zone" id="masterImgZone" for="masterImgInput" style="display:none;"
           ondragover="event.preventDefault();this.classList.add('drag')"
           ondragleave="this.classList.remove('drag')"
@@ -404,7 +403,11 @@ img{max-width:100%;display:block;}
           <span class="uz-txt">Bilder hochladen (mehrere möglich)</span>
           <input type="file" id="masterImgInput" accept="image/*" multiple style="display:none">
         </label>
-        <button type="submit" class="btn btn-primary btn-full" id="masterSubmitBtn">Hinzufügen</button>
+
+        <div style="display:flex;gap:var(--sp3);">
+  <button type="submit" class="btn btn-primary" style="flex:1;">Hinzufügen</button>
+  <button type="button" class="btn btn-ghost" onclick="resetItemForm()" style="flex:0 0 auto;padding:0 var(--sp5);">↺ Reset</button>
+</div>
       </form>
     </div>
   </div>
@@ -426,8 +429,8 @@ img{max-width:100%;display:block;}
 </div><!-- end scroll-container -->
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
-  <button class="nav-btn active" data-page="stats"><span class="nav-icon">📊</span>Statistik</button>
-  <button class="nav-btn" data-page="new"><span class="nav-icon">✚</span>Neu</button>
+  <button class="nav-btn" data-page="stats"><span class="nav-icon">📊</span>Statistik</button>
+  <button class="nav-btn active" data-page="new"><span class="nav-icon">✚</span>Neu</button>
   <button class="nav-btn" data-page="open"><span class="nav-icon">📦</span>Offen</button>
   <button class="nav-btn" data-page="sold"><span class="nav-icon">💰</span>Verkauft</button>
   <button class="nav-btn" data-page="master"><span class="nav-icon">⚙️</span>Stammdaten</button>
@@ -438,7 +441,7 @@ img{max-width:100%;display:block;}
 // STATE
 // ═══════════════════════════════════════════════════
 const state = {
-  page: 'stats',
+  page: 'new',
   sel: new Set(),
   open: [],
   sold: [],
@@ -462,7 +465,28 @@ function load() {
     state.open   = d.open   || [];
     state.sold   = d.sold   || [];
     state.master = { images:[], catalog:{}, ...(d.master||{}) };
+    if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
     state.year   = d.year   || state.year;
+    // Migration: productType in alten Einträgen ergänzen
+    const migrateProductType = (article, group) => {
+      const cat = state.master.catalog || {};
+      let found = '';
+      Object.entries(cat).forEach(([grp, pts])=>{
+        if (grp !== group) return;
+        Object.entries(pts||{}).forEach(([pt, ptData])=>{
+          if ((ptData.articles||[]).includes(article)) found = pt;
+        });
+      });
+      return found;
+    };
+    state.open.forEach(item=>{
+      if (!item.productType) item.productType = migrateProductType(item.article, item.group);
+    });
+    state.sold.forEach(set=>{
+      (set.items||[]).forEach(item=>{
+        if (!item.productType) item.productType = migrateProductType(item.article, item.group);
+      });
+    });
   } catch(e) {}
 }
 
@@ -487,6 +511,7 @@ function importData(file) {
       state.open   = d.open   || [];
       state.sold   = d.sold   || [];
       state.master = { images:[], catalog:{}, ...(d.master||{}) };
+    if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
       state.year   = d.year   || state.year;
       save();
       fillMasterDropdowns();
@@ -522,15 +547,15 @@ function fillSel(el, vals, ph) {
   el.innerHTML = `<option value="">${ph}</option>` + vals.map(v=>`<option value="${v}">${v}</option>`).join('');
 }
 function fillPrices() {
-  // Einkaufspreis: 0-50 in 5er Schritten, dann 55-500 in 5er Schritten
+  // Einkaufspreis: 0-100 in 5er Schritten, ab 105 in 5er Schritten
   const ekVals = [];
-  for (let i = 0; i <= 50; i += 5)  ekVals.push(i);
-  for (let i = 55; i <= 500; i += 5) ekVals.push(i);
+  for (let i = 0; i <= 100; i += 5) ekVals.push(i);
+  for (let i = 105; i <= 500; i += 5) ekVals.push(i);
   g('purchasePrice').innerHTML = ekVals.map(i=>`<option value="${i}">${i} €</option>`).join('');
 
-  // Sonstiges: 0-200 in 10er Schritten
+  // Sonstiges: 0-200 in 1er Schritten
   const sonstVals = [];
-  for (let i = 0; i <= 200; i += 10) sonstVals.push(i);
+  for (let i = 0; i <= 200; i += 1) sonstVals.push(i);
   g('shippingPrice').innerHTML = sonstVals.map(i=>`<option value="${i}">${i} €</option>`).join('');
   g('shippingPrice').value = '0';
 }
@@ -619,37 +644,34 @@ function handleUploadFiles(files) {
 }
 
 // Stammdaten Bild Upload
-g('masterType').addEventListener('change', function() {
-  g('masterImgZone').style.display = this.value === 'images' ? 'flex' : 'none';
-});
-function onMasterTypeChange() {
+function updateMasterForm() {
   const t = g('masterType').value;
-  const showGrp  = ['producttypes','articles','sizes','colors'].includes(t);
-  const showTyp  = ['articles','sizes','colors'].includes(t);
-  const showVal  = t !== 'images';
-  g('masterGrpField').style.display      = showGrp ? 'grid' : 'none';
-  g('masterProdTypeField').style.display = showTyp ? 'grid' : 'none';
-  g('masterValueField').style.display    = showVal ? 'grid' : 'none';
-  g('masterImgZone').style.display       = t === 'images' ? 'flex' : 'none';
-  g('masterSubmitBtn').style.display     = t === 'images' ? 'none' : 'flex';
-  const labels = {groups:'Gruppenname',producttypes:'Produkttyp-Name',articles:'Artikelname',sizes:'Größe',colors:'Farbe'};
-  g('masterValueLabel').textContent = labels[t]||'Wert';
-  // Datalist für Gruppe füllen
-  if (showGrp) {
-    g('masterGroupList').innerHTML = Object.keys(state.master.catalog||{}).map(g=>`<option value="${g}">`).join('');
-  }
-  if (showTyp) {
-    const grp = g('masterGroup').value;
-    g('masterProdTypeList').innerHTML = Object.keys(state.master.catalog[grp]||{}).map(t=>`<option value="${t}">`).join('');
-  }
+  const needGrp = ['producttypes','articles','sizes','colors'].includes(t);
+  const needTyp = ['articles','sizes','colors'].includes(t);
+  const needVal = t !== 'images';
+
+  // Gruppen-Dropdown füllen
+  const groups = Object.keys(state.master.catalog||{}).sort((a,b)=>a.localeCompare(b,'de'));
+  g('masterGroup').innerHTML = '<option value="">– wählen –</option>' + groups.map(g=>`<option value="${g}">${g}</option>`).join('');
+
+  // Produkttyp-Dropdown: abhängig von gewählter Gruppe
+  const selGrp = g('masterGroup').value;
+  const typs = selGrp ? Object.keys(state.master.catalog[selGrp]||{}).sort((a,b)=>a.localeCompare(b,'de')) : [];
+  g('masterProdType').innerHTML = '<option value="">– wählen –</option>' + typs.map(t=>`<option value="${t}">${t}</option>`).join('');
+
+  document.querySelectorAll('.mf-grp').forEach(el => el.style.display = needGrp ? 'grid' : 'none');
+  document.querySelectorAll('.mf-typ').forEach(el => el.style.display = needTyp ? 'grid' : 'none');
+  document.querySelectorAll('.mf-val').forEach(el => el.style.display = needVal ? 'grid' : 'none');
+  g('masterImgZone').style.display = t === 'images' ? 'flex' : 'none';
+
+  const labels = {groups:'Gruppenname', producttypes:'Produkttyp-Name', articles:'Artikelname', sizes:'Größe', colors:'Farbe'};
+  const ph     = {groups:'z.B. Besta', producttypes:'z.B. Tür', articles:'z.B. Selsviken', sizes:'z.B. 64×64', colors:'z.B. Schwarz'};
+  if (g('masterValueLabel')) g('masterValueLabel').textContent = labels[t]||'Wert';
+  if (g('masterValue'))      g('masterValue').placeholder = ph[t]||'';
 }
-// Datalist Produkttyp live aktualisieren
-document.addEventListener('input', e => {
-  if (e.target.id === 'masterGroup') {
-    const grp = e.target.value;
-    g('masterProdTypeList').innerHTML = Object.keys(state.master.catalog[grp]||{}).map(t=>`<option value="${t}">`).join('');
-  }
-});
+
+g('masterType').addEventListener('change', updateMasterForm);
+g('masterGroup').addEventListener('change', updateMasterForm);
 g('masterImgInput').addEventListener('change', function() { handleMasterImgFiles(this.files); });
 function handleMasterImgDrop(e) {
   e.preventDefault(); e.currentTarget.classList.remove('drag');
@@ -689,7 +711,7 @@ function addOrStack(item) {
   const ex = state.open.find(i=>stackKey(i)===key);
   const inst = { id:crypto.randomUUID(), image:item.image, comment:item.comment, defect:item.defect, entryDate:item.entryDate, profitshare:item.profitshare, purchasePrice:item.purchasePrice, shippingPrice:item.shippingPrice };
   if (ex) { ex.instances.push(inst); }
-  else { state.open.unshift({ id:crypto.randomUUID(), group:item.group, article:item.article, size:item.size, color:item.color, purchasePrice:item.purchasePrice, shippingPrice:item.shippingPrice, profitshare:item.profitshare, instances:[inst] }); }
+  else { state.open.unshift({ id:crypto.randomUUID(), group:item.group, productType:item.productType, article:item.article, size:item.size, color:item.color, purchasePrice:item.purchasePrice, shippingPrice:item.shippingPrice, profitshare:item.profitshare, instances:[inst] }); }
 }
 
 // ═══════════════════════════════════════════════════
@@ -707,8 +729,9 @@ function renderStats() {
   const totalRevenue = ys.reduce((s,set)=>s+set.salePrice,0);
   const artCount = new Map(), artProfit = new Map();
   ys.forEach(set=>set.items.forEach(item=>{
-    artCount.set(item.article,(artCount.get(item.article)||0)+(item.menge||1));
-    artProfit.set(item.article,(artProfit.get(item.article)||0)+(set.netProfit/(set.items.length||1)));
+    const artLabel = [item.productType, item.article].filter(Boolean).join(' · ') || item.article || '–';
+    artCount.set(artLabel,(artCount.get(artLabel)||0)+(item.menge||1));
+    artProfit.set(artLabel,(artProfit.get(artLabel)||0)+(set.netProfit/(set.items.length||1)));
   }));
   const topCount  = [...artCount.entries()].sort((a,b)=>b[1]-a[1])[0];
   const topProfit = [...artProfit.entries()].sort((a,b)=>b[1]-a[1])[0];
@@ -732,9 +755,15 @@ function renderStats() {
     {k:'Top Monat', v:topMonth?topMonth[0].split(' ')[0]:'-'},
   ].map(c=>`<div class="stat-card"><div class="k">${c.k}</div><div class="v">${c.v}</div></div>`).join('');
 
+  // Profitshare Gewinn pro Monat berechnen
+  const monthPsProfit = new Map();
+  ys.filter(s=>s.hasProfitshare).forEach(set=>{
+    const m = fmtMonth(set.saleDate);
+    monthPsProfit.set(m,(monthPsProfit.get(m)||0)+set.netProfit);
+  });
   g('monthTable').innerHTML = months.length
-    ? `<thead><tr><th>Monat</th><th>Art.</th><th>Gewinn</th></tr></thead><tbody>${months.map(([m,d])=>`<tr><td>${m}</td><td>${d.items.length}</td><td>${euro(d.profit)}</td></tr>`).join('')}</tbody>`
-    : '<tbody><tr><td colspan="3">Keine Verkäufe.</td></tr></tbody>';
+    ? `<thead><tr><th>Monat</th><th>Art.</th><th>Gewinn</th><th>davon Profitshare</th></tr></thead><tbody>${months.map(([m,d])=>`<tr><td>${m}</td><td>${d.items.length}</td><td>${euro(d.profit)}</td><td>${monthPsProfit.has(m)?euro(monthPsProfit.get(m)):'-'}</td></tr>`).join('')}</tbody>`
+    : '<tbody><tr><td colspan="4">Keine Verkäufe.</td></tr></tbody>';
 
   const avgUnit = totalItems ? totalProfit/totalItems : 0;
   const psCount = ys.filter(s=>s.hasProfitshare).length;
@@ -762,36 +791,50 @@ function renderOpen() {
   g('setBuilder').classList.toggle('show', state.sel.size>0);
   g('selSummary').textContent = `${state.sel.size} Artikel gewählt.`;
 
-  const grouped = {};
-  state.open.forEach(item=>{ (grouped[item.group]=grouped[item.group]||[]).push(item); });
-  const groups = Object.entries(grouped).sort((a,b)=>a[0].localeCompare(b[0],'de'));
+  if (!state.open.length) { g('openContent').innerHTML='<div class="empty">Keine offenen Artikel.<br>Über „Neu" Artikel hinzufügen.</div>'; return; }
 
-  if (!groups.length) { g('openContent').innerHTML='<div class="empty">Keine offenen Artikel.<br>Über „Neu" Artikel hinzufügen.</div>'; return; }
+  // Ebene 1: Gruppe › Produkttyp
+  const byGrpPT = {};
+  state.open.forEach(item=>{
+    const grpKey = item.productType ? (item.group||'–') + ' › ' + item.productType : (item.group||'–');
+    (byGrpPT[grpKey] = byGrpPT[grpKey]||[]).push(item);
+  });
+  const grpPTEntries = Object.entries(byGrpPT).sort((a,b)=>a[0].localeCompare(b[0],'de'));
 
-  g('openContent').innerHTML = groups.map(([grp, items])=>`
-    <div style="margin-bottom:var(--sp5);">
+  g('openContent').innerHTML = grpPTEntries.map(([grpPT, items])=>{
+    // Ebene 2: gleiche Artikel (Artikelname+Farbe+Größe) stacken
+    const articleMap = {};
+    items.forEach(item=>{
+      const artKey = [item.article||'–', item.color||'–', item.size||'–'].join('||');
+      (articleMap[artKey] = articleMap[artKey]||[]).push(item);
+    });
+    const totalPcs = items.reduce((s,i)=>s+i.instances.length, 0);
+
+    return `<div style="margin-bottom:var(--sp5);">
       <div class="group-head">
-        <h3 class="group-title">${grp}</h3>
-        <span class="chip">${items.reduce((s,i)=>s+i.instances.length,0)} Stück</span>
+        <h3 class="group-title">${grpPT}</h3>
+        <span class="chip">${totalPcs} Stück</span>
       </div>
-      ${items.map(item=>{
-        const menge    = item.instances.length;
-        const img      = item.instances.find(x=>x.image)?.image||'';
-        const hasPsh   = item.profitshare||item.instances.some(x=>x.profitshare);
-        const selCount = item.instances.filter(inst=>state.sel.has(item.id+'::'+inst.id)).length;
-        const einzel   = purchase(item);
+      ${Object.entries(articleMap).map(([artKey, artItems])=>{
+        const allInst  = artItems.flatMap(item=>item.instances.map(inst=>({...inst,_itemId:item.id})));
+        const menge    = allInst.length;
+        const img      = allInst.find(x=>x.image)?.image||'';
+        const firstItem = artItems[0];
+        const hasPsh   = allInst.some(x=>x.profitshare);
+        const selCount = allInst.filter(inst=>state.sel.has(inst._itemId+'::'+inst.id)).length;
+        const einzel   = purchase(firstItem);
+        const sdId     = 'sdA_' + Math.abs([grpPT,artKey].join('').split('').reduce((h,c)=>Math.imul(31,h)+c.charCodeAt(0)|0,0));
         return `<div class="item-card">
           <div class="item-card-main">
             ${menge===1
-              ?`<input class="item-chk" type="checkbox" data-chk-inst="${item.id}::${item.instances[0].id}" ${state.sel.has(item.id+'::'+item.instances[0].id)?'checked':''}>`
+              ?`<input class="item-chk" type="checkbox" data-chk-inst="${firstItem.id}::${allInst[0].id}" ${state.sel.has(firstItem.id+'::'+allInst[0].id)?'checked':''}>`
               :`<div></div>`}
             <div class="thumb">${img?`<img src="${img}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
             <div class="item-info">
-              <div class="item-title">${item.article}</div>
-              ${item.productType?`<div style="font-size:var(--text-xs);color:var(--muted);">${item.group} › ${item.productType}</div>`:''}
+              ${firstItem.productType?`<div style="font-size:var(--text-xs);color:var(--muted);margin-bottom:2px;">${firstItem.productType}</div>`:''}<div class="item-title">${firstItem.article||'–'}</div>
               <div class="chips">
-                <span class="chip">Gr. ${item.size||'-'}</span>
-                <span class="chip">${item.color||'-'}</span>
+                <span class="chip">Gr. ${firstItem.size||'-'}</span>
+                <span class="chip">${firstItem.color||'-'}</span>
                 ${menge>1?`<span class="chip stack">× ${menge}</span>`:''}
                 ${hasPsh?'<span class="chip ps">Profitshare</span>':''}
                 ${selCount>0?`<span class="chip sel">✓ ${selCount}</span>`:''}
@@ -801,25 +844,28 @@ function renderOpen() {
           <div class="item-footer">
             <div class="item-price-row">Einzel: ${euro(einzel)} · <b>Gesamt: ${euro(menge*einzel)}</b></div>
             <div class="item-actions">
-              <button class="btn btn-danger" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" data-del="${item.id}">🗑</button>
+              ${artItems.map(it=>`<button class="btn btn-danger" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" data-del="${it.id}">🗑</button>`).join('')}
             </div>
           </div>
-          ${menge>1?`
-          <button class="stack-toggle" data-tog="${item.id}">± Details (${menge}) ${selCount>0?`· ✓ ${selCount} gewählt`:''}</button>
-          <div class="stack-details" id="sd-${item.id}">
-            ${item.instances.map((inst,i)=>`
+          <button class="stack-toggle" data-tog="${sdId}">(${menge})${selCount>0?` · ✓ ${selCount}`:''}</button>
+          <div class="stack-details" id="sd-${sdId}">
+            ${artItems.flatMap((item)=>item.instances.map((inst,i)=>`
               <div class="stack-inst">
                 <input class="item-chk" type="checkbox" data-chk-inst="${item.id}::${inst.id}" ${state.sel.has(item.id+'::'+inst.id)?'checked':''}>
-                <div class="inst-thumb">${inst.image?`<img src="${inst.image}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
+                <div class="inst-thumb" onclick="triggerInstImgUpload('${item.id}','${inst.id}')" title="Bild hochladen" style="cursor:pointer;position:relative;">
+                  ${inst.image?`<img src="${inst.image}" loading="lazy" onerror="this.parentElement.innerHTML='📷'">`:`<span style="font-size:1.4rem;">📷</span>`}
+                </div>
                 <div>
                   <b>Eintrag ${i+1}</b> · ${fmtDate(inst.entryDate)}<br>
                   <span class="muted">${inst.comment||'–'} ${inst.defect?'· ⚠ '+inst.defect:''} ${inst.profitshare?'· PS':''} · EK ${euro(inst.purchasePrice)}</span>
                 </div>
                 <button class="btn btn-danger" style="min-height:32px;padding:.2rem .5rem;font-size:var(--text-xs);" data-del-inst="${item.id}" data-inst-id="${inst.id}">🗑</button>
-              </div>`).join('')}
-          </div>`:''}</div>`;
+              </div>`)).join('')}
+          </div>
+        </div>`;
       }).join('')}
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ═══════════════════════════════════════════════════
@@ -952,55 +998,97 @@ g('itemForm').addEventListener('submit', e => {
     defect:g('defect').value,
     entryDate:today()
   };
-  if (!item.group || !item.productType || !item.article) return alert('Bitte Gruppe, Produkttyp und Artikelname wählen.');
+  if (!item.group || !item.productType) return alert('Bitte Gruppe und Produkttyp wählen.');
   addOrStack(item);
-  g('itemForm').reset();
-  g('shippingPrice').value='0';
-  g('productType').innerHTML='<option value="">– Gruppe wählen –</option>';
-  g('article').innerHTML='<option value="">– Produkttyp wählen –</option>';
-  g('size').innerHTML='<option value="">–</option>';
-  g('color').innerHTML='<option value="">–</option>';
-  setImgVal('');
-  g('uploadPreview').classList.remove('show');
   save();
   toast('Artikel hinzugefügt ✓');
   state.page='open'; render();
 });
 
 // Stammdaten
-g('masterForm').addEventListener('submit', e => {
+// ── STAMMDATEN FORMULAR ─────────────────────────────────────────
+function masterSubmit(e) {
   e.preventDefault();
-  const type = g('masterType').value;
-  const val  = g('masterValue').value.trim();
-  const grp  = g('masterGroup').value.trim();
-  const typ  = g('masterProdType').value.trim();
+  try {
+    const type = document.getElementById('masterType').value;
+    const val  = document.getElementById('masterValue').value.trim();
+    const grp  = document.getElementById('masterGroup').value;
+    const typ  = document.getElementById('masterProdType').value;
 
-  if (type === 'images') { return; } // Bilder via Upload
-  if (!val) return alert('Bitte Wert eingeben.');
+    if (!state.master.catalog) state.master.catalog = {};
 
-  if (type === 'groups') {
-    if (!state.master.catalog[val]) { state.master.catalog[val] = {}; }
-    else return alert('Gruppe existiert bereits.');
-  } else if (type === 'producttypes') {
-    if (!grp) return alert('Bitte Gruppe angeben.');
-    if (!state.master.catalog[grp]) return alert('Gruppe nicht gefunden.');
-    if (state.master.catalog[grp][val]) return alert('Produkttyp existiert bereits.');
-    state.master.catalog[grp][val] = { articles:[], sizes:[], colors:[] };
-  } else if (['articles','sizes','colors'].includes(type)) {
-    if (!grp) return alert('Bitte Gruppe angeben.');
-    if (!typ) return alert('Bitte Produkttyp angeben.');
-    if (!state.master.catalog[grp]?.[typ]) return alert('Gruppe/Produkttyp nicht gefunden.');
-    const arr = state.master.catalog[grp][typ][type];
-    if (arr.includes(val)) return alert('Wert existiert bereits.');
-    arr.push(val);
-    arr.sort((a,b)=>a.localeCompare(b,'de'));
+    if (type === 'images') return;
+
+    if (type === 'groups') {
+      if (!val) return alert('Bitte Gruppenname eingeben.');
+      if (state.master.catalog[val] !== undefined) return alert('Gruppe existiert bereits.');
+      state.master.catalog[val] = {};
+    }
+    else if (type === 'producttypes') {
+      if (!grp) return alert('Bitte zuerst eine Gruppe wählen.');
+      if (!val) return alert('Bitte Produkttyp-Name eingeben.');
+      if (!state.master.catalog[grp]) state.master.catalog[grp] = {};
+      if (state.master.catalog[grp][val] !== undefined) return alert('Produkttyp existiert bereits.');
+      state.master.catalog[grp][val] = { articles:[], sizes:[], colors:[] };
+    }
+    else if (type === 'articles' || type === 'sizes' || type === 'colors') {
+      if (!grp) return alert('Bitte zuerst eine Gruppe wählen.');
+      if (!typ) return alert('Bitte zuerst einen Produkttyp wählen.');
+      if (!val) return alert('Bitte Wert eingeben.');
+      if (!state.master.catalog[grp]) return alert('Gruppe nicht gefunden.');
+      if (!state.master.catalog[grp][typ]) return alert('Produkttyp nicht gefunden.');
+      const arr = state.master.catalog[grp][typ][type];
+      if (!arr) return alert('Fehler: Feld nicht gefunden.');
+      if (arr.includes(val)) return alert('Wert existiert bereits.');
+      arr.push(val);
+      arr.sort((a,b) => a.localeCompare(b, 'de'));
+    }
+
+    document.getElementById('masterValue').value = '';
+    updateMasterForm();
+    fillMasterDropdowns();
+    save();
+    renderMaster();
+    toast('Eingetragen ✓');
+  } catch(err) {
+    alert('Fehler: ' + err.message);
   }
+}
+document.getElementById('masterForm').addEventListener('submit', masterSubmit);
 
-  g('masterValue').value = '';
-  fillMasterDropdowns();
-  save(); renderMaster();
-  toast('Eingetragen ✓');
-});
+// ── STAMMDATEN FORMULAR ANZEIGE ──────────────────────────────────
+function updateMasterForm() {
+  const type = document.getElementById('masterType').value;
+  const needGrp = ['producttypes','articles','sizes','colors'].includes(type);
+  const needTyp = ['articles','sizes','colors'].includes(type);
+
+  // Gruppe-Dropdown füllen
+  const groups = Object.keys(state.master.catalog || {}).sort((a,b)=>a.localeCompare(b,'de'));
+  const mGrp = document.getElementById('masterGroup');
+  const curGrp = mGrp.value;
+  mGrp.innerHTML = '<option value="">– Gruppe wählen –</option>' + groups.map(g=>`<option value="${g}"${g===curGrp?' selected':''}>${g}</option>`).join('');
+
+  // Produkttyp-Dropdown füllen
+  const selGrp = mGrp.value;
+  const typs = selGrp ? Object.keys(state.master.catalog[selGrp]||{}).sort((a,b)=>a.localeCompare(b,'de')) : [];
+  const mTyp = document.getElementById('masterProdType');
+  const curTyp = mTyp.value;
+  mTyp.innerHTML = '<option value="">– Produkttyp wählen –</option>' + typs.map(t=>`<option value="${t}"${t===curTyp?' selected':''}>${t}</option>`).join('');
+
+  // Felder ein-/ausblenden
+  document.querySelectorAll('.mf-grp').forEach(el => el.style.display = needGrp ? 'grid' : 'none');
+  document.querySelectorAll('.mf-typ').forEach(el => el.style.display = needTyp ? 'grid' : 'none');
+  document.querySelectorAll('.mf-val').forEach(el => el.style.display = type !== 'images' ? 'grid' : 'none');
+  document.getElementById('masterImgZone').style.display = type === 'images' ? 'flex' : 'none';
+
+  const labels = {groups:'Gruppenname', producttypes:'Produkttyp-Name', articles:'Artikelname', sizes:'Größe', colors:'Farbe'};
+  const placeholders = {groups:'z.B. Besta', producttypes:'z.B. Tür', articles:'z.B. Selsviken', sizes:'z.B. 64×64', colors:'z.B. Schwarz'};
+  document.getElementById('masterValueLabel').textContent = labels[type] || 'Wert';
+  document.getElementById('masterValue').placeholder = placeholders[type] || '';
+}
+
+document.getElementById('masterType').addEventListener('change', updateMasterForm);
+document.getElementById('masterGroup').addEventListener('change', updateMasterForm);
 
 // Set verkaufen
 g('createSetBtn').addEventListener('click', () => {
@@ -1022,7 +1110,6 @@ g('createSetBtn').addEventListener('click', () => {
   });
 
   let setName = g('setName').value.trim();
-  if (!setName) setName = byArticle.size===1 ? selPairs[0].item.article : [...byArticle.values()].map(e=>e.item.article).join(' + ');
 
   const purchaseTotal = selPairs.reduce((s,{inst})=>s+(+inst.purchasePrice||0)+(+inst.shippingPrice||0),0);
   const rawProfit = sp - purchaseTotal;
@@ -1039,7 +1126,7 @@ g('createSetBtn').addEventListener('click', () => {
     id:crypto.randomUUID(), setName, salePrice:sp, purchaseTotal, netProfit,
     saleDate:today(), hasProfitshare:psSome,
     previewImage: g('setImgData').value || selPairs.find(({inst})=>inst.image)?.inst.image||'',
-    items:[...byArticle.values()].map(e=>({article:e.item.article,group:e.item.group,size:e.item.size,color:e.item.color,menge:e.insts.length}))
+    items:[...byArticle.values()].map(e=>({article:e.item.article,productType:e.item.productType||'',group:e.item.group,size:e.item.size,color:e.item.color,menge:e.insts.length}))
   });
   byArticle.forEach(({item,insts})=>{
     const rmIds = new Set(insts.map(x=>x.id));
@@ -1202,17 +1289,59 @@ load();
 fillPrices();
 initDemoCatalog();
 fillMasterDropdowns();
+updateMasterForm();
 render();
 // Schnellauswahl-Buttons
 (function(){
-  const ekBtns  = [0,5,10,15,20,25,30,35,40,45,50];
-  const sonstBtns = [0,10,20,30,40,50];
+  // 1,2,3,4 dann 5,10,15...100
+  const ekBtns = [1,2,3,4,5,10,15,20,25,30,35,40];
   const style = 'padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;';
-  g('ekQuick').innerHTML    = ekBtns.map(v=>`<button type="button" style="${style}" onclick="g('purchasePrice').value='${v}'">${v}€</button>`).join('');
-  g('sonstQuick').innerHTML = sonstBtns.map(v=>`<button type="button" style="${style}" onclick="g('shippingPrice').value='${v}'">${v}€</button>`).join('');
+  g('ekQuick').innerHTML = ekBtns.map(v=>`<button type="button" style="${style}" onclick="g('purchasePrice').value='${v}'">${v}€</button>`).join('');
 })();
 
 // Manifest ist jetzt extern als manifest.json
+</script>
+
+<input type="file" id="instImgInput" accept="image/*" style="display:none">
+<script>
+let _instImgItemId = null, _instImgInstId = null;
+
+function triggerInstImgUpload(itemId, instId) {
+  _instImgItemId = itemId;
+  _instImgInstId = instId;
+  document.getElementById('instImgInput').click();
+}
+
+document.getElementById('instImgInput').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const url = e.target.result;
+    const item = state.open.find(i => i.id === _instImgItemId);
+    if (!item) return;
+    const inst = item.instances.find(x => x.id === _instImgInstId);
+    if (!inst) return;
+    inst.image = url;
+    save();
+    renderOpen();
+    toast('Bild gespeichert ✓');
+  };
+  reader.readAsDataURL(file);
+  this.value = '';
+});
+
+function resetItemForm() {
+  g('itemForm').reset();
+  g('shippingPrice').value='0';
+  g('productType').innerHTML='<option value="">– Gruppe wählen –</option>';
+  g('article').innerHTML='<option value="">– optional –</option>';
+  g('size').innerHTML='<option value="">–</option>';
+  g('color').innerHTML='<option value="">–</option>';
+  setImgVal('');
+  g('uploadPreview').classList.remove('show');
+  toast('Formular zurückgesetzt');
+}
 </script>
 </body>
 </html>
