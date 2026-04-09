@@ -547,15 +547,14 @@ function fillSel(el, vals, ph) {
   el.innerHTML = `<option value="">${ph}</option>` + vals.map(v=>`<option value="${v}">${v}</option>`).join('');
 }
 function fillPrices() {
-  // Einkaufspreis: 0-100 in 5er Schritten, ab 105 in 5er Schritten
-  const ekVals = [];
-  for (let i = 0; i <= 100; i += 5) ekVals.push(i);
-  for (let i = 105; i <= 500; i += 5) ekVals.push(i);
+  // Einkaufspreis: 1-5 einzeln, dann 5er Schritte bis 500
+  const ekVals = [0,1,2,3,4];
+  for (let i = 5; i <= 500; i += 5) ekVals.push(i);
   g('purchasePrice').innerHTML = ekVals.map(i=>`<option value="${i}">${i} €</option>`).join('');
 
-  // Sonstiges: 0-200 in 1er Schritten
+  // Sonstiges: 0 dann 5er Schritte bis 200
   const sonstVals = [];
-  for (let i = 0; i <= 200; i += 1) sonstVals.push(i);
+  for (let i = 0; i <= 200; i += 5) sonstVals.push(i);
   g('shippingPrice').innerHTML = sonstVals.map(i=>`<option value="${i}">${i} €</option>`).join('');
   g('shippingPrice').value = '0';
 }
@@ -733,6 +732,9 @@ function renderStats() {
     artCount.set(artLabel,(artCount.get(artLabel)||0)+(item.menge||1));
     artProfit.set(artLabel,(artProfit.get(artLabel)||0)+(set.netProfit/(set.items.length||1)));
   }));
+  const setNameCount = new Map();
+  ys.forEach(set=>{ if(set.setName) setNameCount.set(set.setName,(setNameCount.get(set.setName)||0)+1); });
+  const topSet = [...setNameCount.entries()].sort((a,b)=>b[1]-a[1])[0];
   const topCount  = [...artCount.entries()].sort((a,b)=>b[1]-a[1])[0];
   const topProfit = [...artProfit.entries()].sort((a,b)=>b[1]-a[1])[0];
   const monthMap = new Map();
@@ -747,12 +749,11 @@ function renderStats() {
   const topMonth = months[0];
 
   g('statsCards').innerHTML = [
-    {k:`Sets ${state.year}`, v:ys.length},
     {k:'Artikel', v:totalItems},
     {k:'Jahresgewinn', v:euro(totalProfit)},
     {k:'Umsatz', v:euro(totalRevenue)},
     {k:'Top Artikel', v:topCount?topCount[0]:'-'},
-    {k:'Top Monat', v:topMonth?topMonth[0].split(' ')[0]:'-'},
+    {k:'Top Set', v:topSet?topSet[0]:'-'},
   ].map(c=>`<div class="stat-card"><div class="k">${c.k}</div><div class="v">${c.v}</div></div>`).join('');
 
   // Profitshare Gewinn pro Monat berechnen
@@ -886,7 +887,7 @@ function renderSold() {
             <span class="chip">${fmtDate(set.saleDate)}</span>
             ${set.hasProfitshare?'<span class="chip ps">PS</span>':''}
           </div>
-          <div class="muted" style="font-size:var(--text-xs);margin-top:var(--sp2);">${set.items.map(i=>`${i.article}${i.menge>1?` ×${i.menge}`:''}`).join(', ')}</div>
+          <div class="muted" style="font-size:var(--text-xs);margin-top:var(--sp2);">${set.items.map(i=>{ const label=[i.group,i.productType,i.article].filter(Boolean).join(' · '); return label+(i.menge>1?` ×${i.menge}`:''); }).join(', ')}</div>
         </div>
       </div>
       <div class="item-footer">
