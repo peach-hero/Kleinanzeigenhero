@@ -125,6 +125,7 @@ img{max-width:100%;display:block;}
 .mini-table{width:100%;border-collapse:collapse;}
 .mini-table th,.mini-table td{text-align:left;padding:.5rem .3rem;border-bottom:1px solid var(--divider);font-size:var(--text-sm);}
 .mini-table th:last-child,.mini-table td:last-child{text-align:right;}
+.month-card.current-month{border-color:var(--accent);border-width:2px;}
 .month-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rad-lg);padding:var(--sp4);margin-bottom:var(--sp3);}
 .month-items{margin:var(--sp2) 0 0;padding-left:1.1rem;font-size:var(--text-sm);color:var(--muted);}
 .month-items li{margin-bottom:.2rem;}
@@ -743,7 +744,7 @@ function renderStats() {
     if(!monthMap.has(m)) monthMap.set(m,{profit:0,items:[],key:set.saleDate.slice(0,7)});
     const e=monthMap.get(m);
     e.profit+=set.netProfit;
-    set.items.forEach(item=>{for(let x=0;x<(item.menge||1);x++) e.items.push({article:item.article,setName:set.setName,saleDate:set.saleDate});});
+    set.items.forEach(item=>{for(let x=0;x<(item.menge||1);x++) e.items.push({article:item.article,productType:item.productType||'',group:item.group||'',setName:set.setName,saleDate:set.saleDate});});
   });
   const months = [...monthMap.entries()].sort((a,b)=>b[1].key.localeCompare(a[1].key));
   const topMonth = months[0];
@@ -775,14 +776,21 @@ function renderStats() {
     {k:'Profitshare-Anteil',   v:`${ys.length?Math.round(psCount/ys.length*100):0} %`, d:'Sets mit Profitshare'},
   ].map(c=>`<div class="kpi-card"><div class="k">${c.k}</div><div class="v">${c.v}</div><div class="d">${c.d}</div></div>`).join('');
 
-  g('monthCards').innerHTML = months.filter(([,d])=>d.items.length).map(([m,d])=>`
-    <div class="month-card">
+  const curMonthKey = new Date().toISOString().slice(0,7);
+  g('monthCards').innerHTML = months.filter(([,d])=>d.items.length).map(([m,d])=>{
+    const isCurrent = d.key === curMonthKey;
+    return `<div class="month-card${isCurrent?' current-month':''}">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--sp2);">
-        <b>${m}</b>
+        <b>${m}${isCurrent?' <span style=\"font-size:var(--text-xs);color:var(--accent);\">● aktuell</span>':''}</b>
         <div class="chips"><span class="chip">${d.items.length} Artikel</span><span class="chip profit">${euro(d.profit)}</span></div>
       </div>
-      <ul class="month-items">${d.items.map(i=>`<li>${i.article} · ${i.setName} · ${fmtDate(i.saleDate)}</li>`).join('')}</ul>
-    </div>`).join('') || '<div class="empty">Keine Verkäufe im gewählten Jahr.</div>';
+      <ul class="month-items">${d.items.map(i=>{
+        const artLabel = [i.group, i.productType, i.article].filter(Boolean).join(' · ') || i.article || '–';
+        const label = i.setName ? `${i.setName} (${artLabel})` : artLabel;
+        return `<li>${label} · ${fmtDate(i.saleDate)}</li>`;
+      }).join('')}</ul>
+    </div>`;
+  }).join('') || '<div class="empty">Keine Verkäufe im gewählten Jahr.</div>';
 }
 
 // ═══════════════════════════════════════════════════
