@@ -266,40 +266,42 @@ img{max-width:100%;display:block;}
           <label>Sonstiges</label>
           <select class="select" id="shippingPrice"></select>
         </div>
-        <div class="field"><label>Gruppe</label><select class="select" id="group" required onchange="onGroupChange()"></select></div>
-        <div class="field"><label>Produkttyp</label><select class="select" id="productType" required onchange="onProductTypeChange()"><option value="">– Gruppe wählen –</option></select></div>
-        <div class="field"><label>Artikelname <span style="color:var(--faint);font-weight:400;">(optional)</span></label><select class="select" id="article"><option value="">– optional –</option></select></div>
+        <div class="field"><label>Gruppe</label><div style="display:flex;gap:6px;align-items:center;"><select class="select" id="group" required onchange="onGroupChange()" style="flex:1;"></select><button type="button" onclick="showAddInput('group')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;"><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('group').value='Besta';onGroupChange();})()">Besta</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('group').value='Malm';onGroupChange();})()">Malm</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('group').value='Alex';onGroupChange();})()">Alex</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('group').value='Elvarli';onGroupChange();})()">Elvarli</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('group').value='Sonstiges';onGroupChange();})()">Sonstiges</button></div></div>
+        <div class="field"><label>Produkttyp</label><div style="display:flex;gap:6px;align-items:center;"><select class="select" id="productType" required onchange="onProductTypeChange()" style="flex:1;"><option value="">– Gruppe wählen –</option></select><button type="button" onclick="showAddInput('productType')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;"><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('productType').value='Korpus';onProductTypeChange();})()">Korpus</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('productType').value='Tür';onProductTypeChange();})()">Tür</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('productType').value='Schubladen';onProductTypeChange();})()">Schubladen</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('productType').value='Tisch';onProductTypeChange();})()">Tisch</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('productType').value='Lampe';onProductTypeChange();})()">Lampe</button></div></div>
+        <div class="field"><label>Artikelname <span style="color:var(--faint);font-weight:400;">(optional)</span></label><div style="display:flex;gap:6px;align-items:center;"><select class="select" id="article" style="flex:1;"><option value="">– optional –</option></select><button type="button" onclick="showAddInput('article')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button></div></div>
         <div class="grid2">
-          <div class="field"><label>Größe</label><select class="select" id="size"></select></div>
-          <div class="field"><label>Farbe</label><select class="select" id="color"></select></div>
+          <div class="field"><label>Größe</label><div style="display:flex;gap:6px;align-items:center;"><select class="select" id="size" style="flex:1;"></select><button type="button" onclick="showAddInput('size')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;"><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('size').value='64';})()">64</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('size').value='38';})()">38</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('size').value='26';})()">26</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('size').value='120x40x64';})()">120x40x64</button></div></div>
+          <div class="field"><label>Farbe</label><div style="display:flex;gap:6px;align-items:center;"><select class="select" id="color" style="flex:1;"></select><button type="button" onclick="showAddInput('color')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;"><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="document.getElementById('color').value='schwarz'">schwarz</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="document.getElementById('color').value='weiß'">weiß</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="document.getElementById('color').value='braun'">braun</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="document.getElementById('color').value='beige'">beige</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="document.getElementById('color').value='holz'">holz</button></div></div>
         </div>
         <div class="field"><label>Mängel <span style="color:var(--faint);font-weight:400;">(optional)</span></label><textarea class="textarea" id="defect" placeholder="z.B. Kratzer, fehlende Schraube…" style="min-height:60px;"></textarea></div>
         <!-- BILD -->
         <div class="field">
           <label>Bild <span style="color:var(--faint);font-weight:400;">(optional)</span></label>
-          <div class="img-select-wrap" id="imgWrap">
-            <div class="img-select-trigger" id="imgTrigger">
-              <div class="isp" id="imgPreview">📷</div>
-              <span class="isl" id="imgLabel">Aus Stammdaten wählen…</span>
-              <span style="color:var(--muted);margin-left:auto;">▾</span>
+          <div style="display:flex;gap:8px;align-items:flex-start;">
+            <div class="img-select-wrap" id="imgWrap" style="flex:1;">
+              <div class="img-select-trigger" id="imgTrigger">
+                <div class="isp" id="imgPreview">📷</div>
+                <span class="isl" id="imgLabel">Aus Stammdaten wählen…</span>
+                <span style="color:var(--muted);margin-left:auto;">▾</span>
+              </div>
+              <div class="isd" id="imgDropdown"></div>
             </div>
-            <div class="isd" id="imgDropdown"></div>
+            <label for="uploadFileInput" style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:1.3rem;flex-shrink:0;" title="Bild hochladen">📂</label>
           </div>
           <input type="hidden" id="imgValue">
-          <label class="upload-zone" for="uploadFileInput"
-            ondragover="event.preventDefault();this.classList.add('drag')"
-            ondragleave="this.classList.remove('drag')"
-            ondrop="handleUploadDrop(event)">
-            <span class="uz-icon">📂</span>
-            <span class="uz-txt">Upload</span>
-            <input type="file" id="uploadFileInput" accept="image/*" multiple style="display:none">
-          </label>
+          <input type="file" id="uploadFileInput" accept="image/*" multiple style="display:none">
           <div class="upload-preview" id="uploadPreview">
             <img id="uploadPreviewImg" src="" alt="">
             <div style="font-size:var(--text-xs);color:var(--faint);margin-top:var(--sp1);" id="uploadPreviewLbl"></div>
           </div>
         </div>
-        <div class="field"><label>Kommentar <span style="color:var(--faint);font-weight:400;">(optional)</span></label><textarea class="textarea" id="comment"></textarea></div>
+        <div class="field">
+          <label>Anzahl</label>
+          <select class="select" id="quantity">
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+          </select>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;"><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='2'">2</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='3'">3</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='4'">4</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='5'">5</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='6'">6</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='7'">7</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='8'">8</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='9'">9</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='10'">10</button></div>
+        </div>
         <button type="submit" class="btn btn-primary btn-full">✚ Eintrag hinzufügen</button>
       </form>
     </div>
@@ -348,7 +350,7 @@ img{max-width:100%;display:block;}
 <section class="page" id="page-sold">
   <div class="page-head">
     <h2>Verkaufte Sets</h2>
-    <div class="sub">Alle abgeschlossenen Verkäufe</div>
+    <div class="sub" id="soldSubtitle">Alle abgeschlossenen Verkäufe</div>
   </div>
   <div class="card" style="margin-bottom:var(--sp4);">
     <div class="card-body">
@@ -724,69 +726,121 @@ function renderStats() {
   g('statsYear').innerHTML = years.map(y=>`<option value="${y}" ${y===state.year?'selected':''}>${y}</option>`).join('');
 
   const ys = state.sold.filter(s=>s.saleDate.startsWith(state.year));
-  const totalItems   = ys.reduce((s,set)=>s+set.items.reduce((a,i)=>a+(i.menge||1),0),0);
+
+  // ── Grundzahlen ──
+  const totalSets    = ys.length;
   const totalProfit  = ys.reduce((s,set)=>s+set.netProfit,0);
   const totalRevenue = ys.reduce((s,set)=>s+set.salePrice,0);
-  const artCount = new Map(), artProfit = new Map();
-  ys.forEach(set=>set.items.forEach(item=>{
-    const artLabel = [item.productType, item.article].filter(Boolean).join(' · ') || item.article || '–';
-    artCount.set(artLabel,(artCount.get(artLabel)||0)+(item.menge||1));
-    artProfit.set(artLabel,(artProfit.get(artLabel)||0)+(set.netProfit/(set.items.length||1)));
-  }));
-  const setNameCount = new Map();
-  ys.forEach(set=>{ if(set.setName) setNameCount.set(set.setName,(setNameCount.get(set.setName)||0)+1); });
-  const topSet = [...setNameCount.entries()].sort((a,b)=>b[1]-a[1])[0];
-  const topCount  = [...artCount.entries()].sort((a,b)=>b[1]-a[1])[0];
-  const topProfit = [...artProfit.entries()].sort((a,b)=>b[1]-a[1])[0];
+
+  // ── Artikel-Maps ──
+  const artCount = new Map(), artProfit = new Map(), artRevenue = new Map();
+  ys.forEach(set=>{
+    const share = set.salePrice/(set.items.length||1);
+    const pShare = set.netProfit/(set.items.length||1);
+    set.items.forEach(item=>{
+      const key = [item.productType, item.article].filter(Boolean).join(' · ') || item.article || '–';
+      artCount.set(key,(artCount.get(key)||0)+(item.menge||1));
+      artProfit.set(key,(artProfit.get(key)||0)+pShare);
+      artRevenue.set(key,(artRevenue.get(key)||0)+share);
+    });
+  });
+
+  // ── Top 5 Artikel (Gewinn + Umsatz) ──
+  const top5Profit  = [...artProfit.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const top5Revenue = [...artRevenue.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const topCount    = [...artCount.entries()].sort((a,b)=>b[1]-a[1])[0];
+
+  // ── Top Set ──
+  const topSet = ys.slice().sort((a,b)=>b.netProfit-a.netProfit)[0];
+
+  // ── Monats-Map ──
   const monthMap = new Map();
   ys.forEach(set=>{
     const m = fmtMonth(set.saleDate);
-    if(!monthMap.has(m)) monthMap.set(m,{profit:0,items:[],key:set.saleDate.slice(0,7)});
+    if(!monthMap.has(m)) monthMap.set(m,{profit:0,revenue:0,sets:0,artUnits:0,items:[],key:set.saleDate.slice(0,7)});
     const e=monthMap.get(m);
-    e.profit+=set.netProfit;
-    set.items.forEach(item=>{for(let x=0;x<(item.menge||1);x++) e.items.push({article:item.article,productType:item.productType||'',group:item.group||'',setName:set.setName,saleDate:set.saleDate});});
+    e.profit  += set.netProfit;
+    e.revenue += set.salePrice;
+    e.sets    += 1;
+    e.artUnits+= set.items.length;
+    set.items.forEach(item=>{
+      e.items.push({article:item.article,productType:item.productType||'',group:item.group||'',setName:set.setName,saleDate:set.saleDate});
+    });
   });
   const months = [...monthMap.entries()].sort((a,b)=>b[1].key.localeCompare(a[1].key));
-  const topMonth = months[0];
 
+  // ── Stat Cards ──
   g('statsCards').innerHTML = [
-    {k:'Artikel', v:totalItems},
-    {k:'Jahresgewinn', v:euro(totalProfit)},
-    {k:'Umsatz', v:euro(totalRevenue)},
-    {k:'Top Artikel', v:topCount?topCount[0]:'-'},
-    {k:'Top Set', v:topSet?topSet[0]:'-'},
+    {k:'Verkaufte Sets',  v:totalSets},
+    {k:'Jahresgewinn',    v:euro(totalProfit)},
+    {k:'Umsatz',          v:euro(totalRevenue)},
+    {k:'Top Artikel',     v:topCount?topCount[0]:'-'},
+    {k:'Top Set',         v:topSet ? `<span style="font-size:var(--text-sm);">${topSet.setName||'–'}</span><div style="font-size:var(--text-xs);color:var(--muted);margin-top:2px;">${topSet.items.map(i=>[i.productType,i.article].filter(Boolean).join(' · ')).join(', ')}</div>` : '-'},
   ].map(c=>`<div class="stat-card"><div class="k">${c.k}</div><div class="v">${c.v}</div></div>`).join('');
 
-  // Profitshare Gewinn pro Monat berechnen
+  // ── Monatstabelle: Monat/Jahr auswählbar ──
+  // Profitshare pro Monat
   const monthPsProfit = new Map();
+  const monthPsSets   = new Map();
   ys.filter(s=>s.hasProfitshare).forEach(set=>{
-    const m = fmtMonth(set.saleDate);
+    const m=fmtMonth(set.saleDate);
     monthPsProfit.set(m,(monthPsProfit.get(m)||0)+set.netProfit);
+    monthPsSets.set(m,(monthPsSets.get(m)||0)+1);
   });
   g('monthTable').innerHTML = months.length
-    ? `<thead><tr><th>Monat</th><th>Art.</th><th>Gewinn</th><th>davon Profitshare</th></tr></thead><tbody>${months.map(([m,d])=>`<tr><td>${m}</td><td>${d.items.length}</td><td>${euro(d.profit)}</td><td>${monthPsProfit.has(m)?euro(monthPsProfit.get(m)):'-'}</td></tr>`).join('')}</tbody>`
-    : '<tbody><tr><td colspan="4">Keine Verkäufe.</td></tr></tbody>';
+    ? `<thead><tr><th>Monat</th><th>Jahr</th><th>Sets</th><th>Art.</th><th>Gewinn</th><th>Umsatz</th><th>PS-Anteil</th></tr></thead>
+       <tbody>${months.map(([m,d])=>{
+         const [mon,yr] = m.split(' ');
+         const psSets = monthPsSets.get(m)||0;
+         const psProfit = monthPsProfit.get(m)||0;
+         const psPct = d.sets ? Math.round(psSets/d.sets*100) : 0;
+         return '<tr><td>'+mon+'</td><td>'+yr+'</td><td>'+d.sets+'</td><td>'+d.artUnits+'</td><td>'+euro(d.profit)+'</td><td>'+euro(d.revenue)+'</td><td>'+(psSets?euro(psProfit)+' ('+psPct+'%)':'-')+'</td></tr>';
+       }).join('')}</tbody>`
+    : '<tbody><tr><td colspan="7">Keine Verkäufe.</td></tr></tbody>';
 
-  const avgUnit = totalItems ? totalProfit/totalItems : 0;
+  // ── KPI: Top 5 Gewinn + Top 5 Umsatz ──
+  const avgUnit = totalSets ? totalProfit/totalSets : 0;
   const psCount = ys.filter(s=>s.hasProfitshare).length;
-  g('kpiCards').innerHTML = [
-    {k:'Top Artikel (Gewinn)', v:topProfit?topProfit[0]:'-', d:'Höchster anteiliger Gewinn'},
-    {k:'Top Artikel (Menge)',  v:topCount?topCount[0]:'-',   d:'Meist verkauft'},
-    {k:'Ø Gewinn / Einheit',   v:euro(avgUnit),              d:'Je verkaufter Einheit'},
-    {k:'Profitshare-Anteil',   v:`${ys.length?Math.round(psCount/ys.length*100):0} %`, d:'Sets mit Profitshare'},
-  ].map(c=>`<div class="kpi-card"><div class="k">${c.k}</div><div class="v">${c.v}</div><div class="d">${c.d}</div></div>`).join('');
+  const mkTop5 = (title, entries, fmt) =>
+    `<div style="margin-bottom:var(--sp4);">
+      <div style="font-size:var(--text-xs);font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:var(--sp2);">${title}</div>
+      <table class="mini-table"><tbody>
+        ${entries.map(([name,val],i)=>`<tr><td style="color:var(--muted);width:20px;">${i+1}</td><td>${name}</td><td style="text-align:right;font-weight:700;">${fmt(val)}</td></tr>`).join('')}
+      </tbody></table>
+    </div>`;
 
+  g('kpiCards').innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp4);margin-bottom:var(--sp4);">' +
+    mkTop5('🏆 Top 5 Artikel · Gewinn', top5Profit, euro) +
+    mkTop5('💰 Top 5 Artikel · Umsatz', top5Revenue, euro) +
+    '</div>' +
+    `<div class="kpi-grid">
+      <div class="kpi-card"><div class="k">Ø Gewinn / Set</div><div class="v">${euro(avgUnit)}</div><div class="d">Je verkauftem Set</div></div>
+      <div class="kpi-card"><div class="k">Profitshare-Anteil</div><div class="v">${ys.length?Math.round(psCount/ys.length*100):0} %</div><div class="d">Sets mit Profitshare</div></div>
+      <div class="kpi-card"><div class="k">Ø Marge</div><div class="v">${totalRevenue?Math.round(totalProfit/totalRevenue*100):0} %</div><div class="d">Gewinn ÷ Umsatz</div></div>
+      <div class="kpi-card"><div class="k">Ø EK / Set</div><div class="v">${euro(ys.length ? ys.reduce((s,x)=>s+x.items.reduce((a,i)=>a+(i.purchasePrice||0),0),0)/ys.length : 0)}</div><div class="d">Durchschnittlicher Einkauf</div></div>
+      <div class="kpi-card"><div class="k">Ø VK / Set</div><div class="v">${euro(ys.length ? totalRevenue/ys.length : 0)}</div><div class="d">Durchschnittlicher Verkauf</div></div>
+      <div class="kpi-card"><div class="k">Bester Monat</div><div class="v">${months.length ? months.slice().sort((a,b)=>b[1].profit-a[1].profit)[0][0] : '–'}</div><div class="d">Höchster Monatsgewinn</div></div>
+      <div class="kpi-card"><div class="k">Umsatzstärkster Monat</div><div class="v">${months.length ? months.slice().sort((a,b)=>b[1].revenue-a[1].revenue)[0][0] : '–'}</div><div class="d">Höchster Monatsumsatz</div></div>
+      <div class="kpi-card"><div class="k">Aktivste Gruppe</div><div class="v">${(()=>{const m=new Map();ys.forEach(s=>s.items.forEach(i=>{const g=i.group||'–';m.set(g,(m.get(g)||0)+1);}));const t=[...m.entries()].sort((a,b)=>b[1]-a[1])[0];return t?t[0]:'–';})()}</div><div class="d">Meist verkaufte Gruppe</div></div>
+    </div>`;
+
+  // ── Monatskarten: Sets + Artikel-Einheiten getrennt ──
   const curMonthKey = new Date().toISOString().slice(0,7);
   g('monthCards').innerHTML = months.filter(([,d])=>d.items.length).map(([m,d])=>{
     const isCurrent = d.key === curMonthKey;
     return `<div class="month-card${isCurrent?' current-month':''}">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--sp2);">
         <b>${m}${isCurrent?' <span style=\"font-size:var(--text-xs);color:var(--accent);\">● aktuell</span>':''}</b>
-        <div class="chips"><span class="chip">${d.items.length} Artikel</span><span class="chip profit">${euro(d.profit)}</span></div>
+        <div class="chips">
+          <span class="chip">${d.sets} Set${d.sets!==1?'s':''}</span>
+          <span class="chip">${d.artUnits} Artikel</span>
+          <span class="chip profit">${euro(d.profit)}</span>
+        </div>
       </div>
       <ul class="month-items">${d.items.map(i=>{
-        const artLabel = [i.group, i.productType, i.article].filter(Boolean).join(' · ') || i.article || '–';
-        const label = i.setName ? `${i.setName} (${artLabel})` : artLabel;
+        const artLabel = [i.productType, i.article].filter(Boolean).join(' · ') || '–';
+        const label = i.setName ? `<b>${i.setName}</b> <span style="color:var(--muted);font-size:var(--text-xs);">${artLabel}</span>` : artLabel;
         return `<li>${label} · ${fmtDate(i.saleDate)}</li>`;
       }).join('')}</ul>
     </div>`;
@@ -864,9 +918,13 @@ function renderOpen() {
                 <div class="inst-thumb" onclick="triggerInstImgUpload('${item.id}','${inst.id}')" title="Bild hochladen" style="cursor:pointer;position:relative;">
                   ${inst.image?`<img src="${inst.image}" loading="lazy" onerror="this.parentElement.innerHTML='📷'">`:`<span style="font-size:1.4rem;">📷</span>`}
                 </div>
-                <div>
+                <div style="flex:1;">
                   <b>Eintrag ${i+1}</b> · ${fmtDate(inst.entryDate)}<br>
-                  <span class="muted">${inst.comment||'–'} ${inst.defect?'· ⚠ '+inst.defect:''} ${inst.profitshare?'· PS':''} · EK ${euro(inst.purchasePrice)}</span>
+                  <span class="muted">EK ${euro(inst.purchasePrice)}${inst.defect?' · ⚠ '+inst.defect:''}</span><br>
+                  <label style="display:inline-flex;align-items:center;gap:6px;margin-top:4px;font-size:var(--text-xs);cursor:pointer;">
+                    <input type="checkbox" data-ps-inst="${item.id}::${inst.id}" ${inst.profitshare?'checked':''} style="width:18px;height:18px;accent-color:var(--primary);">
+                    Profitshare
+                  </label>
                 </div>
                 <button class="btn btn-danger" style="min-height:32px;padding:.2rem .5rem;font-size:var(--text-xs);" data-del-inst="${item.id}" data-inst-id="${inst.id}">🗑</button>
               </div>`)).join('')}
@@ -884,6 +942,8 @@ function renderSold() {
   const needle = state.soldFilter.trim().toLowerCase();
   const sets = needle ? state.sold.filter(s=>s.setName.toLowerCase().includes(needle)) : state.sold;
   if (!sets.length) { g('soldContent').innerHTML='<div class="empty">Keine Einträge.</div>'; return; }
+  const totalArtUnits = sets.reduce((s,set)=>s+set.items.reduce((a,i)=>a+(i.quantity||1),0),0);
+  const sub = g('soldSubtitle'); if(sub) sub.textContent = sets.length+' Sets · '+totalArtUnits+' Artikel';
   g('soldContent').innerHTML = sets.map(set=>`
     <div class="sold-card">
       <div class="sold-card-main">
@@ -1003,14 +1063,15 @@ g('itemForm').addEventListener('submit', e => {
     shippingPrice:+g('shippingPrice').value||0,
     profitshare:g('profitshare').checked,
     image:g('imgValue').value,
-    comment:g('comment').value,
-    defect:g('defect').value,
+    comment:g('comment')?g('comment').value:'',
+    defect:g('defect')?g('defect').value:'',
     entryDate:today()
   };
   if (!item.group || !item.productType) return alert('Bitte Gruppe und Produkttyp wählen.');
-  addOrStack(item);
+  const qty = +(g('quantity')||{value:'1'}).value||1;
+  for(let q=0;q<qty;q++) addOrStack({...item});
   save();
-  toast('Artikel hinzugefügt ✓');
+  toast(qty>1?qty+' Artikel hinzugefügt ✓':'Artikel hinzugefügt ✓');
   state.page='open'; render();
 });
 
@@ -1167,11 +1228,20 @@ document.addEventListener('click', e => {
     if(e.target.checked) state.sel.add(key); else state.sel.delete(key);
     g('setBuilder').classList.toggle('show', state.sel.size>0);
     g('selSummary').textContent=`${state.sel.size} Artikel gewählt.`;
-    renderOpen(); return;
+    return;
   }
   if (e.target.matches('[data-tog]')) {
     const d=document.getElementById('sd-'+e.target.dataset.tog);
     if(d) d.classList.toggle('open'); return;
+  }
+  if (e.target.matches('[data-ps-inst]')) {
+    const [itemId, instId] = e.target.dataset.psInst.split('::');
+    const item = state.open.find(i=>i.id===itemId);
+    if (item) {
+      const inst = item.instances.find(x=>x.id===instId);
+      if (inst) { inst.profitshare = e.target.checked; save(); toast('Profitshare '+(e.target.checked?'aktiviert':'deaktiviert')); }
+    }
+    return;
   }
   if (e.target.matches('[data-del]') && !e.target.matches('[data-del-inst]')) {
     if(!confirm('Ganzen Stapel löschen?')) return;
@@ -1350,6 +1420,55 @@ function resetItemForm() {
   setImgVal('');
   g('uploadPreview').classList.remove('show');
   toast('Formular zurückgesetzt');
+}
+</script>
+
+<script>
+function showAddInput(id) {
+  if (document.getElementById('addinp_'+id)) return;
+  var sel = document.getElementById(id);
+  var labels = {group:'Gruppe',productType:'Produkttyp',article:'Artikelname',size:'Größe',color:'Farbe'};
+  var inp = document.createElement('input');
+  inp.id = 'addinp_'+id;
+  inp.type = 'text';
+  inp.placeholder = labels[id] + ' eingeben…';
+  inp.style.cssText = 'width:100%;height:48px;padding:0 12px;border-radius:8px;border:2px solid #01696f;background:#fbfbf9;color:#28251d;font-size:16px;font-family:inherit;box-sizing:border-box;margin-top:6px;display:block;';
+  sel.parentNode.appendChild(inp);
+  inp.focus();
+
+  function save() {
+    var val = inp.value.trim();
+    inp.remove();
+    if (!val) return;
+    var cat = state.master.catalog;
+    var grp = document.getElementById('group').value;
+    var pt  = document.getElementById('productType').value;
+    if (id==='group') {
+      if (!cat[val]) { cat[val]={}; save_state(); toast('Gruppe "'+val+'" ✓'); }
+      fillMasterDropdowns(); document.getElementById('group').value=val; onGroupChange();
+    } else if (id==='productType') {
+      if (grp && !cat[grp][val]) { cat[grp][val]={articles:[],sizes:[],colors:[]}; save_state(); toast('Produkttyp "'+val+'" ✓'); }
+      onGroupChange(); document.getElementById('productType').value=val; onProductTypeChange();
+    } else if (id==='article') {
+      if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.articles.includes(val)){d.articles.push(val);save_state();toast('Artikel "'+val+'" ✓');} }
+      onProductTypeChange(); document.getElementById('article').value=val;
+    } else if (id==='size') {
+      if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.sizes.includes(val)){d.sizes.push(val);save_state();toast('Größe "'+val+'" ✓');} }
+      onProductTypeChange(); document.getElementById('size').value=val;
+    } else if (id==='color') {
+      if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.colors.includes(val)){d.colors.push(val);save_state();toast('Farbe "'+val+'" ✓');} }
+      onProductTypeChange(); document.getElementById('color').value=val;
+    }
+  }
+
+  // save() überschreibt sich selbst mit der echten save() Funktion
+  function save_state() { if(window.save) window.save(); }
+
+  inp.addEventListener('keydown', function(e) {
+    if (e.key==='Enter') { e.preventDefault(); save(); }
+    if (e.key==='Escape') { inp.remove(); }
+  });
+  inp.addEventListener('blur', function() { setTimeout(save, 150); });
 }
 </script>
 </body>
