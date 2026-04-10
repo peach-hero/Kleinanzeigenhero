@@ -323,21 +323,35 @@ img{max-width:100%;display:block;}
     <div class="grid">
       <div class="grid2">
         <div class="field"><label>Setname <span style="color:var(--faint);font-weight:400;">(optional)</span></label><input class="input" id="setName" type="text"></div>
-        <div class="field"><label>Verkaufspreis (€)</label><input class="input" id="salePrice" type="number" min="0" step="1"></div>
+        <div class="field"><label>Verkaufspreis (€)</label><input class="input" id="salePrice" type="number" min="0" step="1" oninput="updatePsPreview()"></div>
+          <div id="psShareField">
+            <div class="quick-btns" style="justify-content:center;margin-top:6px;display:flex;flex-wrap:wrap;gap:5px;">
+              <button type="button" id="psbtn10" style="padding:5px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="setPsShare(10)">10%</button>
+              <button type="button" id="psbtn20" style="padding:5px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="setPsShare(20)">20%</button>
+              <button type="button" id="psbtn30" style="padding:5px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="setPsShare(30)">30%</button>
+              <button type="button" id="psbtn40" style="padding:5px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="setPsShare(40)">40%</button>
+            </div>
+            <input type="hidden" id="manualPsShare" value="50">
+            <div id="psSharePreview" style="font-size:var(--text-xs);color:var(--muted);margin-top:6px;text-align:center;"></div>
+          </div>
       </div>
-      <div class="field warn-field">
-        <label>Manueller Nettogewinn — nur bei gemischtem Profitshare</label>
-        <input class="input" id="manualProfit" type="number" step="0.01">
-      </div>
-      <div class="set-img-row">
-        <div class="set-img-thumb" id="setImgThumb" onclick="document.getElementById('setImgInput').click()">📷</div>
-        <div>
-          <div style="font-size:var(--text-sm);font-weight:700;">Set-Bild (optional)</div>
-          <div style="font-size:var(--text-xs);color:var(--muted);cursor:pointer;" onclick="document.getElementById('setImgInput').click()">Klicken zum Hochladen</div>
+
+      <div class="field" style="margin-top:var(--sp4);">
+        <label>Set-Bild <span style="color:var(--faint);font-weight:400;">(optional)</span></label>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <div class="img-select-wrap" id="setImgWrap" style="flex:1;">
+            <div class="img-select-trigger" id="setImgTrigger">
+              <div class="isp" id="setImgPreview">📷</div>
+              <span class="isl" id="setImgLabel">Aus Stammdaten wählen…</span>
+              <span style="color:var(--muted);margin-left:auto;">▾</span>
+            </div>
+            <div class="isd" id="setImgDropdown"></div>
+          </div>
+          <label for="setImgInput" style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:1.3rem;flex-shrink:0;" title="Bild hochladen">📂</label>
         </div>
-        <button type="button" id="clearSetImg" style="display:none;" class="btn btn-danger" style="padding:.4rem .7rem;">×</button>
         <input type="file" id="setImgInput" accept="image/*" style="display:none">
         <input type="hidden" id="setImgData">
+        <button type="button" id="clearSetImg" style="display:none;margin-top:6px;" class="btn btn-danger">× Bild entfernen</button>
       </div>
       <div class="muted" id="selSummary">0 Artikel gewählt.</div>
       <div class="grid2">
@@ -352,7 +366,7 @@ img{max-width:100%;display:block;}
 <!-- ④ VERKAUFT -->
 <section class="page" id="page-sold">
   <div class="page-head">
-    <h2>Verkaufte Sets</h2>
+    <h2>Verkaufte Artikel</h2>
     <div class="sub" id="soldSubtitle">Alle abgeschlossenen Verkäufe</div>
   </div>
   <div class="card" style="margin-bottom:var(--sp4);">
@@ -518,6 +532,64 @@ function exportData() {
   fallbackExport(json, filename);
 }
 
+
+function setPsShare(pct) {
+  if (g('manualPsShare')) g('manualPsShare').value = pct;
+  [10,20,30,40].forEach(p => {
+    const btn = g('psbtn'+p);
+    if (!btn) return;
+    btn.style.background   = p===pct ? 'var(--primary)' : 'var(--surfoff)';
+    btn.style.color        = p===pct ? 'var(--inv)' : '';
+    btn.style.borderColor  = p===pct ? 'var(--primary)' : 'var(--border)';
+  });
+  updatePsPreview();
+}
+
+function updatePsPreview() {
+  const sp = +g('salePrice')?.value || 0;
+  const pct = +(g('manualPsShare')?.value || 50);
+  const purchaseTotal = [...state.sel].reduce((s,key)=>{
+    const [itemId,instId] = key.split('::');
+    const item = state.open.find(i=>i.id===itemId);
+    const inst = item?.instances.find(x=>x.id===instId);
+    return s + (+inst?.purchasePrice||0);
+  }, 0);
+  const raw = sp - purchaseTotal;
+  const net = raw * (1 - pct/100);
+  if (g('psSharePreview') && sp > 0) {
+    g('psSharePreview').textContent = `Rohgewinn ${euro(raw)} − ${pct}% PS = Nettogewinn ${euro(net)}`;
+  }
+}
+
+
+function buildSetImgDropdown() {
+  const dd = g('setImgDropdown'); if (!dd) return;
+  const allImgs = state.master.images || [];
+  const opts = [{ url:'', label:'Kein Bild' }, ...allImgs.map(u=>({
+    url:u, label: u.startsWith('data:') ? 'Upload-Bild' : (u.split('id=')[1]?.slice(0,22)||u.slice(-22))
+  }))];
+  dd.innerHTML = opts.map(o=>`
+    <div class="iso set-img-opt" data-val="${o.url}">
+      <div class="iso-thumb">${o.url?`<img src="${o.url}" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">` :'📷'}</div>
+      <span>${o.label}</span>
+    </div>`).join('');
+  dd.querySelectorAll('.set-img-opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      setSetImgVal(opt.dataset.val);
+      dd.classList.remove('open');
+    });
+  });
+}
+
+function setSetImgVal(url) {
+  g('setImgData').value = url;
+  g('setImgLabel').textContent = url ? (url.startsWith('data:') ? 'Upload-Bild' : url.slice(-22)) : 'Aus Stammdaten wählen…';
+  g('setImgPreview').innerHTML = url ? `<img src="${url}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` : '📷';
+  g('clearSetImg').style.display = url ? 'inline-flex' : 'none';
+  // aktives Bild markieren
+  if(g('setImgDropdown')) g('setImgDropdown').querySelectorAll('.set-img-opt').forEach(o=>o.classList.toggle('active', o.dataset.val===url));
+}
+
 function fallbackExport(json, filename) {
   // Desktop / Browser-Download
   const blob = new Blob([json], { type:'application/json' });
@@ -611,8 +683,13 @@ function onProductTypeChange() {
 // Custom Bild-Dropdown
 function buildImgDropdown() {
   const dd = g('imgDropdown'); if (!dd) return;
-  const opts = [{ url:'', label:'Kein Bild' }, ...state.master.images.map(u=>({
-    url:u, label: u.startsWith('data:') ? 'Upload-Bild' : (u.split('id=')[1]?.slice(0,22)||u.slice(-22))
+  const grp = g('group')?.value || '';
+  const typ = g('productType')?.value || '';
+  // Bilder für aktuelle Gruppe+Produkttyp + globale Bilder
+  const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
+  const allImgs = [...new Set([...catImgs, ...state.master.images])];
+  const opts = [{ url:'', label:'Kein Bild' }, ...allImgs.map(u=>({
+    url:u, label: u.startsWith('data:') ? (catImgs.includes(u) ? `📌 ${typ}` : 'Upload-Bild') : (u.split('id=')[1]?.slice(0,22)||u.slice(-22))
   }))];
   dd.innerHTML = opts.map(o=>`
     <div class="iso" data-val="${o.url}">
@@ -629,6 +706,11 @@ function setImgVal(url) {
   g('imgDropdown').querySelectorAll('.iso').forEach(o=>o.classList.toggle('active', o.dataset.val===url));
 }
 document.addEventListener('click', e => {
+  const setWrap = g('setImgWrap');
+  if (setWrap) {
+    if (e.target.closest('#setImgTrigger')) { g('setImgDropdown').classList.toggle('open'); }
+    else if (!setWrap.contains(e.target)) { g('setImgDropdown')?.classList.remove('open'); }
+  }
   const wrap = g('imgWrap'); if(!wrap) return;
   if(wrap.contains(e.target)) {
     const opt = e.target.closest('.iso');
@@ -700,11 +782,19 @@ function handleMasterImgDrop(e) {
   handleMasterImgFiles(Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/')));
 }
 function handleMasterImgFiles(files) {
+  const grp = document.getElementById('masterGroup')?.value || '';
+  const typ = document.getElementById('masterProdType')?.value || '';
   Array.from(files).forEach(file => {
     const r = new FileReader();
     r.onload = ev => {
       const url = ev.target.result;
-      if (!state.master.images.includes(url)) { state.master.images.push(url); buildImgDropdown(); save(); if(state.page==='master') renderMaster(); }
+      if (grp && typ && state.master.catalog[grp]?.[typ]) {
+        if (!state.master.catalog[grp][typ].images) state.master.catalog[grp][typ].images = [];
+        if (!state.master.catalog[grp][typ].images.includes(url)) state.master.catalog[grp][typ].images.push(url);
+      } else {
+        if (!state.master.images.includes(url)) state.master.images.push(url);
+      }
+      buildImgDropdown(); save(); if(state.page==='master') renderMaster();
     };
     r.readAsDataURL(file);
   });
@@ -715,14 +805,15 @@ g('setImgInput').addEventListener('change', function() {
   const file = this.files[0]; if(!file) return;
   const r = new FileReader();
   r.onload = e => {
-    g('setImgData').value = e.target.result;
-    g('setImgThumb').innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
-    g('clearSetImg').style.display = 'inline-flex';
+    const url = e.target.result;
+    if (!state.master.images.includes(url)) { state.master.images.push(url); save(); }
+    buildSetImgDropdown();
+    setSetImgVal(url);
   };
   r.readAsDataURL(file);
 });
 g('clearSetImg').addEventListener('click', () => {
-  g('setImgData').value=''; g('setImgThumb').innerHTML='📷'; g('clearSetImg').style.display='none'; g('setImgInput').value='';
+  setSetImgVal(''); g('clearSetImg').style.display='none'; g('setImgInput').value='';
 });
 
 // ═══════════════════════════════════════════════════
@@ -755,7 +846,7 @@ function renderStats() {
 
   // ── Artikel-Maps ──
   const artCount = new Map(), artProfit = new Map(), artRevenue = new Map();
-  ys.forEach(set=>{
+  ys.filter(set=>!set.setName && set.items.length===1).forEach(set=>{
     const share = set.salePrice/(set.items.length||1);
     const rawProfit = set.salePrice - (set.purchaseTotal||0);
     const pShare = rawProfit/(set.items.length||1);
@@ -797,7 +888,7 @@ function renderStats() {
 
   // ── Stat Cards ──
   g('statsCards').innerHTML = [
-    {k:'Verkaufte Sets',  v:totalSets},
+    {k:'Verkaufte Artikel',  v:totalSets},
     {k:'Verkaufte Artikel', v:totalArtSold},
     {k:'Jahresgewinn',    v:euro(totalProfit)},
     {k:'Umsatz',          v:euro(totalRevenue)},
@@ -895,51 +986,136 @@ function renderStats() {
 // ═══════════════════════════════════════════════════
 // RENDER OFFEN
 // ═══════════════════════════════════════════════════
+
+function toggleStack(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const btn = el.previousElementSibling;
+  el.classList.toggle('open');
+  if (btn && btn.classList.contains('stack-toggle')) {
+    const menge = el.querySelectorAll('.stack-inst').length;
+    btn.textContent = el.classList.contains('open')
+      ? `▾ ${menge} Exemplare ausblenden`
+      : `▸ ${menge} Exemplare anzeigen`;
+  }
+}
+
+function editItem(itemId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if (!item) return;
+  // Zur Neuanlage wechseln und Felder vorbelegen
+  state.page = 'new';
+  render();
+  setTimeout(()=>{
+    if(g('group')) { g('group').value = item.group||''; onGroupChange(); }
+    setTimeout(()=>{
+      if(g('productType')) { g('productType').value = item.productType||''; onProductTypeChange(); }
+      setTimeout(()=>{
+        if(g('article'))  g('article').value  = item.article||'';
+        if(g('size'))     g('size').value      = item.size||'';
+        if(g('color'))    g('color').value     = item.color||'';
+        if(g('purchasePrice')) g('purchasePrice').value = item.purchasePrice||0;
+        if(g('profitshare'))   g('profitshare').checked = item.profitshare||false;
+      }, 50);
+    }, 50);
+  }, 50);
+  // Original löschen
+  state.open = state.open.filter(i=>i.id!==itemId);
+  save();
+}
+
+function deleteItem(itemId) {
+  if (!confirm('Artikel löschen?')) return;
+  state.open = state.open.filter(i=>i.id!==itemId);
+  state.sel.delete(itemId);
+  save(); render();
+}
+
+function deleteInst(itemId, instId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if (!item) return;
+  if (!confirm('Exemplar löschen?')) return;
+  item.instances = item.instances.filter(x=>x.id!==instId);
+  if (item.instances.length===0) state.open = state.open.filter(i=>i.id!==itemId);
+  state.sel.delete(itemId+'::'+instId);
+  save(); render();
+}
+
 function renderOpen() {
   g('setBuilder').classList.toggle('show', state.sel.size>0);
+  if(state.sel.size>0) buildSetImgDropdown();
+  // PS-Feld anzeigen wenn PS-Artikel gewählt
+  const hasPsSelected = [...state.sel].some(key=>{
+    const [itemId,instId] = key.split('::');
+    const item = state.open.find(i=>i.id===itemId);
+    return item?.instances.find(x=>x.id===instId)?.profitshare;
+  });
+
+  updatePsPreview();
   g('selSummary').textContent = `${state.sel.size} Artikel gewählt.`;
 
   if (!state.open.length) { g('openContent').innerHTML='<div class="empty">Keine offenen Artikel.<br>Über „Neu" Artikel hinzufügen.</div>'; return; }
 
-  // Ebene 1: Gruppe › Produkttyp
+  // Ebene 1: Gruppe
+  const byGrp = {};
+  state.open.forEach(item=>{
+    const grp = item.group||'–';
+    (byGrp[grp] = byGrp[grp]||[]).push(item);
+  });
+
+  // Ebene 2: Gruppe › Produkttyp
   const byGrpPT = {};
   state.open.forEach(item=>{
-    const grpKey = item.productType ? (item.group||'–') + ' › ' + item.productType : (item.group||'–');
-    (byGrpPT[grpKey] = byGrpPT[grpKey]||[]).push(item);
+    const grp = item.group||'–';
+    const pt  = item.productType||'';
+    const key = pt ? grp + ' › ' + pt : grp;
+    (byGrpPT[key] = byGrpPT[key]||[]).push(item);
   });
-  const grpPTEntries = Object.entries(byGrpPT).sort((a,b)=>a[0].localeCompare(b[0],'de'));
 
-  g('openContent').innerHTML = grpPTEntries.map(([grpPT, items])=>{
-    // Ebene 2: gleiche Artikel (Artikelname+Farbe+Größe+Einkaufspreis) stacken
-    const articleMap = {};
-    items.forEach(item=>{
-      const artKey = [item.article||'–', item.color||'–', item.size||'–', purchase(item)].join('||');
-      (articleMap[artKey] = articleMap[artKey]||[]).push(item);
-    });
-    const totalPcs = items.reduce((s,i)=>s+i.instances.length, 0);
+  const grpEntries = Object.entries(byGrp).sort((a,b)=>a[0].localeCompare(b[0],'de'));
 
-    return `<div style="margin-bottom:var(--sp5);">
-      <div class="group-head">
-        <h3 class="group-title">${grpPT}</h3>
-        <span class="chip">${totalPcs} Stück</span>
-      </div>
-      ${Object.entries(articleMap).map(([artKey, artItems])=>{
-        const allInst  = artItems.flatMap(item=>item.instances.map(inst=>({...inst,_itemId:item.id})));
-        const menge    = allInst.length;
-        const img      = allInst.find(x=>x.image)?.image||'';
-        const firstItem = artItems[0];
-        const hasPsh   = allInst.some(x=>x.profitshare);
-        const selCount = allInst.filter(inst=>state.sel.has(inst._itemId+'::'+inst.id)).length;
-        const einzel   = purchase(firstItem);
-        const sdId     = 'sdA_' + Math.abs([grpPT,artKey].join('').split('').reduce((h,c)=>Math.imul(31,h)+c.charCodeAt(0)|0,0));
-        return `<div class="item-card">
+  g('openContent').innerHTML = grpEntries.map(([grp, grpItems])=>{
+    const grpTotal = grpItems.reduce((s,i)=>s+i.instances.length, 0);
+
+    // Untergruppen dieser Gruppe filtern und sortieren
+    const subEntries = Object.entries(byGrpPT)
+      .filter(([k])=> k === grp || k.startsWith(grp + ' › '))
+      .sort((a,b)=>a[0].localeCompare(b[0],'de'));
+
+    const subHtml = subEntries.map(([grpPT, items])=>{
+      const ptLabel = grpPT.includes(' › ') ? grpPT.split(' › ')[1] : '–';
+      const totalPcs = items.reduce((s,i)=>s+i.instances.length, 0);
+
+      // Ebene 3: Artikel stacken (nach Artikel+Farbe+Größe+EK)
+      const articleMap = {};
+      items.forEach(item=>{
+        const artKey = [item.article||'–', item.color||'–', item.size||'–', purchase(item)].join('||');
+        (articleMap[artKey] = articleMap[artKey]||[]).push(item);
+      });
+
+      return `<div style="margin-bottom:var(--sp4);margin-left:var(--sp2);">
+        <div class="group-head" style="margin-bottom:var(--sp2);">
+          <h3 class="group-title" style="font-size:var(--text-sm);color:var(--muted);">${ptLabel}</h3>
+          <span class="chip">${totalPcs} Stück</span>
+        </div>
+        ${Object.entries(articleMap).map(([artKey, artItems])=>{
+          const allInst  = artItems.flatMap(item=>item.instances.map(inst=>({...inst,_itemId:item.id})));
+          const menge    = allInst.length;
+          const img      = allInst.find(x=>x.image)?.image||'';
+          const firstItem = artItems[0];
+          const hasPsh   = allInst.some(x=>x.profitshare);
+          const selCount = allInst.filter(inst=>state.sel.has(inst._itemId+'::'+inst.id)).length;
+          const einzel   = purchase(firstItem);
+          const sdId     = 'sdA_' + Math.abs([grpPT,artKey].join('').split('').reduce((h,c)=>Math.imul(31,h)+c.charCodeAt(0)|0,0));
+          return `<div class="item-card">
           <div class="item-card-main">
             ${menge===1
               ?`<input class="item-chk" type="checkbox" data-chk-inst="${firstItem.id}::${allInst[0].id}" ${state.sel.has(firstItem.id+'::'+allInst[0].id)?'checked':''}>`
               :`<div></div>`}
             <div class="thumb">${img?`<img src="${img}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
             <div class="item-info">
-              ${firstItem.productType?`<div style="font-size:var(--text-xs);color:var(--muted);margin-bottom:2px;">${firstItem.productType}</div>`:''}<div class="item-title">${firstItem.article||'–'}</div>
+              ${firstItem.productType?`<div style="font-size:var(--text-xs);color:var(--muted);margin-bottom:2px;">${firstItem.productType}</div>`:''}
+              <div class="item-title">${firstItem.article||'–'}</div>
               <div class="chips">
                 <span class="chip">Gr. ${firstItem.size||'-'}</span>
                 <span class="chip">${firstItem.color||'-'}</span>
@@ -951,39 +1127,52 @@ function renderOpen() {
             </div>
           </div>
           <div class="item-footer">
-            <div class="item-price-row">Einzel: ${euro(einzel)} · <b>Gesamt: ${euro(menge*einzel)}</b></div>
+            <div class="item-price-row">${menge} × ${euro(einzel)} = <b>${euro(einzel*menge)}</b></div>
             <div class="item-actions">
-              ${artItems.map(it=>`<button class="btn btn-danger" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" data-del="${it.id}">🗑</button>`).join('')}
+              ${menge>1?`<button class="btn btn-ghost" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="toggleStack('${sdId}')">Details</button>`:''}
+              <button class="btn btn-ghost" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="editItem('${firstItem.id}')">✏️</button>
+              <button class="btn btn-danger" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="deleteItem('${firstItem.id}')">🗑</button>
             </div>
           </div>
-          <button class="stack-toggle" data-tog="${sdId}">(${menge})${selCount>0?` · ✓ ${selCount}`:''}</button>
-          <div class="stack-details" id="sd-${sdId}">
-            ${artItems.flatMap((item)=>item.instances.map((inst,i)=>`
-              <div class="stack-inst">
-                <input class="item-chk" type="checkbox" data-chk-inst="${item.id}::${inst.id}" ${state.sel.has(item.id+'::'+inst.id)?'checked':''}>
-                <div class="inst-thumb" onclick="triggerInstImgUpload('${item.id}','${inst.id}')" title="Bild hochladen" style="cursor:pointer;position:relative;">
-                  ${inst.image?`<img src="${inst.image}" loading="lazy" onerror="this.parentElement.innerHTML='📷'">`:`<span style="font-size:1.4rem;">📷</span>`}
-                </div>
-                <div style="flex:1;">
-                  <b>Eintrag ${i+1}</b> · ${fmtDate(inst.entryDate)}<br>
-                  <span class="muted">EK ${euro(inst.purchasePrice)}${inst.defect?' · ⚠ '+inst.defect:''}</span><br>
-                  <label style="display:inline-flex;align-items:center;gap:6px;margin-top:4px;font-size:var(--text-xs);cursor:pointer;">
-                    <input type="checkbox" data-ps-inst="${item.id}::${inst.id}" ${inst.profitshare?'checked':''} style="width:18px;height:18px;accent-color:var(--primary);">
-                    Profitshare
-                  </label>
-                </div>
-                <button class="btn btn-danger" style="min-height:32px;padding:.2rem .5rem;font-size:var(--text-xs);" data-del-inst="${item.id}" data-inst-id="${inst.id}">🗑</button>
-              </div>`)).join('')}
-          </div>
+          ${menge>1?`
+          <button class="stack-toggle" onclick="toggleStack('${sdId}')">▸ ${menge} Exemplare anzeigen</button>
+          <div class="stack-details" id="${sdId}">
+            ${allInst.map(inst=>`
+            <div class="stack-inst">
+              <input class="item-chk" type="checkbox" data-chk-inst="${firstItem.id}::${inst.id}" ${state.sel.has(firstItem.id+'::'+inst.id)?'checked':''}>
+              <div class="inst-thumb">${inst.image?`<img src="${inst.image}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
+              <div>
+                <div style="font-size:var(--text-xs);color:var(--muted);">EK ${euro(inst.purchasePrice||0)} · ${fmtDate(inst.entryDate)}</div>
+                ${inst.comment?`<div style="font-size:var(--text-xs);color:var(--muted);">${inst.comment}</div>`:''}
+                ${inst.defect?`<div style="font-size:var(--text-xs);color:var(--warn);">⚠ ${inst.defect}</div>`:''}
+              </div>
+              <button class="btn btn-danger" style="min-height:30px;padding:.2rem .5rem;font-size:var(--text-xs);" onclick="deleteInst('${firstItem.id}','${inst.id}')">🗑</button>
+            </div>`).join('')}
+          </div>`:''}
         </div>`;
-      }).join('')}
+        }).join('')}
+      </div>`;
+    }).join('');
+
+    return `<div style="margin-bottom:var(--sp6);">
+      <div class="group-head">
+        <h2 class="group-title" style="font-size:var(--text-base);font-weight:700;">${grp}</h2>
+        <span class="chip stack">${grpTotal} Stück</span>
+      </div>
+      ${subHtml}
     </div>`;
-  }).join('');
+  }).join('') || '<div class="empty">Keine offenen Artikel.</div>';
+
+  // Checkboxen binden
+  g('openContent').querySelectorAll('[data-chk-inst]').forEach(cb=>{
+    cb.addEventListener('change', e=>{
+      const key = e.target.dataset.chkInst;
+      e.target.checked ? state.sel.add(key) : state.sel.delete(key);
+      renderOpen();
+    });
+  });
 }
 
-// ═══════════════════════════════════════════════════
-// RENDER VERKAUFT
-// ═══════════════════════════════════════════════════
 function renderSold() {
   const needle = state.soldFilter.trim().toLowerCase();
   const sets = needle ? state.sold.filter(s=>s.setName.toLowerCase().includes(needle)) : state.sold;
@@ -1001,7 +1190,7 @@ function renderSold() {
             <span class="chip">${fmtDate(set.saleDate)}</span>
             ${set.hasProfitshare?'<span class="chip ps">PS</span>':''}
           </div>
-          <div class="muted" style="font-size:var(--text-xs);margin-top:var(--sp2);">${set.items.map(i=>{ const label=[i.group,i.productType,i.article].filter(Boolean).join(' · '); return label+(i.menge>1?` ×${i.menge}`:''); }).join(', ')}</div>
+          <div class="muted" style="font-size:var(--text-xs);margin-top:var(--sp2);">${set.items.map(i=>{ const label=(set.setName?[i.productType,i.article]:[i.group,i.productType,i.article,i.size,i.color]).filter(Boolean).join(' · '); return label+(i.menge>1?' ×'+i.menge:''); }).join(', ')}</div>
         </div>
       </div>
       <div class="item-footer">
@@ -1136,7 +1325,11 @@ function masterSubmit(e) {
 
     if (!state.master.catalog) state.master.catalog = {};
 
-    if (type === 'images') return;
+    if (type === 'images') {
+      // Bilder werden via handleMasterImgFiles gespeichert
+      // Hier nur catalog-Zuweisung, wenn Gruppe + Produkttyp gewählt
+      return;
+    }
 
     if (type === 'groups') {
       if (!val) return alert('Bitte Gruppenname eingeben.');
@@ -1235,11 +1428,10 @@ g('createSetBtn').addEventListener('click', () => {
   const psAll  = selPairs.every(({inst})=>inst.profitshare);
   const psSome = selPairs.some(({inst})=>inst.profitshare);
   let netProfit = rawProfit;
-  if (psSome && !psAll) {
-    const mv = g('manualProfit').value;
-    if (mv==='') return alert('Bitte manuellen Nettogewinn eintragen (gemischtes Profitshare).');
-    netProfit = +mv;
-  } else if (psAll) { netProfit = rawProfit/2; }
+  if (psSome) {
+    const psPct = +(g('manualPsShare')?.value || 50);
+    netProfit = rawProfit * (1 - psPct/100);
+  }
 
   state.sold.unshift({
     id:crypto.randomUUID(), setName, salePrice:sp, purchaseTotal, netProfit,
@@ -1253,8 +1445,8 @@ g('createSetBtn').addEventListener('click', () => {
   });
   state.open = state.open.filter(i=>i.instances.length>0);
   state.sel.clear();
-  g('setName').value=''; g('salePrice').value=''; g('manualProfit').value='';
-  g('setImgData').value=''; g('setImgThumb').innerHTML='📷'; g('clearSetImg').style.display='none';
+  g('setName').value=''; g('salePrice').value=''; if(g('manualPsShare')) g('manualPsShare').value='50'; setPsShare && [10,20,30,40].forEach(p=>{const b=g('psbtn'+p);if(b){b.style.background='var(--surfoff)';b.style.color='';b.style.borderColor='var(--border)';}});
+  setSetImgVal(''); g('clearSetImg').style.display='none';
   save(); toast('Set verkauft ✓');
   state.page='sold'; render();
 });
