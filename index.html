@@ -117,8 +117,9 @@ img{max-width:100%;display:block;}
 .stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rad-lg);padding:var(--sp4);}
 .stat-card .k{color:var(--muted);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.06em;}
 .stat-card .v{font-size:var(--text-lg);font-weight:700;margin-top:var(--sp1);}
-.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp3);}
-.kpi-card{background:var(--surfoff);border:1px solid var(--border);border-radius:var(--rad-md);padding:var(--sp3);}
+.top5-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp4);}@media(max-width:600px){.top5-grid{grid-template-columns:1fr;}}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp3);}@media(max-width:600px){.kpi-grid{grid-template-columns:1fr 1fr;}}
+.kpi-card{background:var(--surfoff);border:1px solid var(--border);border-radius:var(--rad-md);padding:var(--sp3);min-width:0;}
 .kpi-card .k{color:var(--muted);font-size:var(--text-xs);text-transform:uppercase;}
 .kpi-card .v{font-size:var(--text-base);font-weight:700;margin-top:2px;}
 .kpi-card .d{color:var(--faint);font-size:var(--text-xs);margin-top:2px;}
@@ -238,8 +239,14 @@ img{max-width:100%;display:block;}
   <div class="stats-grid" id="statsCards"></div>
   <div class="card"><div class="card-head"><h3 class="card-title">Monatsgewinne</h3></div>
     <div class="card-body"><table class="mini-table" id="monthTable"></table></div></div>
-  <div class="card"><div class="card-head"><h3 class="card-title">Artikel-KPIs</h3></div>
-    <div class="card-body"><div class="kpi-grid" id="kpiCards"></div></div></div>
+  <div class="card" style="margin-bottom:var(--sp4);">
+    <div class="card-head"><h3 class="card-title">🏆 Top 10 Artikel</h3></div>
+    <div class="card-body"><div id="top5Cards"></div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><h3 class="card-title">📊 Artikel-KPIs</h3></div>
+    <div class="card-body"><div id="kpiCards"></div></div>
+  </div>
   <h3 class="section-title" style="margin-top:var(--sp4);">Verkäufe nach Monat</h3>
   <div id="monthCards"></div>
 </section>
@@ -298,9 +305,9 @@ img{max-width:100%;display:block;}
         <div class="field">
           <label>Anzahl</label>
           <select class="select" id="quantity">
-            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="50">50</option>
           </select>
-          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;"><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='2'">2</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='3'">3</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='4'">4</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='5'">5</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='6'">6</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='7'">7</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='8'">8</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='9'">9</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="document.getElementById('quantity').value='10'">10</button></div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;"><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='1'">1</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='2'">2</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='3'">3</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='4'">4</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='5'">5</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='6'">6</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='7'">7</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='8'">8</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='9'">9</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='10'">10</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='20'">20</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='30'">30</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='50'">50</button></div>
         </div>
         <button type="submit" class="btn btn-primary btn-full">✚ Eintrag hinzufügen</button>
       </form>
@@ -731,6 +738,7 @@ function renderStats() {
   const totalSets    = ys.length;
   const totalProfit  = ys.reduce((s,set)=>s+set.netProfit,0);
   const totalRevenue = ys.reduce((s,set)=>s+set.salePrice,0);
+  const totalArtSold = ys.reduce((s,set)=>s+set.items.reduce((a,i)=>a+(i.quantity||1),0),0);
 
   // ── Artikel-Maps ──
   const artCount = new Map(), artProfit = new Map(), artRevenue = new Map();
@@ -738,16 +746,16 @@ function renderStats() {
     const share = set.salePrice/(set.items.length||1);
     const pShare = set.netProfit/(set.items.length||1);
     set.items.forEach(item=>{
-      const key = [item.productType, item.article].filter(Boolean).join(' · ') || item.article || '–';
+      const key = [item.productType, item.article, item.size, item.color].filter(Boolean).join(' · ') || item.article || '–';
       artCount.set(key,(artCount.get(key)||0)+(item.menge||1));
       artProfit.set(key,(artProfit.get(key)||0)+pShare);
       artRevenue.set(key,(artRevenue.get(key)||0)+share);
     });
   });
 
-  // ── Top 5 Artikel (Gewinn + Umsatz) ──
-  const top5Profit  = [...artProfit.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const top5Revenue = [...artRevenue.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
+  // ── Top 10 Artikel (Gewinn + Umsatz) ──
+  const top5Profit  = [...artProfit.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const top5Revenue = [...artRevenue.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10);
   const topCount    = [...artCount.entries()].sort((a,b)=>b[1]-a[1])[0];
 
   // ── Top Set ──
@@ -762,9 +770,9 @@ function renderStats() {
     e.profit  += set.netProfit;
     e.revenue += set.salePrice;
     e.sets    += 1;
-    e.artUnits+= set.items.length;
+    e.artUnits+= set.items.reduce((a,i)=>a+(i.quantity||1),0);
     set.items.forEach(item=>{
-      e.items.push({article:item.article,productType:item.productType||'',group:item.group||'',setName:set.setName,saleDate:set.saleDate});
+      e.items.push({article:item.article,productType:item.productType||'',group:item.group||'',size:item.size||'',color:item.color||'',quantity:item.quantity||1,setName:set.setName,saleDate:set.saleDate});
     });
   });
   const months = [...monthMap.entries()].sort((a,b)=>b[1].key.localeCompare(a[1].key));
@@ -772,6 +780,7 @@ function renderStats() {
   // ── Stat Cards ──
   g('statsCards').innerHTML = [
     {k:'Verkaufte Sets',  v:totalSets},
+    {k:'Verkaufte Artikel', v:totalArtSold},
     {k:'Jahresgewinn',    v:euro(totalProfit)},
     {k:'Umsatz',          v:euro(totalRevenue)},
     {k:'Top Artikel',     v:topCount?topCount[0]:'-'},
@@ -809,12 +818,13 @@ function renderStats() {
       </tbody></table>
     </div>`;
 
-  g('kpiCards').innerHTML =
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp4);margin-bottom:var(--sp4);">' +
-    mkTop5('🏆 Top 5 Artikel · Gewinn', top5Profit, euro) +
-    mkTop5('💰 Top 5 Artikel · Umsatz', top5Revenue, euro) +
-    '</div>' +
-    `<div class="kpi-grid">
+  g('top5Cards').innerHTML =
+    '<div class="top5-grid">' +
+    mkTop5('🏆 Top 10 Artikel · Gewinn', top5Profit, euro) +
+    mkTop5('💰 Top 10 Artikel · Umsatz', top5Revenue, euro) +
+    '</div>';
+
+  g('kpiCards').innerHTML = `<div class="kpi-grid">
       <div class="kpi-card"><div class="k">Ø Gewinn / Set</div><div class="v">${euro(avgUnit)}</div><div class="d">Je verkauftem Set</div></div>
       <div class="kpi-card"><div class="k">Profitshare-Anteil</div><div class="v">${ys.length?Math.round(psCount/ys.length*100):0} %</div><div class="d">Sets mit Profitshare</div></div>
       <div class="kpi-card"><div class="k">Ø Marge</div><div class="v">${totalRevenue?Math.round(totalProfit/totalRevenue*100):0} %</div><div class="d">Gewinn ÷ Umsatz</div></div>
@@ -840,8 +850,10 @@ function renderStats() {
       </div>
       <ul class="month-items">${d.items.map(i=>{
         const artLabel = [i.productType, i.article].filter(Boolean).join(' · ') || '–';
-        const label = i.setName ? `<b>${i.setName}</b> <span style="color:var(--muted);font-size:var(--text-xs);">${artLabel}</span>` : artLabel;
-        return `<li>${label} · ${fmtDate(i.saleDate)}</li>`;
+        const details = [i.size, i.color].filter(Boolean).join(' · ');
+        const label = i.setName ? `<b>${i.setName}</b> <span style="color:var(--muted);font-size:var(--text-xs);">${artLabel}${details?' · '+details:''}</span>` : artLabel+(details?' · '+details:'');
+        const qty = i.quantity && i.quantity > 1 ? ` <span style="color:var(--accent);font-size:var(--text-xs);">×${i.quantity}</span>` : '';
+        return `<li>${label}${qty} · ${fmtDate(i.saleDate)}</li>`;
       }).join('')}</ul>
     </div>`;
   }).join('') || '<div class="empty">Keine Verkäufe im gewählten Jahr.</div>';
@@ -1373,7 +1385,7 @@ render();
 // Schnellauswahl-Buttons
 (function(){
   // 1,2,3,4 dann 5,10,15...100
-  const ekBtns = [1,2,3,4,5,10,15,20,25,30,35,40];
+  const ekBtns = [0,1,2,3,4,5,10,15,20,25,30,35,40];
   const style = 'padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;';
   g('ekQuick').innerHTML = ekBtns.map(v=>`<button type="button" style="${style}" onclick="g('purchasePrice').value='${v}'">${v}€</button>`).join('');
 })();
