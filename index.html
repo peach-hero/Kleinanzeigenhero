@@ -501,11 +501,32 @@ function load() {
 // ═══════════════════════════════════════════════════
 function exportData() {
   const data = { open:state.open, sold:state.sold, master:state.master, year:state.year };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const json = JSON.stringify(data, null, 2);
+  const filename = `kleinanzeigen-hero-${today()}.json`;
+
+  // Web Share API (Android PWA / mobil)
+  if (navigator.share && navigator.canShare) {
+    const blob = new Blob([json], { type:'application/json' });
+    const file = new File([blob], filename, { type:'application/json' });
+    if (navigator.canShare({ files:[file] })) {
+      navigator.share({ files:[file], title:'Backup', text:'Kleinanzeigen Hero Daten' })
+        .then(()=>toast('Daten exportiert ✓'))
+        .catch(e=>{ if(e.name!=='AbortError') fallbackExport(json, filename); });
+      return;
+    }
+  }
+  fallbackExport(json, filename);
+}
+
+function fallbackExport(json, filename) {
+  // Desktop / Browser-Download
+  const blob = new Blob([json], { type:'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `kleinanzeigen-hero-${today()}.json`;
+  a.download = filename;
+  document.body.appendChild(a);
   a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); document.body.removeChild(a); }, 1000);
   toast('Daten exportiert ✓');
 }
 function importData(file) {
