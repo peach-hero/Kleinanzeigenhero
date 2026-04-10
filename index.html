@@ -240,7 +240,7 @@ img{max-width:100%;display:block;}
   <div class="card"><div class="card-head"><h3 class="card-title">Monatsgewinne</h3></div>
     <div class="card-body"><table class="mini-table" id="monthTable"></table></div></div>
   <div class="card" style="margin-bottom:var(--sp4);">
-    <div class="card-head"><h3 class="card-title">🏆 Top 10 Artikel</h3></div>
+    <div class="card-head"><h3 class="card-title">🏆 Top 10 Übersicht</h3></div>
     <div class="card-body"><div id="top5Cards"></div></div>
   </div>
   <div class="card">
@@ -263,18 +263,19 @@ img{max-width:100%;display:block;}
         <div class="checkbox-row">
           <input id="profitshare" type="checkbox">
           <label for="profitshare">Profitshare</label>
+          <button type="button" class="btn btn-ghost" onclick="resetItemForm()" style="margin-left:auto;min-height:40px;padding:.5rem .9rem;">Reset</button>
         </div>
         <div class="field">
           <label>Einkaufspreis</label>
-          <select class="select" id="purchasePrice" required></select>
-          <div class="quick-btns" id="ekQuick" style="justify-content:center;"></div>
+          <input class="input" id="purchasePrice" type="number" min="0" step="0.01" required placeholder="z.B. 25">
+          <div class="quick-btns" style="justify-content:center;margin-top:6px;display:flex;flex-wrap:wrap;gap:5px;"><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('purchasePrice').value='0'">0€</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('purchasePrice').value='3'">3€</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('purchasePrice').value='5'">5€</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('purchasePrice').value='10'">10€</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('purchasePrice').value='15'">15€</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('purchasePrice').value='20'">20€</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('purchasePrice').value='30'">30€</button></div>
         </div>
         
         <div class="field"><label>Gruppe</label><div style="display:flex;gap:6px;align-items:center;"><select class="select" id="group" required onchange="onGroupChange()" style="flex:1;"></select><button type="button" onclick="showAddInput('group')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;"><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('group').value='Besta';onGroupChange();})()">Besta</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('group').value='Malm';onGroupChange();})()">Malm</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('group').value='Alex';onGroupChange();})()">Alex</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('group').value='Elvarli';onGroupChange();})()">Elvarli</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('group').value='Sonstiges';onGroupChange();})()">Sonstiges</button></div></div>
         <div class="field"><label>Produkttyp</label><div style="display:flex;gap:6px;align-items:center;"><select class="select" id="productType" required onchange="onProductTypeChange()" style="flex:1;"><option value="">– Gruppe wählen –</option></select><button type="button" onclick="showAddInput('productType')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;"><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('productType').value='Korpus';onProductTypeChange();})()">Korpus</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('productType').value='Tür';onProductTypeChange();})()">Tür</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('productType').value='Schubladen';onProductTypeChange();})()">Schubladen</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('productType').value='Tisch';onProductTypeChange();})()">Tisch</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('productType').value='Lampe';onProductTypeChange();})()">Lampe</button></div></div>
         <div class="field"><label>Artikelname <span style="color:var(--faint);font-weight:400;">(optional)</span></label><div style="display:flex;gap:6px;align-items:center;"><select class="select" id="article" style="flex:1;"><option value="">– optional –</option></select><button type="button" onclick="showAddInput('article')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button></div></div>
         <div class="grid2">
-          <div class="field"><label>Größe</label><div style="display:flex;gap:6px;align-items:center;"><select class="select" id="size" style="flex:1;"></select><button type="button" onclick="showAddInput('size')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;"><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('size').value='64';})()">64</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('size').value='38';})()">38</button></div></div>
+          <div class="field"><label>Größe</label><div style="display:flex;gap:6px;align-items:center;"><select class="select" id="size" style="flex:1;"></select><button type="button" onclick="showAddInput('size')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;"><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('size').value='64';})()">64</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('size').value='38';})()">38</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="(function(){document.getElementById('size').value='26';})()">26</button></div></div>
           <div class="field"><label>Farbe</label><div style="display:flex;gap:6px;align-items:center;"><select class="select" id="color" style="flex:1;"></select><button type="button" onclick="showAddInput('color')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;"><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="document.getElementById('color').value='schwarz'">schwarz</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="document.getElementById('color').value='weiß'">weiß</button></div></div>
         </div>
         <div class="field"><label>Mängel <span style="color:var(--faint);font-weight:400;">(optional)</span></label><textarea class="textarea" id="defect" placeholder="z.B. Kratzer, fehlende Schraube…" style="min-height:60px;"></textarea></div>
@@ -300,11 +301,9 @@ img{max-width:100%;display:block;}
           </div>
         </div>
         <div class="field">
-          <label>Anzahl</label>
-          <select class="select" id="quantity">
-            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="10">10</option><option value="20">20</option>
-          </select>
-          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;"><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='1'">1</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='2'">2</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='3'">3</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='4'">4</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='5'">5</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='10'">10</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='20'">20</button></div>
+          <label for="quantity">Anzahl</label>
+          <input class="input" id="quantity" type="number" min="1" step="1" value="1" required placeholder="z.B. 5">
+          <div class="quick-btns" style="justify-content:center;margin-top:6px;display:flex;flex-wrap:wrap;gap:5px;"><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='1'">1</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='2'">2</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='3'">3</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='4'">4</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='5'">5</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='10'">10</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('quantity').value='20'">20</button></div>
         </div>
         <button type="submit" class="btn btn-primary btn-full">✚ Eintrag hinzufügen</button>
       </form>
@@ -737,7 +736,8 @@ function renderStats() {
   const artCount = new Map(), artProfit = new Map(), artRevenue = new Map();
   ys.forEach(set=>{
     const share = set.salePrice/(set.items.length||1);
-    const pShare = set.netProfit/(set.items.length||1);
+    const rawProfit = set.salePrice - (set.purchaseTotal||0);
+    const pShare = rawProfit/(set.items.length||1);
     set.items.forEach(item=>{
       const key = [item.productType, item.article, item.size, item.color].filter(Boolean).join(' · ') || item.article || '–';
       artCount.set(key,(artCount.get(key)||0)+(item.menge||1));
@@ -746,9 +746,13 @@ function renderStats() {
     });
   });
 
+  // Durchschnitt je Artikel berechnen
+  const artProfitAvg  = new Map([...artProfit.entries()].map(([k,v])=>[k, v/(artCount.get(k)||1)]));
+  const artRevenueAvg = new Map([...artRevenue.entries()].map(([k,v])=>[k, v/(artCount.get(k)||1)]));
+
   // ── Top 10 Artikel (Gewinn + Umsatz) ──
-  const top5Profit  = [...artProfit.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10);
-  const top5Revenue = [...artRevenue.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const top5Profit  = [...artProfitAvg.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const top5Revenue = [...artRevenueAvg.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10);
   const topCount    = [...artCount.entries()].sort((a,b)=>b[1]-a[1])[0];
 
   // ── Top Set ──
@@ -811,10 +815,25 @@ function renderStats() {
       </tbody></table>
     </div>`;
 
+  // Top 10 Sets
+  const setByName = new Map();
+  ys.forEach(set => {
+    const name = set.setName || '(kein Name)';
+    if (!setByName.has(name)) setByName.set(name, {profit:0, revenue:0, count:0});
+    const e = setByName.get(name);
+    e.profit  += set.salePrice - (set.purchaseTotal||0);
+    e.revenue += set.salePrice;
+    e.count   += 1;
+  });
+  const top10SetProfit  = [...setByName.entries()].map(([k,v])=>[k,v.profit/v.count]).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const top10SetRevenue = [...setByName.entries()].map(([k,v])=>[k,v.revenue/v.count]).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
   g('top5Cards').innerHTML =
     '<div class="top5-grid">' +
-    mkTop5('🏆 Top 10 Artikel · Gewinn', top5Profit, euro) +
-    mkTop5('💰 Top 10 Artikel · Umsatz', top5Revenue, euro) +
+    mkTop5('🏆 Top 10 Artikel · Ø Gewinn', top5Profit, euro) +
+    mkTop5('💰 Top 10 Artikel · Ø Umsatz', top5Revenue, euro) +
+    mkTop5('🎯 Top 10 Sets · Ø Gewinn', top10SetProfit, euro) +
+    mkTop5('💵 Top 10 Sets · Ø Umsatz', top10SetRevenue, euro) +
     '</div>';
 
   g('kpiCards').innerHTML = `<div class="kpi-grid">
@@ -870,10 +889,10 @@ function renderOpen() {
   const grpPTEntries = Object.entries(byGrpPT).sort((a,b)=>a[0].localeCompare(b[0],'de'));
 
   g('openContent').innerHTML = grpPTEntries.map(([grpPT, items])=>{
-    // Ebene 2: gleiche Artikel (Artikelname+Farbe+Größe) stacken
+    // Ebene 2: gleiche Artikel (Artikelname+Farbe+Größe+Einkaufspreis) stacken
     const articleMap = {};
     items.forEach(item=>{
-      const artKey = [item.article||'–', item.color||'–', item.size||'–'].join('||');
+      const artKey = [item.article||'–', item.color||'–', item.size||'–', purchase(item)].join('||');
       (articleMap[artKey] = articleMap[artKey]||[]).push(item);
     });
     const totalPcs = items.reduce((s,i)=>s+i.instances.length, 0);
@@ -903,6 +922,7 @@ function renderOpen() {
               <div class="chips">
                 <span class="chip">Gr. ${firstItem.size||'-'}</span>
                 <span class="chip">${firstItem.color||'-'}</span>
+                <span class="chip">EK ${euro(einzel)}</span>
                 ${menge>1?`<span class="chip stack">× ${menge}</span>`:''}
                 ${hasPsh?'<span class="chip ps">Profitshare</span>':''}
                 ${selCount>0?`<span class="chip sel">✓ ${selCount}</span>`:''}
@@ -1060,20 +1080,24 @@ document.querySelector('.bottom-nav').addEventListener('click', e => {
 // Artikel hinzufügen
 g('itemForm').addEventListener('submit', e => {
   e.preventDefault();
-  const item = {
-    group:g('group').value, productType:g('productType').value,
-    article:g('article').value,
-    size:g('size').value, color:g('color').value,
-    purchasePrice:+g('purchasePrice').value||0,
-    profitshare:g('profitshare').checked,
-    image:g('imgValue').value,
-    comment:g('comment')?g('comment').value:'',
-    defect:g('defect')?g('defect').value:'',
-    entryDate:today()
-  };
-  if (!item.group || !item.productType) return alert('Bitte Gruppe und Produkttyp wählen.');
+  const totalPrice = +g('purchasePrice').value||0;
+  if (!g('group').value || !g('productType').value) return alert('Bitte Gruppe und Produkttyp wählen.');
   const qty = +(g('quantity')||{value:'1'}).value||1;
-  for(let q=0;q<qty;q++) addOrStack({...item});
+  const pricePerUnit = totalPrice / qty;
+  for(let q=0;q<qty;q++) {
+    const item = {
+      group:g('group').value, productType:g('productType').value,
+      article:g('article').value,
+      size:g('size').value, color:g('color').value,
+      purchasePrice:pricePerUnit,
+      profitshare:g('profitshare').checked,
+      image:g('imgValue').value,
+      comment:g('comment')?g('comment').value:'',
+      defect:g('defect')?g('defect').value:'',
+      entryDate:today()
+    };
+    addOrStack(item);
+  }
   save();
   toast(qty>1?qty+' Artikel hinzugefügt ✓':'Artikel hinzugefügt ✓');
   state.page='open'; render();
@@ -1416,14 +1440,18 @@ document.getElementById('instImgInput').addEventListener('change', function() {
 
 function resetItemForm() {
   g('itemForm').reset();
-  g('productType').innerHTML='<option value="">– Gruppe wählen –</option>';
-  g('article').innerHTML='<option value="">– optional –</option>';
-  g('size').innerHTML='<option value="">–</option>';
-  g('color').innerHTML='<option value="">–</option>';
-  setImgVal('');
-  g('uploadPreview').classList.remove('show');
-  toast('Formular zurückgesetzt');
+  if (g('purchasePrice')) g('purchasePrice').value = '';
+  if (g('quantity')) g('quantity').value = '1';
+  if (g('productType')) g('productType').innerHTML = '<option value="">Gruppe wählen</option>';
+  if (g('article')) g('article').innerHTML = '<option value="">Produkttyp wählen</option>';
+  if (g('size')) g('size').innerHTML = '<option value=""></option>';
+  if (g('color')) g('color').innerHTML = '<option value=""></option>';
+  if (g('imgValue')) g('imgValue').value = '';
+  if (g('imgLabel')) g('imgLabel').textContent = 'Aus Stammdaten wählen';
+  if (g('imgPreview')) g('imgPreview').innerHTML = '';
+  if (g('uploadPreview')) g('uploadPreview').classList.remove('show');
 }
+
 </script>
 
 <script>
