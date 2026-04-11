@@ -271,7 +271,7 @@ img{max-width:100%;display:block;}
         </div>
         <div class="field">
           <label>Einkaufspreis</label>
-          <input class="input" id="purchasePrice" type="number" min="0" step="0.01" required placeholder="z.B. 25">
+          <input class="input" id="purchasePrice" type="number" min="0" step="0.01" value="0" placeholder="z.B. 25">
           <div class="quick-btns" style="justify-content:center;margin-top:6px;display:flex;flex-wrap:wrap;gap:5px;"><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('purchasePrice').value='0'">0€</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('purchasePrice').value='3'">3€</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('purchasePrice').value='5'">5€</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('purchasePrice').value='10'">10€</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('purchasePrice').value='15'">15€</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('purchasePrice').value='20'">20€</button><button type="button" style="padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="g('purchasePrice').value='30'">30€</button></div>
         </div>
         
@@ -357,14 +357,14 @@ img{max-width:100%;display:block;}
         <input type="hidden" id="setImgData">
         <button type="button" id="clearSetImg" style="display:none;margin-top:6px;" class="btn btn-danger">× Bild entfernen</button>
       </div>
-      <div class="muted" id="selSummary">0 Artikel gewählt.</div>
+      <div class="muted" id="selSummary">0 Artikel gewählt.</div><button onclick="toggleZeroFilter()" id="zeroFilterBtn" class="btn btn-ghost" style="font-size:13px;margin-top:8px">Nullbestand ausblenden</button>
       <div class="grid2">
         <button id="createSetBtn" class="btn btn-primary">✓ Verkaufen</button>
         <button id="clearSelBtn" class="btn btn-ghost">Auswahl leeren</button>
       </div>
     </div>
   </div>
-  <div id="openContent"></div>
+  <div style="text-align:right;margin-bottom:8px"><button onclick="toggleZeroFilter()" id="zeroFilterBtn" class="btn btn-ghost" style="font-size:13px">Nullbestand ausblenden</button></div><div id="openContent"></div>
 </section>
 
 <!-- ④ VERKAUFT -->
@@ -683,7 +683,7 @@ function buildImgDropdown() {
   const grp = g('group')?.value || '';
   const typ = g('productType')?.value || '';
   // Bilder für aktuelle Gruppe+Produkttyp + globale Bilder
-  const catImgs = grp ? (state.master.catalog[grp] ? Object.values(state.master.catalog[grp]).flatMap(pt=>pt.images||[]) : []) : [];
+  const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
   const allImgs = [...new Set([...catImgs, ...state.master.images])];
   const opts = [{ url:'', label:'Kein Bild' }, ...allImgs.map(u=>({
     url:u, label: u.startsWith('data:') ? (catImgs.includes(u) ? `📌 ${typ}` : 'Upload-Bild') : (u.split('id=')[1]?.slice(0,22)||u.slice(-22))
@@ -1038,6 +1038,68 @@ function deleteInst(itemId, instId) {
   save(); render();
 }
 
+
+function changeQty(itemId, delta) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+
+  const current = item.instances.length;
+  const target = Math.max(0, current + delta);
+
+  if(delta > 0) {
+    item.instances.push({
+      id: crypto.randomUUID(),
+      purchasePrice: item.purchasePrice || 0,
+      profitshare: item.profitshare || 0,
+      image: item.instances[0]?.image || '',
+      comment: '',
+      defect: ''
+    });
+  } else if(delta < 0 && current > 0) {
+    item.instances.pop();
+  }
+
+  save();
+  renderOpen();
+}
+
+
+function editEK(itemId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  const val = prompt('EK Preis eingeben (€):', item.purchasePrice||0);
+  if(val === null) return;
+  const price = parseFloat(val.replace(',','.')) || 0;
+  item.purchasePrice = price;
+  item.instances.forEach(inst => inst.purchasePrice = price);
+  save(); renderOpen();
+}
+
+function toggleGrp(el) {
+  const key = el.dataset.key;
+  const body = document.querySelector('[data-body="' + key + '"]');
+  if(!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  const arrow = el.querySelector('.group-title');
+  if(arrow) arrow.innerHTML = arrow.innerHTML.replace(isOpen ? '&#9660;' : '&#9658;', isOpen ? '&#9658;' : '&#9660;');
+}
+function toggleZeroFilter() {
+  state.hideZero = !state.hideZero;
+  const btn = g('zeroFilterBtn');
+  if(btn) btn.textContent = state.hideZero ? 'Nullbestand einblenden' : 'Nullbestand ausblenden';
+  renderOpen();
+}
+function editInstEK(itemId, instId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  const inst = item.instances.find(i=>i.id===instId);
+  if(!inst) return;
+  const val = prompt('EK Preis (€):', inst.purchasePrice||0);
+  if(val === null) return;
+  inst.purchasePrice = parseFloat(val.replace(',','.')) || 0;
+  save(); renderOpen();
+}
 function renderOpen() {
   g('setBuilder').classList.toggle('show', state.sel.size>0);
   if(state.sel.size>0) buildSetImgDropdown();
@@ -1086,15 +1148,16 @@ function renderOpen() {
       // Ebene 3: Artikel stacken (nach Artikel+Farbe+Größe+EK)
       const articleMap = {};
       items.forEach(item=>{
-        const artKey = [item.article||'–', item.color||'–', item.size||'–', purchase(item)].join('||');
+        const artKey = [item.article||'–', item.color||'–', item.size||'–'].join('||');
         (articleMap[artKey] = articleMap[artKey]||[]).push(item);
       });
 
       return `<div style="margin-bottom:var(--sp4);margin-left:var(--sp2);">
-        <div class="group-head" style="margin-bottom:var(--sp2);">
-          <h3 class="group-title" style="font-size:var(--text-sm);color:var(--muted);">${ptLabel}</h3>
+        <div class="group-head" onclick="toggleGrp(this)" data-key="pt__${grpPT}" style="margin-bottom:var(--sp2);cursor:pointer">
+          <h3 class="group-title" style="font-size:var(--text-sm);color:var(--muted);">&#9658; ${ptLabel}</h3>
           <span class="chip">${totalPcs} Stück</span>
         </div>
+        <div class="grp-body" data-body="pt__${grpPT}" style="display:block">
         ${Object.entries(articleMap).map(([artKey, artItems])=>{
           const allInst  = artItems.flatMap(item=>item.instances.map(inst=>({...inst,_itemId:item.id})));
           const menge    = allInst.length;
@@ -1102,7 +1165,9 @@ function renderOpen() {
           const firstItem = artItems[0];
           const hasPsh   = allInst.some(x=>x.profitshare);
           const selCount = allInst.filter(inst=>state.sel.has(inst._itemId+'::'+inst.id)).length;
-          const einzel   = purchase(firstItem);
+          const ekSumme  = allInst.reduce((s,i)=>s+(+i.purchasePrice||0),0);
+          const einzel   = menge > 0 ? ekSumme / menge : 0;
+          if(state.hideZero && menge === 0) return '';
           const sdId     = 'sdA_' + Math.abs([grpPT,artKey].join('').split('').reduce((h,c)=>Math.imul(31,h)+c.charCodeAt(0)|0,0));
           return `<div class="item-card">
           <div class="item-card-main">
@@ -1116,15 +1181,15 @@ function renderOpen() {
               <div class="chips">
                 <span class="chip">Gr. ${firstItem.size||'-'}</span>
                 <span class="chip">${firstItem.color||'-'}</span>
-                ${einzel === 0 ? '<span class="chip" style="background:var(--warn-bg);color:var(--warn);">EK 0 € (kopieren)</span>' : '<span class="chip">EK ${euro(einzel)}</span>'}
-                <span class="chip stack">${menge === 0 ? "0 (kopieren)" : `× ${menge}`}</span>
+                <span class="chip">EK ${euro(einzel)}${menge>1&&allInst.some(i=>(+i.purchasePrice||0)!==einzel)?"*":""}</span>
+                ${`<span class="chip stack" style="display:flex;gap:3px;align-items:center;padding:0 4px"><button onclick="changeQty('${firstItem.id}',1)" style="width:16px;height:16px;border-radius:50%;background:#4CAF50;color:white;font-size:10px;border:none;font-weight:bold;cursor:pointer;line-height:1">+</button>${menge}<button onclick="changeQty('${firstItem.id}',-1)" style="width:16px;height:16px;border-radius:50%;background:#f44336;color:white;font-size:10px;border:none;font-weight:bold;cursor:pointer;line-height:1">−</button></span>`}
                 ${hasPsh?'<span class="chip ps">Profitshare</span>':''}
                 ${selCount>0?`<span class="chip sel">✓ ${selCount}</span>`:''}
               </div>
             </div>
           </div>
           <div class="item-footer">
-            <div class="item-price-row">${menge === 0 ? "0 × – = <b>0 €</b>" : `${menge} × ${euro(einzel)} = <b>${euro(einzel*menge)}</b>`}</div>
+            <div class="item-price-row">${menge} × Ø${euro(einzel)} = <b>${euro(ekSumme)}</b></div>
             <div class="item-actions">
               ${menge>1?`<button class="btn btn-ghost" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="toggleStack('${sdId}')">Details</button>`:''}
               <button class="btn btn-ghost" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="editItem('${firstItem.id}')">✏️</button>
@@ -1139,7 +1204,7 @@ function renderOpen() {
               <input class="item-chk" type="checkbox" data-chk-inst="${firstItem.id}::${inst.id}" ${state.sel.has(firstItem.id+'::'+inst.id)?'checked':''}>
               <div class="inst-thumb">${inst.image?`<img src="${inst.image}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
               <div>
-                <div style="font-size:var(--text-xs);color:var(--muted);">EK ${euro(inst.purchasePrice||0)} · ${fmtDate(inst.entryDate)}</div>
+                <div style="font-size:var(--text-xs);color:var(--muted);cursor:pointer" onclick="editInstEK('${firstItem.id}','${inst.id}')" title="EK bearbeiten">EK ${euro(inst.purchasePrice||0)} ✎ · ${fmtDate(inst.entryDate)}</div>
                 ${inst.comment?`<div style="font-size:var(--text-xs);color:var(--muted);">${inst.comment}</div>`:''}
                 ${inst.defect?`<div style="font-size:var(--text-xs);color:var(--warn);">⚠ ${inst.defect}</div>`:''}
               </div>
@@ -1148,15 +1213,15 @@ function renderOpen() {
           </div>`:''}
         </div>`;
         }).join('')}
-      </div>`;
+      </div></div>`;
     }).join('');
 
     return `<div style="margin-bottom:var(--sp6);">
-      <div class="group-head">
-        <h2 class="group-title" style="font-size:var(--text-base);font-weight:700;">${grp}</h2>
+      <div class="group-head" onclick="toggleGrp(this)" data-key="grp__${grp}" style="cursor:pointer">
+        <h2 class="group-title" style="font-size:var(--text-base);font-weight:700;">&#9658; ${grp}</h2>
         <span class="chip stack">${grpTotal} Stück</span>
       </div>
-      ${subHtml}
+      <div class="grp-body" data-body="grp__${grp}" style="display:block">${subHtml}</div>
     </div>`;
   }).join('') || '<div class="empty">Keine offenen Artikel.</div>';
 
@@ -1165,7 +1230,12 @@ function renderOpen() {
     cb.addEventListener('change', e=>{
       const key = e.target.dataset.chkInst;
       e.target.checked ? state.sel.add(key) : state.sel.delete(key);
-      renderOpen();
+      // Nur Panel + Summary updaten, KEIN renderOpen (verhindert Zuklappen)
+      g('setBuilder').classList.toggle('show', state.sel.size>0);
+      g('selSummary').textContent = state.sel.size + ' Artikel gewählt.';
+      updatePsPreview();
+      if(state.sel.size>0) buildSetImgDropdown();
+      save();
     });
   });
 }
@@ -1440,7 +1510,7 @@ g('createSetBtn').addEventListener('click', () => {
     const rmIds = new Set(insts.map(x=>x.id));
     item.instances = item.instances.filter(x=>!rmIds.has(x.id));
   });
-  state.open = state.open.filter(i=>i.instances.length>0);
+  // Artikel mit 0 Exemplaren bleiben erhalten (Wareneingang möglich)
   state.sel.clear();
   g('setName').value=''; g('salePrice').value=''; if(g('manualPsShare')) g('manualPsShare').value='50'; setPsShare && [10,20,30,40].forEach(p=>{const b=g('psbtn'+p);if(b){b.style.background='var(--surfoff)';b.style.color='';b.style.borderColor='var(--border)';}});
   setSetImgVal(''); g('clearSetImg').style.display='none';
