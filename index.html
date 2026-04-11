@@ -737,31 +737,32 @@ function fillMasterDropdowns() {
   buildImgDropdown();
 }
 function onGroupChange() {
-  const grp  = g('group').value;
+  const grp  = g('group')?.value || '';
   const cat  = state.master.catalog[grp] || {};
   const typs = Object.keys(cat).sort((a,b)=>a.localeCompare(b,'de'));
-  fillSel(g('productType'), typs, 'Produkttyp wählen');
-  g('article').innerHTML = '<option value="">– Produkttyp wählen –</option>';
-  g('size').innerHTML    = '<option value="">–</option>';
-  g('color').innerHTML   = '<option value="">–</option>';
-  // Bild-Dropdown zurücksetzen
+  if(g('productType')) fillSel(g('productType'), typs, 'Produkttyp wählen');
+  if(g('article')) g('article').innerHTML = '<option value="">– Produkttyp wählen –</option>';
+  if(g('size'))    g('size').innerHTML    = '<option value="">–</option>';
+  if(g('color'))   g('color').innerHTML   = '<option value="">–</option>';
+  if(!g('imgDropdown')) return;
   buildImgDropdown();
   if(g('imgValue')) g('imgValue').value = '';
   const prev = g('imgPreview');
   if(prev) { prev.src=''; prev.style.display='none'; }
 }
 function onProductTypeChange() {
-  const grp  = g('group').value;
-  const typ  = g('productType').value;
+  const grp  = g('group')?.value || '';
+  const typ  = g('productType')?.value || '';
   const data = (grp&&typ) ? (state.master.catalog[grp]?.[typ]||{}) : {};
-  fillSel(g('article'), data.articles||[], 'Artikelname wählen');
-  fillSel(g('size'),    data.sizes||[],    'Größe wählen');
-  fillSel(g('color'),   data.colors||[],   'Farbe wählen');
-  // Bild-Dropdown automatisch auf Produkttyp-Bilder setzen
+  if(g('article')) fillSel(g('article'), data.articles||[], 'Artikelname wählen');
+  if(g('size'))    fillSel(g('size'),    data.sizes||[],    'Größe wählen');
+  if(g('color'))   fillSel(g('color'),   data.colors||[],   'Farbe wählen');
+  // Nur ausführen wenn Neuanlage-Formular sichtbar
+  if(!g('imgDropdown')) return;
   buildImgDropdown();
-  // Erstes Bild des Produkttyps vorauswählen falls vorhanden
+  // Erstes Bild vorauswählen - nur wenn noch kein Bild gesetzt
   const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
-  if (catImgs.length > 0 && g('imgValue')) {
+  if (catImgs.length > 0 && g('imgValue') && !g('imgValue').value) {
     g('imgValue').value = catImgs[0];
     const prev = g('imgPreview');
     if (prev) { prev.src = catImgs[0]; prev.style.display = 'block'; }
