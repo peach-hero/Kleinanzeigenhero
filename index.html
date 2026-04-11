@@ -744,6 +744,11 @@ function onGroupChange() {
   g('article').innerHTML = '<option value="">– Produkttyp wählen –</option>';
   g('size').innerHTML    = '<option value="">–</option>';
   g('color').innerHTML   = '<option value="">–</option>';
+  // Bild-Dropdown zurücksetzen
+  buildImgDropdown();
+  if(g('imgValue')) g('imgValue').value = '';
+  const prev = g('imgPreview');
+  if(prev) { prev.src=''; prev.style.display='none'; }
 }
 function onProductTypeChange() {
   const grp  = g('group').value;
@@ -752,6 +757,15 @@ function onProductTypeChange() {
   fillSel(g('article'), data.articles||[], 'Artikelname wählen');
   fillSel(g('size'),    data.sizes||[],    'Größe wählen');
   fillSel(g('color'),   data.colors||[],   'Farbe wählen');
+  // Bild-Dropdown automatisch auf Produkttyp-Bilder setzen
+  buildImgDropdown();
+  // Erstes Bild des Produkttyps vorauswählen falls vorhanden
+  const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
+  if (catImgs.length > 0 && g('imgValue')) {
+    g('imgValue').value = catImgs[0];
+    const prev = g('imgPreview');
+    if (prev) { prev.src = catImgs[0]; prev.style.display = 'block'; }
+  }
 }
 
 // Custom Bild-Dropdown
@@ -1112,19 +1126,31 @@ function changeQty(itemId, delta) {
   if(!item) return;
 
   const current = item.instances.length;
-  const target = Math.max(0, current + delta);
 
   if(delta > 0) {
+    // Bild der ersten Instanz weitervererben
+    const inheritImg = item.instances[0]?.image || item.image || '';
     item.instances.push({
       id: crypto.randomUUID(),
-      purchasePrice: item.purchasePrice || 0,
-      profitshare: item.profitshare || 0,
-      image: item.instances[0]?.image || '',
+      purchasePrice: item.instances[0]?.purchasePrice || item.purchasePrice || 0,
+      profitshare: item.profitshare || false,
+      image: inheritImg,
+      entryDate: today(),
       comment: '',
       defect: ''
     });
   } else if(delta < 0 && current > 0) {
+    // Bild der zu löschenden Instanz retten bevor pop()
+    const removedImg = item.instances[current-1]?.image || '';
     item.instances.pop();
+    // Falls alle Exemplare weg: Bild am item-Objekt sichern
+    if(item.instances.length === 0 && removedImg) {
+      item._savedImage = removedImg;
+    }
+    // Falls noch Exemplare da: Bild auf verbleibende übertragen falls leer
+    if(item.instances.length > 0 && removedImg) {
+      item.instances.forEach(inst => { if(!inst.image) inst.image = removedImg; });
+    }
   }
 
   save();
@@ -1229,7 +1255,7 @@ function renderOpen() {
         ${Object.entries(articleMap).map(([artKey, artItems])=>{
           const allInst  = artItems.flatMap(item=>item.instances.map(inst=>({...inst,_itemId:item.id})));
           const menge    = allInst.length;
-          const img      = allInst.find(x=>x.image)?.image||'';
+          const img      = allInst.find(x=>x.image)?.image || firstItem._savedImage || '';
           const firstItem = artItems[0];
           const hasPsh   = allInst.some(x=>x.profitshare);
           const selCount = allInst.filter(inst=>state.sel.has(inst._itemId+'::'+inst.id)).length;
