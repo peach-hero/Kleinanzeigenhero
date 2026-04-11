@@ -477,10 +477,236 @@ const state = {
 // ═══════════════════════════════════════════════════
 // PERSIST
 // ═══════════════════════════════════════════════════
-function save() {
+
+// ═══════════════════════════════════════════════════
+// INDEXEDDB FÜR BILDER
+// ═══════════════════════════════════════════════════
+const IDB_NAME = 'amp3_imgs';
+const IDB_STORE = 'images';
+let idb = null;
+
+function openIDB() {
+  return new Promise((res, rej) => {
+    if (idb) return res(idb);
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = e => {
+      e.target.result.createObjectStore(IDB_STORE);
+    };
+    req.onsuccess = e => { idb = e.target.result; res(idb); };
+    req.onerror   = e => rej(e);
+  });
+}
+
+function idbPut(key, val) {
+  return openIDB().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(val, key);
+    tx.oncomplete = res;
+    tx.onerror = rej;
+  }));
+}
+
+function idbGet(key) {
+  return openIDB().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get(key);
+    req.onsuccess = () => res(req.result);
+    req.onerror = rej;
+  }));
+}
+
+function idbGetAll() {
+  return openIDB().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).getAll();
+    req.onsuccess = () => res(req.result);
+    req.onerror = rej;
+  }));
+}
+
+function idbGetAllKeys() {
+  return openIDB().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).getAllKeys();
+    req.onsuccess = () => res(req.result);
+    req.onerror = rej;
+  }));
+}
+
+// Bild speichern: gibt Key zurück
+function saveImage(dataUrl) {
+  if (!dataUrl || !dataUrl.startsWith('data:')) return Promise.resolve(dataUrl);
+  const key = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  return idbPut(key, dataUrl).then(() => key);
+}
+
+// Bild laden: Key → dataUrl
+function loadImage(keyOrUrl) {
+  if (!keyOrUrl) return Promise.resolve('');
+  if (keyOrUrl.startsWith('data:')) return Promise.resolve(keyOrUrl);
+  if (keyOrUrl.startsWith('img_')) return idbGet(keyOrUrl);
+  return Promise.resolve(keyOrUrl); // URL bleibt URL
+}
+
+// Storage persist anfragen
+if (navigator.storage && navigator.storage.persist) {
+  navigator.storage.persist().then(granted => {
+    if (granted) console.log('✅ Persistenter Speicher gewährt');
+    else console.warn('⚠️ Speicher nicht persistent');
+  });
+}
+
+
+// ═══════════════════════════════════════════════════
+// INDEXEDDB - BILDER DAUERHAFT SPEICHERN
+// ═══════════════════════════════════════════════════
+const IDB_NAME = 'amp3_storage';
+const IDB_VER  = 1;
+let _idb = null;
+
+function openIDB() {
+  return new Promise((res, rej) => {
+    if (_idb) return res(_idb);
+    const req = indexedDB.open(IDB_NAME, IDB_VER);
+    req.onupgradeneeded = e => e.target.result.createObjectStore('imgs');
+    req.onsuccess = e => { _idb = e.target.result; res(_idb); };
+    req.onerror   = e => rej(e);
+  });
+}
+function idbSave(key, val) {
+  return openIDB().then(db => new Promise((res,rej) => {
+    const tx = db.transaction('imgs','readwrite');
+    tx.objectStore('imgs').put(val, key);
+    tx.oncomplete = res; tx.onerror = rej;
+  }));
+}
+function idbLoad(key) {
+  if (!key || !key.startsWith('idb:')) return Promise.resolve(key||'');
+  const realKey = key.slice(4);
+  return openIDB().then(db => new Promise((res,rej) => {
+    const tx = db.transaction('imgs','readonly');
+    const req = tx.objectStore('imgs').get(realKey);
+    req.onsuccess = () => res(req.result||'');
+    req.onerror = rej;
+  }));
+}
+function idbDelete(key) {
+  if (!key || !key.startsWith('idb:')) return Promise.resolve();
+  return openIDB().then(db => new Promise((res,rej) => {
+    const tx = db.transaction('imgs','readwrite');
+    tx.objectStore('imgs').delete(key.slice(4));
+    tx.oncomplete = res; tx.onerror = rej;
+  }));
+}
+
+// Bild speichern: dataUrl → 'idb:KEY' Referenz
+function storeImage(dataUrl) {
+  if (!dataUrl || !dataUrl.startsWith('data:')) return Promise.resolve(dataUrl);
+  const key = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+  return idbSave(key, dataUrl).then(() => 'idb:' + key);
+}
+
+// Alle idb: Referenzen im state mit echten dataUrls ersetzen (für Rendering)
+async function hydrateImages() {
+  const resolve = async (ref) => ref && ref.startsWith('idb:') ? await idbLoad(ref) : (ref||'');
+  for (const item of state.open) {
+    for (const inst of item.instances||[]) {
+      if (inst.image && inst.image.startsWith('idb:')) inst.image = await idbLoad(inst.image);
+    }
+  }
+  for (const sold of state.sold) {
+    if (sold.previewImage && sold.previewImage.startsWith('idb:')) sold.previewImage = await idbLoad(sold.previewImage);
+  }
+  if (state.master.images) {
+    state.master.images = await Promise.all(state.master.images.map(resolve));
+  }
+  if (state.master.catalog) {
+    for (const grp of Object.values(state.master.catalog)) {
+      for (const pt of Object.values(grp||{})) {
+        if (pt.images) pt.images = await Promise.all(pt.images.map(resolve));
+      }
+    }
+  }
+}
+
+// Vor dem Speichern: dataUrls → idb: Referenzen
+async function dehydrateAndSave() {
+  const dehydrateInst = async (inst) => {
+    if (inst.image && inst.image.startsWith('data:')) {
+      inst.image = await storeImage(inst.image);
+    }
+    return inst;
+  };
+  // open
+  for (const item of state.open) {
+    for (let i=0; i<(item.instances||[]).length; i++) {
+      item.instances[i] = await dehydrateInst(item.instances[i]);
+    }
+  }
+  // sold previewImage
+  for (const sold of state.sold) {
+    if (sold.previewImage && sold.previewImage.startsWith('data:')) {
+      sold.previewImage = await storeImage(sold.previewImage);
+    }
+  }
+  // master images
+  if (state.master.images) {
+    for (let i=0; i<state.master.images.length; i++) {
+      if (state.master.images[i]?.startsWith('data:')) {
+        state.master.images[i] = await storeImage(state.master.images[i]);
+      }
+    }
+  }
+  // catalog images
+  if (state.master.catalog) {
+    for (const grp of Object.values(state.master.catalog)) {
+      for (const pt of Object.values(grp||{})) {
+        if (pt.images) {
+          for (let i=0; i<pt.images.length; i++) {
+            if (pt.images[i]?.startsWith('data:')) pt.images[i] = await storeImage(pt.images[i]);
+          }
+        }
+      }
+    }
+  }
   localStorage.setItem('amp3', JSON.stringify({
     open:state.open, sold:state.sold, master:state.master, year:state.year
   }));
+}
+
+// Storage persist
+if (navigator.storage?.persist) {
+  navigator.storage.persist().then(ok => console.log(ok ? '✅ Persistenter Speicher' : '⚠️ Nicht persistent'));
+}
+
+function save() {
+  // Bilder aus state ersetzen durch Keys (klein halten)
+  const stripImgs = obj => JSON.parse(JSON.stringify(obj, (k, v) => {
+    if (k === 'image' && typeof v === 'string' && v.startsWith('data:')) {
+      // Bild async in IDB speichern, Key zurückgeben
+      return v; // Vorerst behalten - async unten
+    }
+    return v;
+  }));
+  try {
+    localStorage.setItem('amp3', JSON.stringify({
+      open:state.open, sold:state.sold, master:state.master, year:state.year
+    }));
+  } catch(e) {
+    // localStorage voll (Bilder!) - ohne Bilder speichern
+    const slim = o => Array.isArray(o) ? o.map(item => ({
+      ...item,
+      instances: (item.instances||[]).map(inst => ({...inst, image: inst.image?.startsWith('data:') ? '__idb__' : inst.image}))
+    })) : o;
+    try {
+      localStorage.setItem('amp3', JSON.stringify({
+        open: slim(state.open), sold: slim(state.sold),
+        master: {...state.master, images: state.master.images.map(i => i.startsWith('data:') ? '__idb__' : i)},
+        year: state.year
+      }));
+      console.warn('Bilder wegen Speicherlimit ausgelassen');
+    } catch(e2) { console.error('Save fehlgeschlagen', e2); }
+  }
 }
 function load() {
   try {
@@ -491,6 +717,8 @@ function load() {
     state.master = { images:[], catalog:{}, ...(d.master||{}) };
     if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
     state.year   = d.year   || state.year;
+    // Bilder aus IDB laden
+    hydrateImages().then(() => renderOpen()).catch(()=>{});
     // Migration: productType in alten Einträgen ergänzen
     const migrateProductType = (article, group) => {
       const cat = state.master.catalog || {};
@@ -616,6 +844,8 @@ function importData(file) {
       state.master = { images:[], catalog:{}, ...(d.master||{}) };
     if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
       state.year   = d.year   || state.year;
+    // Bilder aus IDB laden
+    hydrateImages().then(() => renderOpen()).catch(()=>{});
       save();
       fillMasterDropdowns();
       render();
@@ -1747,7 +1977,209 @@ function showAddInput(id) {
   sel.parentNode.appendChild(inp);
   inp.focus();
 
-  function save() {
+  
+// ═══════════════════════════════════════════════════
+// INDEXEDDB FÜR BILDER
+// ═══════════════════════════════════════════════════
+const IDB_NAME = 'amp3_imgs';
+const IDB_STORE = 'images';
+let idb = null;
+
+function openIDB() {
+  return new Promise((res, rej) => {
+    if (idb) return res(idb);
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = e => {
+      e.target.result.createObjectStore(IDB_STORE);
+    };
+    req.onsuccess = e => { idb = e.target.result; res(idb); };
+    req.onerror   = e => rej(e);
+  });
+}
+
+function idbPut(key, val) {
+  return openIDB().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(val, key);
+    tx.oncomplete = res;
+    tx.onerror = rej;
+  }));
+}
+
+function idbGet(key) {
+  return openIDB().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get(key);
+    req.onsuccess = () => res(req.result);
+    req.onerror = rej;
+  }));
+}
+
+function idbGetAll() {
+  return openIDB().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).getAll();
+    req.onsuccess = () => res(req.result);
+    req.onerror = rej;
+  }));
+}
+
+function idbGetAllKeys() {
+  return openIDB().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).getAllKeys();
+    req.onsuccess = () => res(req.result);
+    req.onerror = rej;
+  }));
+}
+
+// Bild speichern: gibt Key zurück
+function saveImage(dataUrl) {
+  if (!dataUrl || !dataUrl.startsWith('data:')) return Promise.resolve(dataUrl);
+  const key = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  return idbPut(key, dataUrl).then(() => key);
+}
+
+// Bild laden: Key → dataUrl
+function loadImage(keyOrUrl) {
+  if (!keyOrUrl) return Promise.resolve('');
+  if (keyOrUrl.startsWith('data:')) return Promise.resolve(keyOrUrl);
+  if (keyOrUrl.startsWith('img_')) return idbGet(keyOrUrl);
+  return Promise.resolve(keyOrUrl); // URL bleibt URL
+}
+
+// Storage persist anfragen
+if (navigator.storage && navigator.storage.persist) {
+  navigator.storage.persist().then(granted => {
+    if (granted) console.log('✅ Persistenter Speicher gewährt');
+    else console.warn('⚠️ Speicher nicht persistent');
+  });
+}
+
+
+// ═══════════════════════════════════════════════════
+// INDEXEDDB - BILDER DAUERHAFT SPEICHERN
+// ═══════════════════════════════════════════════════
+const IDB_NAME = 'amp3_storage';
+const IDB_VER  = 1;
+let _idb = null;
+
+function openIDB() {
+  return new Promise((res, rej) => {
+    if (_idb) return res(_idb);
+    const req = indexedDB.open(IDB_NAME, IDB_VER);
+    req.onupgradeneeded = e => e.target.result.createObjectStore('imgs');
+    req.onsuccess = e => { _idb = e.target.result; res(_idb); };
+    req.onerror   = e => rej(e);
+  });
+}
+function idbSave(key, val) {
+  return openIDB().then(db => new Promise((res,rej) => {
+    const tx = db.transaction('imgs','readwrite');
+    tx.objectStore('imgs').put(val, key);
+    tx.oncomplete = res; tx.onerror = rej;
+  }));
+}
+function idbLoad(key) {
+  if (!key || !key.startsWith('idb:')) return Promise.resolve(key||'');
+  const realKey = key.slice(4);
+  return openIDB().then(db => new Promise((res,rej) => {
+    const tx = db.transaction('imgs','readonly');
+    const req = tx.objectStore('imgs').get(realKey);
+    req.onsuccess = () => res(req.result||'');
+    req.onerror = rej;
+  }));
+}
+function idbDelete(key) {
+  if (!key || !key.startsWith('idb:')) return Promise.resolve();
+  return openIDB().then(db => new Promise((res,rej) => {
+    const tx = db.transaction('imgs','readwrite');
+    tx.objectStore('imgs').delete(key.slice(4));
+    tx.oncomplete = res; tx.onerror = rej;
+  }));
+}
+
+// Bild speichern: dataUrl → 'idb:KEY' Referenz
+function storeImage(dataUrl) {
+  if (!dataUrl || !dataUrl.startsWith('data:')) return Promise.resolve(dataUrl);
+  const key = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+  return idbSave(key, dataUrl).then(() => 'idb:' + key);
+}
+
+// Alle idb: Referenzen im state mit echten dataUrls ersetzen (für Rendering)
+async function hydrateImages() {
+  const resolve = async (ref) => ref && ref.startsWith('idb:') ? await idbLoad(ref) : (ref||'');
+  for (const item of state.open) {
+    for (const inst of item.instances||[]) {
+      if (inst.image && inst.image.startsWith('idb:')) inst.image = await idbLoad(inst.image);
+    }
+  }
+  for (const sold of state.sold) {
+    if (sold.previewImage && sold.previewImage.startsWith('idb:')) sold.previewImage = await idbLoad(sold.previewImage);
+  }
+  if (state.master.images) {
+    state.master.images = await Promise.all(state.master.images.map(resolve));
+  }
+  if (state.master.catalog) {
+    for (const grp of Object.values(state.master.catalog)) {
+      for (const pt of Object.values(grp||{})) {
+        if (pt.images) pt.images = await Promise.all(pt.images.map(resolve));
+      }
+    }
+  }
+}
+
+// Vor dem Speichern: dataUrls → idb: Referenzen
+async function dehydrateAndSave() {
+  const dehydrateInst = async (inst) => {
+    if (inst.image && inst.image.startsWith('data:')) {
+      inst.image = await storeImage(inst.image);
+    }
+    return inst;
+  };
+  // open
+  for (const item of state.open) {
+    for (let i=0; i<(item.instances||[]).length; i++) {
+      item.instances[i] = await dehydrateInst(item.instances[i]);
+    }
+  }
+  // sold previewImage
+  for (const sold of state.sold) {
+    if (sold.previewImage && sold.previewImage.startsWith('data:')) {
+      sold.previewImage = await storeImage(sold.previewImage);
+    }
+  }
+  // master images
+  if (state.master.images) {
+    for (let i=0; i<state.master.images.length; i++) {
+      if (state.master.images[i]?.startsWith('data:')) {
+        state.master.images[i] = await storeImage(state.master.images[i]);
+      }
+    }
+  }
+  // catalog images
+  if (state.master.catalog) {
+    for (const grp of Object.values(state.master.catalog)) {
+      for (const pt of Object.values(grp||{})) {
+        if (pt.images) {
+          for (let i=0; i<pt.images.length; i++) {
+            if (pt.images[i]?.startsWith('data:')) pt.images[i] = await storeImage(pt.images[i]);
+          }
+        }
+      }
+    }
+  }
+  localStorage.setItem('amp3', JSON.stringify({
+    open:state.open, sold:state.sold, master:state.master, year:state.year
+  }));
+}
+
+// Storage persist
+if (navigator.storage?.persist) {
+  navigator.storage.persist().then(ok => console.log(ok ? '✅ Persistenter Speicher' : '⚠️ Nicht persistent'));
+}
+
+function save() {
     var val = inp.value.trim();
     inp.remove();
     if (!val) return;
