@@ -477,236 +477,10 @@ const state = {
 // ═══════════════════════════════════════════════════
 // PERSIST
 // ═══════════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════════
-// INDEXEDDB FÜR BILDER
-// ═══════════════════════════════════════════════════
-const IDB_NAME = 'amp3_imgs';
-const IDB_STORE = 'images';
-let idb = null;
-
-function openIDB() {
-  return new Promise((res, rej) => {
-    if (idb) return res(idb);
-    const req = indexedDB.open(IDB_NAME, 1);
-    req.onupgradeneeded = e => {
-      e.target.result.createObjectStore(IDB_STORE);
-    };
-    req.onsuccess = e => { idb = e.target.result; res(idb); };
-    req.onerror   = e => rej(e);
-  });
-}
-
-function idbPut(key, val) {
-  return openIDB().then(db => new Promise((res, rej) => {
-    const tx = db.transaction(IDB_STORE, 'readwrite');
-    tx.objectStore(IDB_STORE).put(val, key);
-    tx.oncomplete = res;
-    tx.onerror = rej;
-  }));
-}
-
-function idbGet(key) {
-  return openIDB().then(db => new Promise((res, rej) => {
-    const tx = db.transaction(IDB_STORE, 'readonly');
-    const req = tx.objectStore(IDB_STORE).get(key);
-    req.onsuccess = () => res(req.result);
-    req.onerror = rej;
-  }));
-}
-
-function idbGetAll() {
-  return openIDB().then(db => new Promise((res, rej) => {
-    const tx = db.transaction(IDB_STORE, 'readonly');
-    const req = tx.objectStore(IDB_STORE).getAll();
-    req.onsuccess = () => res(req.result);
-    req.onerror = rej;
-  }));
-}
-
-function idbGetAllKeys() {
-  return openIDB().then(db => new Promise((res, rej) => {
-    const tx = db.transaction(IDB_STORE, 'readonly');
-    const req = tx.objectStore(IDB_STORE).getAllKeys();
-    req.onsuccess = () => res(req.result);
-    req.onerror = rej;
-  }));
-}
-
-// Bild speichern: gibt Key zurück
-function saveImage(dataUrl) {
-  if (!dataUrl || !dataUrl.startsWith('data:')) return Promise.resolve(dataUrl);
-  const key = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-  return idbPut(key, dataUrl).then(() => key);
-}
-
-// Bild laden: Key → dataUrl
-function loadImage(keyOrUrl) {
-  if (!keyOrUrl) return Promise.resolve('');
-  if (keyOrUrl.startsWith('data:')) return Promise.resolve(keyOrUrl);
-  if (keyOrUrl.startsWith('img_')) return idbGet(keyOrUrl);
-  return Promise.resolve(keyOrUrl); // URL bleibt URL
-}
-
-// Storage persist anfragen
-if (navigator.storage && navigator.storage.persist) {
-  navigator.storage.persist().then(granted => {
-    if (granted) console.log('✅ Persistenter Speicher gewährt');
-    else console.warn('⚠️ Speicher nicht persistent');
-  });
-}
-
-
-// ═══════════════════════════════════════════════════
-// INDEXEDDB - BILDER DAUERHAFT SPEICHERN
-// ═══════════════════════════════════════════════════
-const IDB_NAME = 'amp3_storage';
-const IDB_VER  = 1;
-let _idb = null;
-
-function openIDB() {
-  return new Promise((res, rej) => {
-    if (_idb) return res(_idb);
-    const req = indexedDB.open(IDB_NAME, IDB_VER);
-    req.onupgradeneeded = e => e.target.result.createObjectStore('imgs');
-    req.onsuccess = e => { _idb = e.target.result; res(_idb); };
-    req.onerror   = e => rej(e);
-  });
-}
-function idbSave(key, val) {
-  return openIDB().then(db => new Promise((res,rej) => {
-    const tx = db.transaction('imgs','readwrite');
-    tx.objectStore('imgs').put(val, key);
-    tx.oncomplete = res; tx.onerror = rej;
-  }));
-}
-function idbLoad(key) {
-  if (!key || !key.startsWith('idb:')) return Promise.resolve(key||'');
-  const realKey = key.slice(4);
-  return openIDB().then(db => new Promise((res,rej) => {
-    const tx = db.transaction('imgs','readonly');
-    const req = tx.objectStore('imgs').get(realKey);
-    req.onsuccess = () => res(req.result||'');
-    req.onerror = rej;
-  }));
-}
-function idbDelete(key) {
-  if (!key || !key.startsWith('idb:')) return Promise.resolve();
-  return openIDB().then(db => new Promise((res,rej) => {
-    const tx = db.transaction('imgs','readwrite');
-    tx.objectStore('imgs').delete(key.slice(4));
-    tx.oncomplete = res; tx.onerror = rej;
-  }));
-}
-
-// Bild speichern: dataUrl → 'idb:KEY' Referenz
-function storeImage(dataUrl) {
-  if (!dataUrl || !dataUrl.startsWith('data:')) return Promise.resolve(dataUrl);
-  const key = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
-  return idbSave(key, dataUrl).then(() => 'idb:' + key);
-}
-
-// Alle idb: Referenzen im state mit echten dataUrls ersetzen (für Rendering)
-async function hydrateImages() {
-  const resolve = async (ref) => ref && ref.startsWith('idb:') ? await idbLoad(ref) : (ref||'');
-  for (const item of state.open) {
-    for (const inst of item.instances||[]) {
-      if (inst.image && inst.image.startsWith('idb:')) inst.image = await idbLoad(inst.image);
-    }
-  }
-  for (const sold of state.sold) {
-    if (sold.previewImage && sold.previewImage.startsWith('idb:')) sold.previewImage = await idbLoad(sold.previewImage);
-  }
-  if (state.master.images) {
-    state.master.images = await Promise.all(state.master.images.map(resolve));
-  }
-  if (state.master.catalog) {
-    for (const grp of Object.values(state.master.catalog)) {
-      for (const pt of Object.values(grp||{})) {
-        if (pt.images) pt.images = await Promise.all(pt.images.map(resolve));
-      }
-    }
-  }
-}
-
-// Vor dem Speichern: dataUrls → idb: Referenzen
-async function dehydrateAndSave() {
-  const dehydrateInst = async (inst) => {
-    if (inst.image && inst.image.startsWith('data:')) {
-      inst.image = await storeImage(inst.image);
-    }
-    return inst;
-  };
-  // open
-  for (const item of state.open) {
-    for (let i=0; i<(item.instances||[]).length; i++) {
-      item.instances[i] = await dehydrateInst(item.instances[i]);
-    }
-  }
-  // sold previewImage
-  for (const sold of state.sold) {
-    if (sold.previewImage && sold.previewImage.startsWith('data:')) {
-      sold.previewImage = await storeImage(sold.previewImage);
-    }
-  }
-  // master images
-  if (state.master.images) {
-    for (let i=0; i<state.master.images.length; i++) {
-      if (state.master.images[i]?.startsWith('data:')) {
-        state.master.images[i] = await storeImage(state.master.images[i]);
-      }
-    }
-  }
-  // catalog images
-  if (state.master.catalog) {
-    for (const grp of Object.values(state.master.catalog)) {
-      for (const pt of Object.values(grp||{})) {
-        if (pt.images) {
-          for (let i=0; i<pt.images.length; i++) {
-            if (pt.images[i]?.startsWith('data:')) pt.images[i] = await storeImage(pt.images[i]);
-          }
-        }
-      }
-    }
-  }
+function save() {
   localStorage.setItem('amp3', JSON.stringify({
     open:state.open, sold:state.sold, master:state.master, year:state.year
   }));
-}
-
-// Storage persist
-if (navigator.storage?.persist) {
-  navigator.storage.persist().then(ok => console.log(ok ? '✅ Persistenter Speicher' : '⚠️ Nicht persistent'));
-}
-
-function save() {
-  // Bilder aus state ersetzen durch Keys (klein halten)
-  const stripImgs = obj => JSON.parse(JSON.stringify(obj, (k, v) => {
-    if (k === 'image' && typeof v === 'string' && v.startsWith('data:')) {
-      // Bild async in IDB speichern, Key zurückgeben
-      return v; // Vorerst behalten - async unten
-    }
-    return v;
-  }));
-  try {
-    localStorage.setItem('amp3', JSON.stringify({
-      open:state.open, sold:state.sold, master:state.master, year:state.year
-    }));
-  } catch(e) {
-    // localStorage voll (Bilder!) - ohne Bilder speichern
-    const slim = o => Array.isArray(o) ? o.map(item => ({
-      ...item,
-      instances: (item.instances||[]).map(inst => ({...inst, image: inst.image?.startsWith('data:') ? '__idb__' : inst.image}))
-    })) : o;
-    try {
-      localStorage.setItem('amp3', JSON.stringify({
-        open: slim(state.open), sold: slim(state.sold),
-        master: {...state.master, images: state.master.images.map(i => i.startsWith('data:') ? '__idb__' : i)},
-        year: state.year
-      }));
-      console.warn('Bilder wegen Speicherlimit ausgelassen');
-    } catch(e2) { console.error('Save fehlgeschlagen', e2); }
-  }
 }
 function load() {
   try {
@@ -717,8 +491,6 @@ function load() {
     state.master = { images:[], catalog:{}, ...(d.master||{}) };
     if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
     state.year   = d.year   || state.year;
-    // Bilder aus IDB laden
-    hydrateImages().then(() => renderOpen()).catch(()=>{});
     // Migration: productType in alten Einträgen ergänzen
     const migrateProductType = (article, group) => {
       const cat = state.master.catalog || {};
@@ -844,8 +616,6 @@ function importData(file) {
       state.master = { images:[], catalog:{}, ...(d.master||{}) };
     if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
       state.year   = d.year   || state.year;
-    // Bilder aus IDB laden
-    hydrateImages().then(() => renderOpen()).catch(()=>{});
       save();
       fillMasterDropdowns();
       render();
@@ -1230,7 +1000,6 @@ function toggleStack(id) {
 function editItem(itemId) {
   const item = state.open.find(i=>i.id===itemId);
   if (!item) return;
-  // Nur Metadaten per Prompt bearbeiten - Instanzen bleiben erhalten
   const newArticle = prompt('Artikelname:', item.article||'');
   if(newArticle === null) return;
   const newSize = prompt('Groesse:', item.size||'');
@@ -1287,7 +1056,7 @@ function changeQty(itemId, delta) {
 
 
 function editEK(itemId) {
-  const item = state.open.find(i=>i.id===itemId) || state.open.find(i=>stackKey(i)===itemId);
+  const item = state.open.find(i=>i.id===itemId);
   if(!item) return;
   const val = prompt('EK Preis eingeben (€):', item.purchasePrice||0);
   if(val === null) return;
@@ -1313,11 +1082,11 @@ function toggleZeroFilter() {
   renderOpen();
 }
 function editInstEK(itemId, instId) {
-  const item = state.open.find(i=>i.id===itemId) || state.open.find(i=>stackKey(i)===itemId);
+  const item = state.open.find(i=>i.id===itemId);
   if(!item) return;
   const inst = item.instances.find(i=>i.id===instId);
   if(!inst) return;
-  const val = prompt('EK Preis (€):', inst.purchasePrice||0);
+  const val = prompt('EK Preis (EUR):', inst.purchasePrice||0);
   if(val === null) return;
   inst.purchasePrice = parseFloat(val.replace(',','.')) || 0;
   save(); renderOpen();
@@ -1403,7 +1172,7 @@ function renderOpen() {
               <div class="chips">
                 <span class="chip">Gr. ${firstItem.size||'-'}</span>
                 <span class="chip">${firstItem.color||'-'}</span>
-                <span class="chip">EK ${euro(einzel)}${menge>1&&allInst.some(i=>(+i.purchasePrice||0)!==einzel)?"*":""}</span>
+                <span class="chip" style="cursor:pointer" onclick="editEK('${firstItem.id}')" title="EK bearbeiten">EK ${euro(einzel)} ✎</span>
                 ${`<span class="chip stack" style="display:flex;gap:3px;align-items:center;padding:0 4px"><button onclick="changeQty('${firstItem.id}',1)" style="width:16px;height:16px;border-radius:50%;background:#4CAF50;color:white;font-size:10px;border:none;font-weight:bold;cursor:pointer;line-height:1">+</button>${menge}<button onclick="changeQty('${firstItem.id}',-1)" style="width:16px;height:16px;border-radius:50%;background:#f44336;color:white;font-size:10px;border:none;font-weight:bold;cursor:pointer;line-height:1">−</button></span>`}
                 ${hasPsh?'<span class="chip ps">Profitshare</span>':''}
                 ${selCount>0?`<span class="chip sel">✓ ${selCount}</span>`:''}
@@ -1452,7 +1221,6 @@ function renderOpen() {
     cb.addEventListener('change', e=>{
       const key = e.target.dataset.chkInst;
       e.target.checked ? state.sel.add(key) : state.sel.delete(key);
-      // Nur Panel + Summary updaten, KEIN renderOpen (verhindert Zuklappen)
       g('setBuilder').classList.toggle('show', state.sel.size>0);
       g('selSummary').textContent = state.sel.size + ' Artikel gewählt.';
       updatePsPreview();
@@ -1732,7 +1500,7 @@ g('createSetBtn').addEventListener('click', () => {
     const rmIds = new Set(insts.map(x=>x.id));
     item.instances = item.instances.filter(x=>!rmIds.has(x.id));
   });
-  // Artikel mit 0 Exemplaren bleiben erhalten (Wareneingang möglich)
+  // Artikel mit 0 Exemplaren bleiben erhalten
   state.sel.clear();
   g('setName').value=''; g('salePrice').value=''; if(g('manualPsShare')) g('manualPsShare').value='50'; setPsShare && [10,20,30,40].forEach(p=>{const b=g('psbtn'+p);if(b){b.style.background='var(--surfoff)';b.style.color='';b.style.borderColor='var(--border)';}});
   setSetImgVal(''); g('clearSetImg').style.display='none';
@@ -1977,209 +1745,7 @@ function showAddInput(id) {
   sel.parentNode.appendChild(inp);
   inp.focus();
 
-  
-// ═══════════════════════════════════════════════════
-// INDEXEDDB FÜR BILDER
-// ═══════════════════════════════════════════════════
-const IDB_NAME = 'amp3_imgs';
-const IDB_STORE = 'images';
-let idb = null;
-
-function openIDB() {
-  return new Promise((res, rej) => {
-    if (idb) return res(idb);
-    const req = indexedDB.open(IDB_NAME, 1);
-    req.onupgradeneeded = e => {
-      e.target.result.createObjectStore(IDB_STORE);
-    };
-    req.onsuccess = e => { idb = e.target.result; res(idb); };
-    req.onerror   = e => rej(e);
-  });
-}
-
-function idbPut(key, val) {
-  return openIDB().then(db => new Promise((res, rej) => {
-    const tx = db.transaction(IDB_STORE, 'readwrite');
-    tx.objectStore(IDB_STORE).put(val, key);
-    tx.oncomplete = res;
-    tx.onerror = rej;
-  }));
-}
-
-function idbGet(key) {
-  return openIDB().then(db => new Promise((res, rej) => {
-    const tx = db.transaction(IDB_STORE, 'readonly');
-    const req = tx.objectStore(IDB_STORE).get(key);
-    req.onsuccess = () => res(req.result);
-    req.onerror = rej;
-  }));
-}
-
-function idbGetAll() {
-  return openIDB().then(db => new Promise((res, rej) => {
-    const tx = db.transaction(IDB_STORE, 'readonly');
-    const req = tx.objectStore(IDB_STORE).getAll();
-    req.onsuccess = () => res(req.result);
-    req.onerror = rej;
-  }));
-}
-
-function idbGetAllKeys() {
-  return openIDB().then(db => new Promise((res, rej) => {
-    const tx = db.transaction(IDB_STORE, 'readonly');
-    const req = tx.objectStore(IDB_STORE).getAllKeys();
-    req.onsuccess = () => res(req.result);
-    req.onerror = rej;
-  }));
-}
-
-// Bild speichern: gibt Key zurück
-function saveImage(dataUrl) {
-  if (!dataUrl || !dataUrl.startsWith('data:')) return Promise.resolve(dataUrl);
-  const key = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-  return idbPut(key, dataUrl).then(() => key);
-}
-
-// Bild laden: Key → dataUrl
-function loadImage(keyOrUrl) {
-  if (!keyOrUrl) return Promise.resolve('');
-  if (keyOrUrl.startsWith('data:')) return Promise.resolve(keyOrUrl);
-  if (keyOrUrl.startsWith('img_')) return idbGet(keyOrUrl);
-  return Promise.resolve(keyOrUrl); // URL bleibt URL
-}
-
-// Storage persist anfragen
-if (navigator.storage && navigator.storage.persist) {
-  navigator.storage.persist().then(granted => {
-    if (granted) console.log('✅ Persistenter Speicher gewährt');
-    else console.warn('⚠️ Speicher nicht persistent');
-  });
-}
-
-
-// ═══════════════════════════════════════════════════
-// INDEXEDDB - BILDER DAUERHAFT SPEICHERN
-// ═══════════════════════════════════════════════════
-const IDB_NAME = 'amp3_storage';
-const IDB_VER  = 1;
-let _idb = null;
-
-function openIDB() {
-  return new Promise((res, rej) => {
-    if (_idb) return res(_idb);
-    const req = indexedDB.open(IDB_NAME, IDB_VER);
-    req.onupgradeneeded = e => e.target.result.createObjectStore('imgs');
-    req.onsuccess = e => { _idb = e.target.result; res(_idb); };
-    req.onerror   = e => rej(e);
-  });
-}
-function idbSave(key, val) {
-  return openIDB().then(db => new Promise((res,rej) => {
-    const tx = db.transaction('imgs','readwrite');
-    tx.objectStore('imgs').put(val, key);
-    tx.oncomplete = res; tx.onerror = rej;
-  }));
-}
-function idbLoad(key) {
-  if (!key || !key.startsWith('idb:')) return Promise.resolve(key||'');
-  const realKey = key.slice(4);
-  return openIDB().then(db => new Promise((res,rej) => {
-    const tx = db.transaction('imgs','readonly');
-    const req = tx.objectStore('imgs').get(realKey);
-    req.onsuccess = () => res(req.result||'');
-    req.onerror = rej;
-  }));
-}
-function idbDelete(key) {
-  if (!key || !key.startsWith('idb:')) return Promise.resolve();
-  return openIDB().then(db => new Promise((res,rej) => {
-    const tx = db.transaction('imgs','readwrite');
-    tx.objectStore('imgs').delete(key.slice(4));
-    tx.oncomplete = res; tx.onerror = rej;
-  }));
-}
-
-// Bild speichern: dataUrl → 'idb:KEY' Referenz
-function storeImage(dataUrl) {
-  if (!dataUrl || !dataUrl.startsWith('data:')) return Promise.resolve(dataUrl);
-  const key = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
-  return idbSave(key, dataUrl).then(() => 'idb:' + key);
-}
-
-// Alle idb: Referenzen im state mit echten dataUrls ersetzen (für Rendering)
-async function hydrateImages() {
-  const resolve = async (ref) => ref && ref.startsWith('idb:') ? await idbLoad(ref) : (ref||'');
-  for (const item of state.open) {
-    for (const inst of item.instances||[]) {
-      if (inst.image && inst.image.startsWith('idb:')) inst.image = await idbLoad(inst.image);
-    }
-  }
-  for (const sold of state.sold) {
-    if (sold.previewImage && sold.previewImage.startsWith('idb:')) sold.previewImage = await idbLoad(sold.previewImage);
-  }
-  if (state.master.images) {
-    state.master.images = await Promise.all(state.master.images.map(resolve));
-  }
-  if (state.master.catalog) {
-    for (const grp of Object.values(state.master.catalog)) {
-      for (const pt of Object.values(grp||{})) {
-        if (pt.images) pt.images = await Promise.all(pt.images.map(resolve));
-      }
-    }
-  }
-}
-
-// Vor dem Speichern: dataUrls → idb: Referenzen
-async function dehydrateAndSave() {
-  const dehydrateInst = async (inst) => {
-    if (inst.image && inst.image.startsWith('data:')) {
-      inst.image = await storeImage(inst.image);
-    }
-    return inst;
-  };
-  // open
-  for (const item of state.open) {
-    for (let i=0; i<(item.instances||[]).length; i++) {
-      item.instances[i] = await dehydrateInst(item.instances[i]);
-    }
-  }
-  // sold previewImage
-  for (const sold of state.sold) {
-    if (sold.previewImage && sold.previewImage.startsWith('data:')) {
-      sold.previewImage = await storeImage(sold.previewImage);
-    }
-  }
-  // master images
-  if (state.master.images) {
-    for (let i=0; i<state.master.images.length; i++) {
-      if (state.master.images[i]?.startsWith('data:')) {
-        state.master.images[i] = await storeImage(state.master.images[i]);
-      }
-    }
-  }
-  // catalog images
-  if (state.master.catalog) {
-    for (const grp of Object.values(state.master.catalog)) {
-      for (const pt of Object.values(grp||{})) {
-        if (pt.images) {
-          for (let i=0; i<pt.images.length; i++) {
-            if (pt.images[i]?.startsWith('data:')) pt.images[i] = await storeImage(pt.images[i]);
-          }
-        }
-      }
-    }
-  }
-  localStorage.setItem('amp3', JSON.stringify({
-    open:state.open, sold:state.sold, master:state.master, year:state.year
-  }));
-}
-
-// Storage persist
-if (navigator.storage?.persist) {
-  navigator.storage.persist().then(ok => console.log(ok ? '✅ Persistenter Speicher' : '⚠️ Nicht persistent'));
-}
-
-function save() {
+  function save() {
     var val = inp.value.trim();
     inp.remove();
     if (!val) return;
