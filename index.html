@@ -737,6 +737,7 @@ function fillMasterDropdowns() {
   buildImgDropdown();
 }
 function onGroupChange() {
+  if(state.page !== 'new') return;
   const grp  = g('group')?.value || '';
   const cat  = state.master.catalog[grp] || {};
   const typs = Object.keys(cat).sort((a,b)=>a.localeCompare(b,'de'));
@@ -744,21 +745,19 @@ function onGroupChange() {
   if(g('article')) g('article').innerHTML = '<option value="">– Produkttyp wählen –</option>';
   if(g('size'))    g('size').innerHTML    = '<option value="">–</option>';
   if(g('color'))   g('color').innerHTML   = '<option value="">–</option>';
-  if(!g('imgDropdown')) return;
   buildImgDropdown();
   if(g('imgValue')) g('imgValue').value = '';
   const prev = g('imgPreview');
   if(prev) { prev.src=''; prev.style.display='none'; }
 }
 function onProductTypeChange() {
+  if(state.page !== 'new') return;
   const grp  = g('group')?.value || '';
   const typ  = g('productType')?.value || '';
   const data = (grp&&typ) ? (state.master.catalog[grp]?.[typ]||{}) : {};
   if(g('article')) fillSel(g('article'), data.articles||[], 'Artikelname wählen');
   if(g('size'))    fillSel(g('size'),    data.sizes||[],    'Größe wählen');
   if(g('color'))   fillSel(g('color'),   data.colors||[],   'Farbe wählen');
-  // Nur ausführen wenn Neuanlage-Formular sichtbar
-  if(!g('imgDropdown')) return;
   buildImgDropdown();
   // Erstes Bild vorauswählen - nur wenn noch kein Bild gesetzt
   const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
@@ -1256,8 +1255,8 @@ function renderOpen() {
         ${Object.entries(articleMap).map(([artKey, artItems])=>{
           const allInst  = artItems.flatMap(item=>item.instances.map(inst=>({...inst,_itemId:item.id})));
           const menge    = allInst.length;
-          const img      = allInst.find(x=>x.image)?.image || firstItem._savedImage || '';
           const firstItem = artItems[0];
+          const img      = allInst.find(x=>x.image)?.image || firstItem._savedImage || '';
           const hasPsh   = allInst.some(x=>x.profitshare);
           const selCount = allInst.filter(inst=>state.sel.has(inst._itemId+'::'+inst.id)).length;
           const ekSumme  = allInst.reduce((s,i)=>s+(+i.purchasePrice||0),0);
