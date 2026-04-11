@@ -195,6 +195,10 @@ img{max-width:100%;display:block;}
     .quick-btns{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;justify-content:center;}
     button, label, .nav-btn, .iso, .img-select-trigger, .stack-toggle, .upload-zone { cursor: pointer; -webkit-user-select: none; user-select: none; }
     input, textarea, select { -webkit-user-select: text; user-select: text; }
+
+.grp-content {{ display:block; }}
+.grp-content.collapsed {{ display:none; }}
+.group-head {{ cursor:pointer; }}
 </style>
 </head>
 <body>
@@ -645,14 +649,7 @@ function toast(msg) {
 function fillSel(el, vals, ph) {
   el.innerHTML = `<option value="">${ph}</option>` + vals.map(v=>`<option value="${v}">${v}</option>`).join('');
 }
-function fillPrices() {
-  // Einkaufspreis: 1-5 einzeln, dann 5er Schritte bis 500
-  const ekVals = [0,1,2,3,4];
-  for (let i = 5; i <= 500; i += 5) ekVals.push(i);
-  g('purchasePrice').innerHTML = ekVals.map(i=>`<option value="${i}">${i} €</option>`).join('');
-
-
-}
+function fillPrices() { /* purchasePrice ist jetzt ein Input */ }
 function fillMasterDropdowns() {
   const groups = Object.keys(state.master.catalog||{}).sort((a,b)=>a.localeCompare(b,'de'));
   fillSel(g('group'), groups, 'Gruppe wählen');
@@ -686,7 +683,7 @@ function buildImgDropdown() {
   const grp = g('group')?.value || '';
   const typ = g('productType')?.value || '';
   // Bilder für aktuelle Gruppe+Produkttyp + globale Bilder
-  const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
+  const catImgs = grp ? (state.master.catalog[grp] ? Object.values(state.master.catalog[grp]).flatMap(pt=>pt.images||[]) : []) : [];
   const allImgs = [...new Set([...catImgs, ...state.master.images])];
   const opts = [{ url:'', label:'Kein Bild' }, ...allImgs.map(u=>({
     url:u, label: u.startsWith('data:') ? (catImgs.includes(u) ? `📌 ${typ}` : 'Upload-Bild') : (u.split('id=')[1]?.slice(0,22)||u.slice(-22))
@@ -1119,15 +1116,15 @@ function renderOpen() {
               <div class="chips">
                 <span class="chip">Gr. ${firstItem.size||'-'}</span>
                 <span class="chip">${firstItem.color||'-'}</span>
-                <span class="chip">EK ${euro(einzel)}</span>
-                ${menge>1?`<span class="chip stack">× ${menge}</span>`:''}
+                ${einzel === 0 ? '<span class="chip" style="background:var(--warn-bg);color:var(--warn);">EK 0 € (kopieren)</span>' : '<span class="chip">EK ${euro(einzel)}</span>'}
+                <span class="chip stack">${menge === 0 ? "0 (kopieren)" : `× ${menge}`}</span>
                 ${hasPsh?'<span class="chip ps">Profitshare</span>':''}
                 ${selCount>0?`<span class="chip sel">✓ ${selCount}</span>`:''}
               </div>
             </div>
           </div>
           <div class="item-footer">
-            <div class="item-price-row">${menge} × ${euro(einzel)} = <b>${euro(einzel*menge)}</b></div>
+            <div class="item-price-row">${menge === 0 ? "0 × – = <b>0 €</b>" : `${menge} × ${euro(einzel)} = <b>${euro(einzel*menge)}</b>`}</div>
             <div class="item-actions">
               ${menge>1?`<button class="btn btn-ghost" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="toggleStack('${sdId}')">Details</button>`:''}
               <button class="btn btn-ghost" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="editItem('${firstItem.id}')">✏️</button>
@@ -1602,6 +1599,14 @@ function initDemoCatalog() {
   };
   save();
 }
+
+// ── ROBUSTES SPEICHERN FÜR ANDROID PWA ──
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') save();
+});
+window.addEventListener('pagehide', save);
+window.addEventListener('beforeunload', save);
+
 // ═══════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════
