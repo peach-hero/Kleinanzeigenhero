@@ -461,6 +461,30 @@ img{max-width:100%;display:block;}
 </nav>
 
 <script>
+
+// ═══════════════════════════════════════════════════
+// Persistent Storage - Android/PWA Schutz vor Löschung
+// ═══════════════════════════════════════════════════
+async function requestPersistentStorage() {
+  if (navigator.storage && navigator.storage.persist) {
+    const isPersisted = await navigator.storage.persisted();
+    if (!isPersisted) {
+      const granted = await navigator.storage.persist();
+      console.log(granted ? '✅ Persistenter Speicher gewährt' : '⚠️ Persistenter Speicher abgelehnt');
+    } else {
+      console.log('✅ Speicher bereits persistent');
+    }
+  }
+  // Speicherplatz loggen
+  if (navigator.storage && navigator.storage.estimate) {
+    const est = await navigator.storage.estimate();
+    const used  = Math.round(est.usage  / 1024);
+    const quota = Math.round(est.quota  / 1024 / 1024);
+    console.log(`💾 Speicher: ${used}KB genutzt von ${quota}MB verfügbar`);
+  }
+}
+requestPersistentStorage();
+
 // ═══════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════
@@ -477,42 +501,94 @@ const state = {
 // ═══════════════════════════════════════════════════
 // PERSIST
 // ═══════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════
+// IndexedDB - persistenter Speicher für Android/PWA
+// ═══════════════════════════════════════════════════
+const DB_NAME = 'amp3db', DB_VER = 1, STORE = 'data';
+let db = null;
+
+function openDB() {
+  return new Promise((res, rej) => {
+    if (db) { res(db); return; }
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(STORE);
+    req.onsuccess = e => { db = e.target.result; res(db); };
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+
 function save() {
-  localStorage.setItem('amp3', JSON.stringify({
-    open:state.open, sold:state.sold, master:state.master, year:state.year
-  }));
+  const payload = { open:state.open, sold:state.sold, master:state.master, year:state.year };
+  // localStorage als Backup
+  try { localStorage.setItem('amp3', JSON.stringify(payload)); } catch(e) {}
+  // IndexedDB als Hauptspeicher
+  openDB().then(database => {
+    const tx  = database.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put(payload, 'state');
+    tx.oncomplete = () => console.log('✅ IDB gespeichert:', state.open.length, 'Artikel');
+    tx.onerror    = e => console.error('❌ IDB Fehler:', e.target.error);
+  });
 }
+
 function load() {
-  try {
-    const d = JSON.parse(localStorage.getItem('amp3') || 'null');
-    if (!d) return;
-    state.open   = d.open   || [];
-    state.sold   = d.sold   || [];
-    state.master = { images:[], catalog:{}, ...(d.master||{}) };
-    if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
-    state.year   = d.year   || state.year;
-    // Migration: productType in alten Einträgen ergänzen
-    const migrateProductType = (article, group) => {
-      const cat = state.master.catalog || {};
-      let found = '';
-      Object.entries(cat).forEach(([grp, pts])=>{
-        if (grp !== group) return;
-        Object.entries(pts||{}).forEach(([pt, ptData])=>{
-          if ((ptData.articles||[]).includes(article)) found = pt;
-        });
-      });
-      return found;
+  // Erst IDB versuchen, dann localStorage als Fallback
+  openDB().then(database => {
+    const tx  = database.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).get('state');
+    req.onsuccess = e => {
+      const d = e.target.result;
+      if (d) {
+        applyState(d);
+        console.log('📂 IDB geladen:', state.open.length, 'Artikel');
+      } else {
+        // Fallback: localStorage Migration
+        try {
+          const ls = JSON.parse(localStorage.getItem('amp3') || 'null');
+          if (ls) { applyState(ls); save(); console.log('📂 localStorage migriert:', state.open.length, 'Artikel'); }
+        } catch(e) {}
+      }
+      fillPrices(); initDemoCatalog(); fillMasterDropdowns(); updateMasterForm(); render();
     };
-    state.open.forEach(item=>{
-      if (!item.productType) item.productType = migrateProductType(item.article, item.group);
-    });
-    state.sold.forEach(set=>{
-      (set.items||[]).forEach(item=>{
-        if (!item.productType) item.productType = migrateProductType(item.article, item.group);
-      });
-    });
-  } catch(e) {}
+    req.onerror = () => {
+      // IDB nicht verfügbar - localStorage Fallback
+      try {
+        const ls = JSON.parse(localStorage.getItem('amp3') || 'null');
+        if (ls) applyState(ls);
+      } catch(e) {}
+      fillPrices(); initDemoCatalog(); fillMasterDropdowns(); updateMasterForm(); render();
+    };
+  }).catch(() => {
+    try {
+      const ls = JSON.parse(localStorage.getItem('amp3') || 'null');
+      if (ls) applyState(ls);
+    } catch(e) {}
+    fillPrices(); initDemoCatalog(); fillMasterDropdowns(); updateMasterForm(); render();
+  });
 }
+
+function applyState(d) {
+  state.open   = d.open   || [];
+  state.sold   = d.sold   || [];
+  state.master = { images:[], catalog:{}, ...(d.master||{}) };
+  if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
+  state.year   = d.year   || state.year;
+  // Migration: productType ergänzen
+  const migrateProductType = (article, group) => {
+    const cat = state.master.catalog || {};
+    let found = '';
+    Object.entries(cat).forEach(([pt, data]) => {
+      if ((data.articles||[]).includes(article)) found = pt;
+    });
+    return found;
+  };
+  state.open.forEach(item => {
+    if (!item.productType && item.article) item.productType = migrateProductType(item.article, item.group)||'';
+    if (!item.instances) item.instances = [{ id: item.id||uid(), purchasePrice: item.purchasePrice||0, entryDate: item.entryDate||today(), sold:false }];
+    item.instances.forEach(inst => { if(!inst.id) inst.id = uid(); });
+  });
+}
+
 
 // ═══════════════════════════════════════════════════
 // EXPORT / IMPORT
@@ -612,6 +688,7 @@ function importData(file) {
     try {
       const d = JSON.parse(e.target.result);
       state.open   = d.open   || [];
+    console.log('📂 Geladen:', state.open.length, 'Artikel');
       state.sold   = d.sold   || [];
       state.master = { images:[], catalog:{}, ...(d.master||{}) };
     if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
@@ -1670,12 +1747,7 @@ window.addEventListener('beforeunload', save);
 // ═══════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════
-load();
-fillPrices();
-initDemoCatalog();
-fillMasterDropdowns();
-updateMasterForm();
-render();
+load(); // async - ruft intern fillPrices/render auf
 // Schnellauswahl-Buttons
 (function(){
   // 1,2,3,4 dann 5,10,15...100
