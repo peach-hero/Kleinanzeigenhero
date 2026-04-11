@@ -1000,25 +1000,17 @@ function toggleStack(id) {
 function editItem(itemId) {
   const item = state.open.find(i=>i.id===itemId);
   if (!item) return;
-  // Zur Neuanlage wechseln und Felder vorbelegen
-  state.page = 'new';
-  render();
-  setTimeout(()=>{
-    if(g('group')) { g('group').value = item.group||''; onGroupChange(); }
-    setTimeout(()=>{
-      if(g('productType')) { g('productType').value = item.productType||''; onProductTypeChange(); }
-      setTimeout(()=>{
-        if(g('article'))  g('article').value  = item.article||'';
-        if(g('size'))     g('size').value      = item.size||'';
-        if(g('color'))    g('color').value     = item.color||'';
-        if(g('purchasePrice')) g('purchasePrice').value = item.purchasePrice||0;
-        if(g('profitshare'))   g('profitshare').checked = item.profitshare||false;
-      }, 50);
-    }, 50);
-  }, 50);
-  // Original löschen
-  state.open = state.open.filter(i=>i.id!==itemId);
-  save();
+  // Nur Metadaten per Prompt bearbeiten - Instanzen bleiben erhalten
+  const newArticle = prompt('Artikelname:', item.article||'');
+  if(newArticle === null) return;
+  const newSize = prompt('Groesse:', item.size||'');
+  if(newSize === null) return;
+  const newColor = prompt('Farbe:', item.color||'');
+  if(newColor === null) return;
+  item.article = newArticle;
+  item.size = newSize;
+  item.color = newColor;
+  save(); renderOpen();
 }
 
 function deleteItem(itemId) {
@@ -1040,7 +1032,7 @@ function deleteInst(itemId, instId) {
 
 
 function changeQty(itemId, delta) {
-  const item = state.open.find(i=>i.id===itemId);
+  const item = state.open.find(i=>i.id===itemId) || state.open.find(i=>stackKey(i)===itemId);
   if(!item) return;
 
   const current = item.instances.length;
@@ -1065,7 +1057,7 @@ function changeQty(itemId, delta) {
 
 
 function editEK(itemId) {
-  const item = state.open.find(i=>i.id===itemId);
+  const item = state.open.find(i=>i.id===itemId) || state.open.find(i=>stackKey(i)===itemId);
   if(!item) return;
   const val = prompt('EK Preis eingeben (€):', item.purchasePrice||0);
   if(val === null) return;
@@ -1091,7 +1083,7 @@ function toggleZeroFilter() {
   renderOpen();
 }
 function editInstEK(itemId, instId) {
-  const item = state.open.find(i=>i.id===itemId);
+  const item = state.open.find(i=>i.id===itemId) || state.open.find(i=>stackKey(i)===itemId);
   if(!item) return;
   const inst = item.instances.find(i=>i.id===instId);
   if(!inst) return;
@@ -1770,13 +1762,13 @@ function showAddInput(id) {
       onGroupChange(); document.getElementById('productType').value=val; onProductTypeChange();
     } else if (id==='article') {
       if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.articles.includes(val)){d.articles.push(val);save_state();toast('Artikel "'+val+'" ✓');} }
-      onProductTypeChange(); document.getElementById('article').value=val;
+      document.getElementById('article').value=val; onProductTypeChange(); document.getElementById('article').value=val;
     } else if (id==='size') {
       if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.sizes.includes(val)){d.sizes.push(val);save_state();toast('Größe "'+val+'" ✓');} }
-      onProductTypeChange(); document.getElementById('size').value=val;
+      document.getElementById('size').value=val; onProductTypeChange(); document.getElementById('size').value=val;
     } else if (id==='color') {
       if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.colors.includes(val)){d.colors.push(val);save_state();toast('Farbe "'+val+'" ✓');} }
-      onProductTypeChange(); document.getElementById('color').value=val;
+      document.getElementById('color').value=val; onProductTypeChange(); document.getElementById('color').value=val;
     }
   }
 
