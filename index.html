@@ -418,6 +418,7 @@ img{max-width:100%;display:block;}
             <option value="sizes">Größe</option>
             <option value="colors">Farbe</option>
             <option value="images">Bilder (Upload)</option>
+            <option value="setimages">Set-Bilder (Upload)</option>
           </select>
         </div>
 
@@ -796,7 +797,7 @@ function buildImgDropdown() {
   const typ = g('productType')?.value || '';
   // Bilder für aktuelle Gruppe+Produkttyp + globale Bilder
   const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
-  const allImgs = [...new Set([...catImgs, ...state.master.images])];
+  const allImgs = [...new Set([...catImgs, ...(state.master.images||[]), ...(state.master.setImages||[])])];
   const opts = [{ url:'', label:'Kein Bild' }, ...allImgs.map(u=>({
     url:u, label: u.startsWith('data:') ? (catImgs.includes(u) ? `📌 ${typ}` : 'Upload-Bild') : (u.split('id=')[1]?.slice(0,22)||u.slice(-22))
   }))];
@@ -1124,11 +1125,11 @@ function openImagePicker(currentUrl='') {
   const grp = g('group')?.value || '';
   const typ = g('productType')?.value || '';
   const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
-  const allImgs = [...new Set([...catImgs, ...state.master.images])];
+  const allImgs = [...new Set([...catImgs, ...(state.master.images||[]), ...(state.master.setImages||[])])];
   list.innerHTML = allImgs.length ? allImgs.map(u => `
     <button type="button" class="img-pick" data-url="${u.replace(/"/g,'&quot;')}" style="border:2px solid ${u===currentUrl?'#4caf50':'transparent'}">
       <img src="${u}" loading="lazy" style="width:100%;height:100px;object-fit:cover;border-radius:8px;">
-      <div style="font-size:var(--text-xs);margin-top:4px;word-break:break-all;">${catImgs.includes(u) ? 'Stammdaten' : 'Upload'}</div>
+      <div style="font-size:var(--text-xs);margin-top:4px;word-break:break-all;">${catImgs.includes(u) ? 'Stammdaten' : (state.master.setImages||[]).includes(u) ? 'Set-Bild' : 'Upload'}</div>
     </button>`).join('') : '<div class="empty">Keine Bilder vorhanden.</div>';
   modal.style.display='flex'; modal.classList.add('show'); document.documentElement.style.overflow='hidden';
   modal.onclick = e => {
@@ -1449,6 +1450,38 @@ function renderOpen() {
   });
 }
 
+
+function editSoldName(id) {
+  const set = state.sold.find(s=>s.id===id);
+  if(!set) return;
+  const val = prompt('Setname:', set.setName||'');
+  if(val===null) return;
+  set.setName = val.trim();
+  save(); renderSold();
+}
+
+function editSoldPrice(id) {
+  const set = state.sold.find(s=>s.id===id);
+  if(!set) return;
+  const val = prompt('Verkaufspreis (EUR):', set.salePrice||0);
+  if(val===null) return;
+  const price = parseFloat(val.replace(',','.'));
+  if(isNaN(price)) return alert('Ungültiger Preis');
+  set.salePrice = price;
+  set.netProfit = price - (set.purchaseTotal||0);
+  save(); renderSold();
+}
+
+function editSoldImage(id) {
+  const set = state.sold.find(s=>s.id===id);
+  if(!set) return;
+  imagePickCallback = (url) => {
+    set.previewImage = url;
+    save(); renderSold();
+  };
+  openImagePicker(set.previewImage||'');
+}
+
 function renderSold() {
   const needle = state.soldFilter.trim().toLowerCase();
   const sets = needle ? state.sold.filter(s=>s.setName.toLowerCase().includes(needle)) : state.sold;
@@ -1471,7 +1504,12 @@ function renderSold() {
       </div>
       <div class="item-footer">
         <div class="item-price-row">VK ${euro(set.salePrice)} · EK ${euro(set.purchaseTotal)} · <b class="profit">+${euro(set.netProfit)}</b></div>
-        <button class="btn btn-danger" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" data-del-sold="${set.id}">🗑</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <button class="btn btn-ghost" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-xs);" onclick="editSoldName('${set.id}')">✎ Name</button>
+          <button class="btn btn-ghost" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-xs);" onclick="editSoldPrice('${set.id}')">✎ VK</button>
+          <button class="btn btn-ghost" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-xs);" onclick="editSoldImage('${set.id}')">🖼 Bild</button>
+          <button class="btn btn-danger" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-xs);" data-del-sold="${set.id}">🗑</button>
+        </div>
       </div>
     </div>`).join('');
 }
@@ -1604,7 +1642,10 @@ function masterSubmit(e) {
 
     if (type === 'images') {
       // Bilder werden via handleMasterImgFiles gespeichert
-      // Hier nur catalog-Zuweisung, wenn Gruppe + Produkttyp gewählt
+      return;
+    }
+    if (type === 'setimages') {
+      // Set-Bilder werden via handleMasterImgFiles gespeichert
       return;
     }
 
