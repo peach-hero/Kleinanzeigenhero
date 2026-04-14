@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+<!DOCTYPE 
+  restoreOpenState();html>
 <html lang="de" data-theme="light">
 <head>
 <meta charset="UTF-8"/>
@@ -517,7 +518,9 @@ const state = {
   sold: [],
   soldFilter: '',
   year: String(new Date().getFullYear()),
-  master: { groups:[], articles:[], sizes:[], colors:[], images:[] }
+  master: { groups:[], articles:[], sizes:[], colors:[], images:[] },
+  openCollapse: {},
+  openScrollPos: 0
 };
 
 // ═══════════════════════════════════════════════════
@@ -1152,6 +1155,7 @@ function toggleStack(id) {
   if (!el) return;
   const btn = el.previousElementSibling;
   el.classList.toggle('open');
+  state.openCollapse['s_'+id] = el.classList.contains('open');
   if (btn && btn.classList.contains('stack-toggle')) {
     const menge = el.querySelectorAll('.stack-inst').length;
     btn.textContent = el.classList.contains('open')
@@ -1286,6 +1290,7 @@ function toggleGrp(el) {
   if(!body) return;
   const isOpen = body.style.display !== 'none';
   body.style.display = isOpen ? 'none' : 'block';
+  state.openCollapse['b_'+key] = !isOpen;
   const arrow = el.querySelector('.group-title');
   if(arrow) arrow.innerHTML = arrow.innerHTML.replace(isOpen ? '&#9660;' : '&#9658;', isOpen ? '&#9658;' : '&#9660;');
 }
@@ -1305,7 +1310,22 @@ function editInstEK(itemId, instId) {
   inst.purchasePrice = parseFloat(val.replace(',','.')) || 0;
   save(); renderOpen();
 }
+
+function saveOpenState() {
+  const sc = document.querySelector('.scroll-container');
+  if(sc) state.openScrollPos = sc.scrollTop;
+  document.querySelectorAll('[data-body]').forEach(el => { state.openCollapse['b_'+el.dataset.body] = el.style.display !== 'none'; });
+  document.querySelectorAll('[data-stack]').forEach(el => { state.openCollapse['s_'+el.dataset.stack] = el.classList.contains('open'); });
+}
+function restoreOpenState() {
+  requestAnimationFrame(() => {
+    const sc = document.querySelector('.scroll-container');
+    if(sc && state.openScrollPos) sc.scrollTop = state.openScrollPos;
+  });
+}
+
 function renderOpen() {
+  saveOpenState();
   g('setBuilder').classList.toggle('show', state.sel.size>0);
   if(state.sel.size>0) buildSetImgDropdown();
   // PS-Feld anzeigen wenn PS-Artikel gewählt
@@ -1359,10 +1379,10 @@ function renderOpen() {
 
       return `<div style="margin-bottom:var(--sp4);margin-left:var(--sp2);">
         <div class="group-head" onclick="toggleGrp(this)" data-key="pt__${grpPT}" style="margin-bottom:var(--sp2);cursor:pointer">
-          <h3 class="group-title" style="font-size:var(--text-sm);color:var(--muted);">&#9658; ${ptLabel}</h3>
+          <h3 class="group-title" style="font-size:var(--text-sm);color:var(--muted);">${state.openCollapse['b_pt__'+grpPT]===true ? '&#9660;' : '&#9658;'} ${ptLabel}</h3>
           <span class="chip">${totalPcs} Stück</span>
         </div>
-        <div class="grp-body" data-body="pt__${grpPT}" style="display:block">
+        <div class="grp-body" data-body="pt__${grpPT}" style="display:${state.openCollapse['b_pt__'+grpPT]===true ? 'block' : 'none'}">
         ${Object.entries(articleMap).map(([artKey, artItems])=>{
           const allInst  = artItems.flatMap(item=>item.instances.map(inst=>({...inst,_itemId:item.id})));
           const menge    = allInst.length;
@@ -1432,7 +1452,7 @@ function renderOpen() {
         <h2 class="group-title" style="font-size:var(--text-base);font-weight:700;">&#9658; ${grp}</h2>
         <span class="chip stack">${grpTotal} Stück</span>
       </div>
-      <div class="grp-body" data-body="grp__${grp}" style="display:block">${subHtml}</div>
+      <div class="grp-body" data-body="grp__${grp}" style="display:${state.openCollapse['b_grp__'+grp]===true ? 'block' : 'none'}">${subHtml}</div>
     </div>`;
   }).join('') || '<div class="empty">Keine offenen Artikel.</div>';
 
@@ -1589,7 +1609,7 @@ function render() {
   if (state.page==='open')   renderOpen();
   if (state.page==='sold')   renderSold();
   if (state.page==='master') renderMaster();
-  const sc=document.querySelector('.scroll-container'); if(sc) sc.scrollTop=0;
+  if(state.page !== 'open') { const sc=document.querySelector('.scroll-container'); if(sc) sc.scrollTop=0; }
 }
 
 // ═══════════════════════════════════════════════════
