@@ -375,14 +375,26 @@ img{max-width:100%;display:block;}
         <input type="hidden" id="setImgData">
         <button type="button" id="clearSetImg" style="display:none;margin-top:6px;" class="btn btn-danger">× Bild entfernen</button>
       </div>
-      <div class="muted" id="selSummary">0 Artikel gewählt.</div><button onclick="toggleZeroFilter()" id="zeroFilterBtn" class="btn btn-ghost" style="font-size:13px;margin-top:8px">Nullbestand ausblenden</button>
+      <div class="muted" id="selSummary">0 Artikel gewählt.</div>
       <div class="grid2">
         <button id="createSetBtn" class="btn btn-primary">✓ Verkaufen</button>
         <button id="clearSelBtn" class="btn btn-ghost">Auswahl leeren</button>
       </div>
     </div>
   </div>
-  <div style="text-align:right;margin-bottom:8px"><button onclick="toggleZeroFilter()" id="zeroFilterBtn" class="btn btn-ghost" style="font-size:13px">Nullbestand ausblenden</button></div><div id="openContent"></div>
+  <div style="text-align:right;margin-bottom:8px">
+    <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;user-select:none">
+      <span id="zeroFilterLabel" style="color:var(--muted)">Nullbestand ausblenden</span>
+      <span onclick="toggleZeroFilter()" id="zeroFilterBtn" style="
+        display:inline-block;width:44px;height:24px;border-radius:12px;
+        background:#ccc;position:relative;transition:background 0.2s;cursor:pointer;flex-shrink:0
+      "><span id="zeroFilterKnob" style="
+        display:block;width:20px;height:20px;border-radius:50%;
+        background:#fff;position:absolute;top:2px;left:2px;
+        transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)
+      "></span></span>
+    </label>
+  </div><div id="openContent"></div>
 </section>
 
 <!-- ④ VERKAUFT -->
@@ -1296,9 +1308,16 @@ function toggleGrp(el) {
 }
 function toggleZeroFilter() {
   state.hideZero = !state.hideZero;
-  const btn = g('zeroFilterBtn');
-  if(btn) btn.textContent = state.hideZero ? 'Nullbestand einblenden' : 'Nullbestand ausblenden';
+  updateZeroToggleUI();
   renderOpen();
+}
+function updateZeroToggleUI() {
+  const track = g('zeroFilterBtn');
+  const knob = g('zeroFilterKnob');
+  const label = g('zeroFilterLabel');
+  if(track) track.style.background = state.hideZero ? 'var(--primary)' : '#ccc';
+  if(knob) knob.style.left = state.hideZero ? '22px' : '2px';
+  if(label) label.textContent = state.hideZero ? 'Nullbestand einblenden' : 'Nullbestand ausblenden';
 }
 function editInstEK(itemId, instId) {
   const item = state.open.find(i=>i.id===itemId);
@@ -1310,6 +1329,10 @@ function editInstEK(itemId, instId) {
   inst.purchasePrice = parseFloat(val.replace(',','.')) || 0;
   save(); renderOpen();
 }
+
+
+function isOpen(key) { return state.openCollapse['b_'+key] === true; }
+function isStackOpen(id) { return state.openCollapse['s_'+id] === true; }
 
 function saveOpenState() {
   const sc = document.querySelector('.scroll-container');
@@ -1326,6 +1349,7 @@ function restoreOpenState() {
 
 function renderOpen() {
   saveOpenState();
+  updateZeroToggleUI();
   g('setBuilder').classList.toggle('show', state.sel.size>0);
   if(state.sel.size>0) buildSetImgDropdown();
   // PS-Feld anzeigen wenn PS-Artikel gewählt
@@ -1359,11 +1383,15 @@ function renderOpen() {
   const grpEntries = Object.entries(byGrp).sort((a,b)=>a[0].localeCompare(b[0],'de'));
 
   g('openContent').innerHTML = grpEntries.map(([grp, grpItems])=>{
-    const grpTotal = grpItems.reduce((s,i)=>s+i.instances.length, 0);
+    const filteredGrpItems = state.hideZero ? grpItems.filter(i=>i.instances.length>0) : grpItems;
+    if(state.hideZero && filteredGrpItems.length===0) return '';
+    const grpTotal = filteredGrpItems.reduce((s,i)=>s+i.instances.length, 0);
 
     // Untergruppen dieser Gruppe filtern und sortieren
     const subEntries = Object.entries(byGrpPT)
       .filter(([k])=> k === grp || k.startsWith(grp + ' › '))
+      .map(([k,v])=> [k, state.hideZero ? v.filter(i=>i.instances.length>0) : v])
+      .filter(([k,v])=> !state.hideZero || v.length>0)
       .sort((a,b)=>a[0].localeCompare(b[0],'de'));
 
     const subHtml = subEntries.map(([grpPT, items])=>{
@@ -1379,10 +1407,10 @@ function renderOpen() {
 
       return `<div style="margin-bottom:var(--sp4);margin-left:var(--sp2);">
         <div class="group-head" onclick="toggleGrp(this)" data-key="pt__${grpPT}" style="margin-bottom:var(--sp2);cursor:pointer">
-          <h3 class="group-title" style="font-size:var(--text-sm);color:var(--muted);">${state.openCollapse['b_pt__'+grpPT]===true ? '&#9660;' : '&#9658;'} ${ptLabel}</h3>
+          <h3 class="group-title" style="font-size:var(--text-sm);color:var(--muted);">${isOpen("pt__"+grpPT) ? "&#9660;" : "&#9658;"} ${ptLabel}</h3>
           <span class="chip">${totalPcs} Stück</span>
         </div>
-        <div class="grp-body" data-body="pt__${grpPT}" style="display:${state.openCollapse['b_pt__'+grpPT]===true ? 'block' : 'none'}">
+        <div class="grp-body" data-body="pt__${grpPT}" style="display:${isOpen("pt__"+grpPT) ? "block" : "none"}">
         ${Object.entries(articleMap).map(([artKey, artItems])=>{
           const allInst  = artItems.flatMap(item=>item.instances.map(inst=>({...inst,_itemId:item.id})));
           const menge    = allInst.length;
@@ -1449,10 +1477,10 @@ function renderOpen() {
 
     return `<div style="margin-bottom:var(--sp6);">
       <div class="group-head" onclick="toggleGrp(this)" data-key="grp__${grp}" style="cursor:pointer">
-        <h2 class="group-title" style="font-size:var(--text-base);font-weight:700;">&#9658; ${grp}</h2>
+        <h2 class="group-title" style="font-size:var(--text-base);font-weight:700;">${isOpen("grp__"+grp) ? "&#9660;" : "&#9658;"} ${grp}</h2>
         <span class="chip stack">${grpTotal} Stück</span>
       </div>
-      <div class="grp-body" data-body="grp__${grp}" style="display:${state.openCollapse['b_grp__'+grp]===true ? 'block' : 'none'}">${subHtml}</div>
+      <div class="grp-body" data-body="grp__${grp}" style="display:${isOpen("grp__"+grp) ? "block" : "none"}">${subHtml}</div>
     </div>`;
   }).join('') || '<div class="empty">Keine offenen Artikel.</div>';
 
