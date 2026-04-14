@@ -199,6 +199,8 @@ img{max-width:100%;display:block;}
 .grp-content {{ display:block; }}
 .grp-content.collapsed {{ display:none; }}
 .group-head {{ cursor:pointer; }}
+.upload-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:16px;padding:18px;cursor:pointer}.upload-zone.drag{border-color:var(--accent);background:rgba(76,175,80,.06)}.img-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}.img-tile{border:1px solid var(--border);border-radius:12px;padding:6px;background:var(--card)}.img-tile img{width:100%;height:90px;object-fit:cover;border-radius:8px}.img-tile button{width:100%;margin-top:6px}
+.modal.show{display:flex !important;}
 </style>
 </head>
 <body>
@@ -427,6 +429,10 @@ img{max-width:100%;display:block;}
           <span class="uz-txt">Bilder hochladen (mehrere möglich)</span>
           <input type="file" id="masterImgInput" accept="image/*" multiple style="display:none">
         </label>
+        <div class="card" style="margin-top:0;grid-column:1 / -1;">
+          <div class="card-head"><h3 class="card-title">Vorhandene Bilder</h3></div>
+          <div class="card-body"><div id="masterImageGallery" class="img-gallery"></div></div>
+        </div>
 
         <div style="display:flex;gap:var(--sp3);">
   <button type="submit" class="btn btn-primary" style="flex:1;">Hinzufügen</button>
@@ -882,7 +888,7 @@ function handleMasterImgFiles(files) {
       } else {
         if (!state.master.images.includes(url)) state.master.images.push(url);
       }
-      buildImgDropdown(); save(); if(state.page==='master') renderMaster();
+      buildImgDropdown(); save(); if(state.page==='master') { renderMaster(); renderMasterImageGallery(); }
     };
     r.readAsDataURL(file);
   });
@@ -1071,6 +1077,36 @@ function renderStats() {
   }).join('') || '<div class="empty">Keine Verkäufe im gewählten Jahr.</div>';
 }
 
+
+// ═══════════════════════════════════════════════════
+// IMAGE PICKER MODAL
+// ═══════════════════════════════════════════════════
+let imagePickCallback = null;
+function openImagePicker(currentUrl='') {
+  const modal = g('imagePickerModal');
+  const list = g('imagePickerList');
+  if(!modal || !list) return;
+  const grp = g('group')?.value || '';
+  const typ = g('productType')?.value || '';
+  const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
+  const allImgs = [...new Set([...catImgs, ...state.master.images])];
+  list.innerHTML = allImgs.length ? allImgs.map(u => `
+    <button type="button" class="img-pick" data-url="${u.replace(/"/g,'&quot;')}" style="border:2px solid ${u===currentUrl?'#4caf50':'transparent'}">
+      <img src="${u}" loading="lazy" style="width:100%;height:100px;object-fit:cover;border-radius:8px;">
+      <div style="font-size:var(--text-xs);margin-top:4px;word-break:break-all;">${catImgs.includes(u) ? 'Stammdaten' : 'Upload'}</div>
+    </button>`).join('') : '<div class="empty">Keine Bilder vorhanden.</div>';
+  modal.style.display='flex'; modal.classList.add('show');
+  modal.onclick = e => {
+    const b = e.target.closest('[data-url]');
+    if(!b) return;
+    imagePickCallback && imagePickCallback(b.dataset.url);
+    closeImagePicker();
+  };
+}
+function closeImagePicker() {
+  const modal = g('imagePickerModal');
+  if(modal){ modal.classList.remove('show'); modal.style.display='none'; }
+}
 // ═══════════════════════════════════════════════════
 // RENDER OFFEN
 // ═══════════════════════════════════════════════════
@@ -1157,6 +1193,44 @@ function changeQty(itemId, delta) {
   renderOpen();
 }
 
+
+
+function editItemImage(itemId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  imagePickCallback = (url) => {
+    item._savedImage = url;
+    if(item.instances[0] && !item.instances[0].image) item.instances[0].image = url;
+    save(); renderOpen();
+  };
+  openImagePicker(item._savedImage || item.instances[0]?.image || '');
+}
+
+function toggleItemProfitshare(itemId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  const newVal = !item.instances.some(x=>x.profitshare);
+  item.instances.forEach(x=>x.profitshare = newVal);
+  save(); renderOpen();
+}
+
+function editInstImage(itemId, instId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  const inst = item.instances.find(i=>i.id===instId);
+  if(!inst) return;
+  imagePickCallback = (url) => { inst.image = url; save(); renderOpen(); };
+  openImagePicker(inst.image || item._savedImage || '');
+}
+
+function toggleInstProfitshare(itemId, instId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  const inst = item.instances.find(i=>i.id===instId);
+  if(!inst) return;
+  inst.profitshare = !inst.profitshare;
+  save(); renderOpen();
+}
 
 function editEK(itemId) {
   const item = state.open.find(i=>i.id===itemId);
@@ -1276,6 +1350,8 @@ function renderOpen() {
                 <span class="chip">Gr. ${firstItem.size||'-'}</span>
                 <span class="chip">${firstItem.color||'-'}</span>
                 <span class="chip" style="cursor:pointer" onclick="editEK('${firstItem.id}')" title="EK bearbeiten">EK ${euro(einzel)} ✎</span>
+                <button class="chip" style="cursor:pointer;border:none" onclick="editItemImage('${firstItem.id}')" title="Bild ändern">🖼 Bild</button>
+                <button class="chip" style="cursor:pointer;border:none" onclick="toggleItemProfitshare('${firstItem.id}')" title="Profitshare ändern">${hasPsh?'PS ✓':'PS ✎'}</button>
                 ${`<span class="chip stack" style="display:flex;gap:3px;align-items:center;padding:0 4px"><button onclick="changeQty('${firstItem.id}',1)" style="width:16px;height:16px;border-radius:50%;background:#4CAF50;color:white;font-size:10px;border:none;font-weight:bold;cursor:pointer;line-height:1">+</button>${menge}<button onclick="changeQty('${firstItem.id}',-1)" style="width:16px;height:16px;border-radius:50%;background:#f44336;color:white;font-size:10px;border:none;font-weight:bold;cursor:pointer;line-height:1">−</button></span>`}
                 ${hasPsh?'<span class="chip ps">Profitshare</span>':''}
                 ${selCount>0?`<span class="chip sel">✓ ${selCount}</span>`:''}
@@ -1299,6 +1375,10 @@ function renderOpen() {
               <div class="inst-thumb">${inst.image?`<img src="${inst.image}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
               <div>
                 <div style="font-size:var(--text-xs);color:var(--muted);cursor:pointer" onclick="editInstEK('${firstItem.id}','${inst.id}')" title="EK bearbeiten">EK ${euro(inst.purchasePrice||0)} ✎ · ${fmtDate(inst.entryDate)}</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+                  <button class="btn btn-ghost" style="min-height:24px;padding:.15rem .4rem;font-size:var(--text-xs);" onclick="editInstImage('${firstItem.id}','${inst.id}')">🖼 Bild</button>
+                  <button class="btn btn-ghost" style="min-height:24px;padding:.15rem .4rem;font-size:var(--text-xs);" onclick="toggleInstProfitshare('${firstItem.id}','${inst.id}')">${inst.profitshare?'PS ✓':'PS ✎'}</button>
+                </div>
                 ${inst.comment?`<div style="font-size:var(--text-xs);color:var(--muted);">${inst.comment}</div>`:''}
                 ${inst.defect?`<div style="font-size:var(--text-xs);color:var(--warn);">⚠ ${inst.defect}</div>`:''}
               </div>
@@ -1421,6 +1501,7 @@ function renderMaster() {
     </div></div>`;
 
   g('masterContent').innerHTML = html;
+  renderMasterImageGallery();
 }
 
 // ═══════════════════════════════════════════════════
@@ -1668,7 +1749,7 @@ document.addEventListener('click', e => {
     else if (key==='prodtype') { delete state.master.catalog[grp]?.[typ]; }
     else if (key==='images') { state.master.images.splice(+idx,1); }
     else { state.master.catalog[grp]?.[typ]?.[key]?.splice(+idx,1); }
-    fillMasterDropdowns(); save(); renderMaster(); return;
+    fillMasterDropdowns(); save(); renderMaster(); renderMasterImageGallery(); return;
   }
 });
 
@@ -1878,5 +1959,16 @@ function showAddInput(id) {
   inp.addEventListener('blur', function() { setTimeout(save, 150); });
 }
 </script>
+
+<div id="imagePickerModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--card);color:var(--text);max-width:900px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
+      <div style="font-weight:600;">Bild aus Stammdaten wählen</div>
+      <button type="button" class="btn btn-ghost" onclick="closeImagePicker()">Schließen</button>
+    </div>
+    <div id="imagePickerList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;"></div>
+  </div>
+</div>
+
 </body>
 </html>
