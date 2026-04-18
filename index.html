@@ -1,11 +1,9 @@
-<!DOCTYPE 
-  restoreOpenState();html>
+<!DOCTYPE html>
 <html lang="de" data-theme="light">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>Kleinanzeigen Hero</title>
-  <!-- PWA -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -197,38 +195,27 @@ img{max-width:100%;display:block;}
     button, label, .nav-btn, .iso, .img-select-trigger, .stack-toggle, .upload-zone { cursor: pointer; -webkit-user-select: none; user-select: none; }
     input, textarea, select { -webkit-user-select: text; user-select: text; }
 
-.grp-content {{ display:block; }}
-.grp-content.collapsed {{ display:none; }}
-.group-head {{ cursor:pointer; }}
+.grp-content { display:block; }
+.grp-content.collapsed { display:none; }
+.group-head { cursor:pointer; }
 .upload-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:16px;padding:18px;cursor:pointer}.upload-zone.drag{border-color:var(--accent);background:rgba(76,175,80,.06)}.img-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}.img-tile{border:1px solid var(--border);border-radius:12px;padding:6px;background:var(--card)}.img-tile img{width:100%;height:90px;object-fit:cover;border-radius:8px}.img-tile button{width:100%;margin-top:6px}
 .modal.show{display:flex !important;}
 
-.modal.show{display:flex !important;}
-
-
-
-
-
-
-.modal.show{display:flex !important;}
-#imagePickerModal > div{box-shadow:0 16px 40px rgba(0,0,0,.25);}
+#imagePickerModal > div, #setBadgesModal > div {box-shadow:0 16px 40px rgba(0,0,0,.25);}
 #imagePickerList{max-height:calc(85vh - 90px);overflow:auto;}
 #imagePickerList .img-pick{padding:8px;border-radius:14px;background:var(--card);cursor:pointer;display:flex;flex-direction:column;gap:8px;min-height:180px;}
 #imagePickerList .img-pick img{height:110px !important;}
 
-
-#imagePickerModal > div{background:#fff !important;color:#222 !important;}
-#imagePickerModal .btn-ghost{background:#fff !important;}
+#imagePickerModal > div, #setBadgesModal > div {background:#fff !important;color:#222 !important;}
+#imagePickerModal .btn-ghost, #setBadgesModal .btn-ghost {background:#fff !important;}
 #imagePickerList .img-pick{background:#fff !important;}
 
 </style>
 </head>
 <body>
 
-<!-- TOAST -->
 <div class="success-toast" id="toast"></div>
 
-<!-- TOP BAR -->
 <header class="topbar">
   <div class="brand">
     <svg class="logo" viewBox="0 0 64 64" fill="none">
@@ -249,9 +236,7 @@ img{max-width:100%;display:block;}
   </div>
 </header>
 
-<!-- PAGES -->
 <div class="scroll-container">
-<!-- ① STATISTIK -->
 <section class="page" id="page-stats">
   <div class="page-head">
     <h2>Statistik</h2>
@@ -277,7 +262,6 @@ img{max-width:100%;display:block;}
   <div id="monthCards"></div>
 </section>
 
-<!-- ② NEU -->
 <section class="page active" id="page-new">
   <div class="page-head">
     <h2>Neuer Artikel</h2>
@@ -305,7 +289,6 @@ img{max-width:100%;display:block;}
           <div class="field"><label>Farbe</label><div style="display:flex;gap:6px;align-items:center;"><select class="select" id="color" style="flex:1;"></select><button type="button" onclick="showAddInput('color')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;"><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="document.getElementById('color').value='schwarz'">schwarz</button><button type="button" style="padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;white-space:nowrap;" onclick="document.getElementById('color').value='weiß'">weiß</button></div></div>
         </div>
         <div class="field"><label>Mängel <span style="color:var(--faint);font-weight:400;">(optional)</span></label><textarea class="textarea" id="defect" placeholder="z.B. Kratzer, fehlende Schraube…" style="min-height:60px;"></textarea></div>
-        <!-- BILD -->
         <div class="field">
           <label>Bild <span style="color:var(--faint);font-weight:400;">(optional)</span></label>
           <div style="display:flex;gap:8px;align-items:center;">
@@ -333,13 +316,11 @@ img{max-width:100%;display:block;}
   </div>
 </section>
 
-<!-- ③ OFFEN -->
 <section class="page" id="page-open">
   <div class="page-head">
     <h2>Offene Artikel</h2>
     <div class="sub">Einzelne Artikel wählen → Verkaufen</div>
   </div>
-  <!-- SET BUILDER -->
   <div class="set-builder" id="setBuilder">
     <h3 class="card-title" style="margin-bottom:var(--sp4);">🛒 Set verkaufen</h3>
     <div class="grid">
@@ -382,7 +363,9 @@ img{max-width:100%;display:block;}
       </div>
     </div>
   </div>
-  <div style="text-align:right;margin-bottom:8px">
+  
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+    <button class="btn btn-ghost" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-sm);background:var(--surface2);" onclick="openSetBadgesModal()">🏆 Set Badges</button>
     <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;user-select:none">
       <span id="zeroFilterLabel" style="color:var(--muted)">Nullbestand ausblenden</span>
       <span onclick="toggleZeroFilter()" id="zeroFilterBtn" style="
@@ -394,10 +377,10 @@ img{max-width:100%;display:block;}
         transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)
       "></span></span>
     </label>
-  </div><div id="openContent"></div>
+  </div>
+  <div id="openContent"></div>
 </section>
 
-<!-- ④ VERKAUFT -->
 <section class="page" id="page-sold">
   <div class="page-head">
     <h2>Verkaufte Artikel</h2>
@@ -411,7 +394,6 @@ img{max-width:100%;display:block;}
   <div id="soldContent"></div>
 </section>
 
-<!-- ⑤ STAMMDATEN -->
 <section class="page" id="page-master">
   <div class="page-head">
     <h2>Stammdaten</h2>
@@ -485,9 +467,7 @@ img{max-width:100%;display:block;}
   </div>
 </section>
 
-</div><!-- end scroll-container -->
-<!-- BOTTOM NAV -->
-<nav class="bottom-nav">
+</div><nav class="bottom-nav">
   <button class="nav-btn" data-page="stats"><span class="nav-icon">📊</span>Statistik</button>
   <button class="nav-btn active" data-page="new"><span class="nav-icon">✚</span>Neu</button>
   <button class="nav-btn" data-page="open"><span class="nav-icon">📦</span>Offen</button>
@@ -510,7 +490,6 @@ async function requestPersistentStorage() {
       console.log('✅ Speicher bereits persistent');
     }
   }
-  // Speicherplatz loggen
   if (navigator.storage && navigator.storage.estimate) {
     const est = await navigator.storage.estimate();
     const used  = Math.round(est.usage  / 1024);
@@ -532,12 +511,9 @@ const state = {
   year: String(new Date().getFullYear()),
   master: { groups:[], articles:[], sizes:[], colors:[], images:[] },
   openCollapse: {},
-  openScrollPos: 0
+  openScrollPos: 0,
+  hideZero: false
 };
-
-// ═══════════════════════════════════════════════════
-// PERSIST
-// ═══════════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════
 // IndexedDB - persistenter Speicher für Android/PWA
@@ -557,9 +533,7 @@ function openDB() {
 
 function save() {
   const payload = { open:state.open, sold:state.sold, master:state.master, year:state.year };
-  // localStorage als Backup
   try { localStorage.setItem('amp3', JSON.stringify(payload)); } catch(e) {}
-  // IndexedDB als Hauptspeicher
   openDB().then(database => {
     const tx  = database.transaction(STORE, 'readwrite');
     tx.objectStore(STORE).put(payload, 'state');
@@ -569,7 +543,6 @@ function save() {
 }
 
 function load() {
-  // Erst IDB versuchen, dann localStorage als Fallback
   openDB().then(database => {
     const tx  = database.transaction(STORE, 'readonly');
     const req = tx.objectStore(STORE).get('state');
@@ -579,7 +552,6 @@ function load() {
         applyState(d);
         console.log('📂 IDB geladen:', state.open.length, 'Artikel');
       } else {
-        // Fallback: localStorage Migration
         try {
           const ls = JSON.parse(localStorage.getItem('amp3') || 'null');
           if (ls) { applyState(ls); save(); console.log('📂 localStorage migriert:', state.open.length, 'Artikel'); }
@@ -588,7 +560,6 @@ function load() {
       fillPrices(); initDemoCatalog(); fillMasterDropdowns(); updateMasterForm(); render();
     };
     req.onerror = () => {
-      // IDB nicht verfügbar - localStorage Fallback
       try {
         const ls = JSON.parse(localStorage.getItem('amp3') || 'null');
         if (ls) applyState(ls);
@@ -610,7 +581,6 @@ function applyState(d) {
   state.master = { images:[], catalog:{}, ...(d.master||{}) };
   if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
   state.year   = d.year   || state.year;
-  // Migration: productType ergänzen
   const migrateProductType = (article, group) => {
     const cat = state.master.catalog || {};
     let found = '';
@@ -626,16 +596,11 @@ function applyState(d) {
   });
 }
 
-
-// ═══════════════════════════════════════════════════
-// EXPORT / IMPORT
-// ═══════════════════════════════════════════════════
 function exportData() {
   const data = { open:state.open, sold:state.sold, master:state.master, year:state.year };
   const json = JSON.stringify(data, null, 2);
   const filename = `kleinanzeigen-hero-${today()}.json`;
 
-  // Web Share API (Android PWA / mobil)
   if (navigator.share && navigator.canShare) {
     const blob = new Blob([json], { type:'application/json' });
     const file = new File([blob], filename, { type:'application/json' });
@@ -648,7 +613,6 @@ function exportData() {
   }
   fallbackExport(json, filename);
 }
-
 
 function setPsShare(pct) {
   if (g('manualPsShare')) g('manualPsShare').value = pct;
@@ -678,7 +642,6 @@ function updatePsPreview() {
   }
 }
 
-
 function buildSetImgDropdown() {
   const dd = g('setImgDropdown'); if (!dd) return;
   const allImgs = state.master.images || [];
@@ -703,12 +666,10 @@ function setSetImgVal(url) {
   g('setImgLabel').textContent = url ? (url.startsWith('data:') ? 'Upload-Bild' : url.slice(-22)) : 'Aus Stammdaten wählen…';
   g('setImgPreview').innerHTML = url ? `<img src="${url}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` : '📷';
   g('clearSetImg').style.display = url ? 'inline-flex' : 'none';
-  // aktives Bild markieren
   if(g('setImgDropdown')) g('setImgDropdown').querySelectorAll('.set-img-opt').forEach(o=>o.classList.toggle('active', o.dataset.val===url));
 }
 
 function fallbackExport(json, filename) {
-  // Desktop / Browser-Download
   const blob = new Blob([json], { type:'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -718,6 +679,7 @@ function fallbackExport(json, filename) {
   setTimeout(()=>{ URL.revokeObjectURL(a.href); document.body.removeChild(a); }, 1000);
   toast('Daten exportiert ✓');
 }
+
 function importData(file) {
   if (!file) return;
   const reader = new FileReader();
@@ -725,10 +687,10 @@ function importData(file) {
     try {
       const d = JSON.parse(e.target.result);
       state.open   = d.open   || [];
-    console.log('📂 Geladen:', state.open.length, 'Artikel');
+      console.log('📂 Geladen:', state.open.length, 'Artikel');
       state.sold   = d.sold   || [];
       state.master = { images:[], catalog:{}, ...(d.master||{}) };
-    if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
+      if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
       state.year   = d.year   || state.year;
       save();
       fillMasterDropdowns();
@@ -739,9 +701,6 @@ function importData(file) {
   reader.readAsText(file);
 }
 
-// ═══════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════
 const euro = v => Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(+v||0);
 const today = () => new Date().toISOString().slice(0,10);
 const fmtDate = d => d ? new Intl.DateTimeFormat('de-DE',{dateStyle:'medium'}).format(new Date(d)) : '-';
@@ -749,6 +708,7 @@ const fmtMonth = d => d ? new Intl.DateTimeFormat('de-DE',{month:'long',year:'nu
 const stackKey = i => `${i.group}||${i.productType||''}||${i.article}||${i.size}||${i.color}`;
 const purchase = i => (+i.purchasePrice||0);
 const g = id => document.getElementById(id);
+const uid = () => crypto.randomUUID();
 
 function toast(msg) {
   const t = g('toast');
@@ -757,13 +717,10 @@ function toast(msg) {
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-// ═══════════════════════════════════════════════════
-// DROPDOWNS
-// ═══════════════════════════════════════════════════
 function fillSel(el, vals, ph) {
   el.innerHTML = `<option value="">${ph}</option>` + vals.map(v=>`<option value="${v}">${v}</option>`).join('');
 }
-function fillPrices() { /* purchasePrice ist jetzt ein Input */ }
+function fillPrices() { }
 function fillMasterDropdowns() {
   const groups = Object.keys(state.master.catalog||{}).sort((a,b)=>a.localeCompare(b,'de'));
   fillSel(g('group'), groups, 'Gruppe wählen');
@@ -796,7 +753,6 @@ function onProductTypeChange() {
   if(g('size'))    fillSel(g('size'),    data.sizes||[],    'Größe wählen');
   if(g('color'))   fillSel(g('color'),   data.colors||[],   'Farbe wählen');
   buildImgDropdown();
-  // Erstes Bild vorauswählen - nur wenn noch kein Bild gesetzt
   const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
   if (catImgs.length > 0 && g('imgValue') && !g('imgValue').value) {
     g('imgValue').value = catImgs[0];
@@ -805,12 +761,10 @@ function onProductTypeChange() {
   }
 }
 
-// Custom Bild-Dropdown
 function buildImgDropdown() {
   const dd = g('imgDropdown'); if (!dd) return;
   const grp = g('group')?.value || '';
   const typ = g('productType')?.value || '';
-  // Bilder für aktuelle Gruppe+Produkttyp + globale Bilder
   const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
   const allImgs = [...new Set([...catImgs, ...(state.master.images||[]), ...(state.master.setImages||[])])];
   const opts = [{ url:'', label:'Kein Bild' }, ...allImgs.map(u=>({
@@ -844,9 +798,6 @@ document.addEventListener('click', e => {
   } else { g('imgDropdown').classList.remove('open'); }
 });
 
-// ═══════════════════════════════════════════════════
-// BILD UPLOAD
-// ═══════════════════════════════════════════════════
 g('uploadFileInput').addEventListener('change', function() { handleUploadFiles(this.files); });
 
 function handleUploadDrop(event) {
@@ -872,36 +823,6 @@ function handleUploadFiles(files) {
   g('uploadFileInput').value = '';
 }
 
-// Stammdaten Bild Upload
-function updateMasterForm() {
-  const t = g('masterType').value;
-  const needGrp = ['producttypes','articles','sizes','colors'].includes(t);
-  const needTyp = ['articles','sizes','colors'].includes(t);
-  const needVal = t !== 'images';
-
-  // Gruppen-Dropdown füllen
-  const groups = Object.keys(state.master.catalog||{}).sort((a,b)=>a.localeCompare(b,'de'));
-  g('masterGroup').innerHTML = '<option value="">– wählen –</option>' + groups.map(g=>`<option value="${g}">${g}</option>`).join('');
-
-  // Produkttyp-Dropdown: abhängig von gewählter Gruppe
-  const selGrp = g('masterGroup').value;
-  const typs = selGrp ? Object.keys(state.master.catalog[selGrp]||{}).sort((a,b)=>a.localeCompare(b,'de')) : [];
-  g('masterProdType').innerHTML = '<option value="">– wählen –</option>' + typs.map(t=>`<option value="${t}">${t}</option>`).join('');
-
-  document.querySelectorAll('.mf-grp').forEach(el => el.style.display = needGrp ? 'grid' : 'none');
-  document.querySelectorAll('.mf-typ').forEach(el => el.style.display = needTyp ? 'grid' : 'none');
-  document.querySelectorAll('.mf-val').forEach(el => el.style.display = needVal ? 'grid' : 'none');
-  g('masterImgZone').style.display = t === 'images' ? 'flex' : 'none';
-
-  const labels = {groups:'Gruppenname', producttypes:'Produkttyp-Name', articles:'Artikelname', sizes:'Größe', colors:'Farbe'};
-  const ph     = {groups:'z.B. Besta', producttypes:'z.B. Tür', articles:'z.B. Selsviken', sizes:'z.B. 64×64', colors:'z.B. Schwarz'};
-  if (g('masterValueLabel')) g('masterValueLabel').textContent = labels[t]||'Wert';
-  if (g('masterValue'))      g('masterValue').placeholder = ph[t]||'';
-}
-
-g('masterType').addEventListener('change', updateMasterForm);
-g('masterGroup').addEventListener('change', updateMasterForm);
-g('masterImgInput').addEventListener('change', function() { handleMasterImgFiles(this.files); });
 function handleMasterImgDrop(e) {
   e.preventDefault(); e.currentTarget.classList.remove('drag');
   handleMasterImgFiles(Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/')));
@@ -919,13 +840,13 @@ function handleMasterImgFiles(files) {
       } else {
         if (!state.master.images.includes(url)) state.master.images.push(url);
       }
-      buildImgDropdown(); save(); if(state.page==='master') { renderMaster(); renderMasterImageGallery(); }
+      buildImgDropdown(); save(); if(state.page==='master') { renderMaster(); }
     };
     r.readAsDataURL(file);
   });
 }
 
-// Set-Bild Upload
+g('masterImgInput').addEventListener('change', function() { handleMasterImgFiles(this.files); });
 g('setImgInput').addEventListener('change', function() {
   const file = this.files[0]; if(!file) return;
   const r = new FileReader();
@@ -941,9 +862,6 @@ g('clearSetImg').addEventListener('click', () => {
   setSetImgVal(''); g('clearSetImg').style.display='none'; g('setImgInput').value='';
 });
 
-// ═══════════════════════════════════════════════════
-// STAPEL
-// ═══════════════════════════════════════════════════
 function addOrStack(item) {
   const key = stackKey(item);
   const ex = state.open.find(i=>stackKey(i)===key);
@@ -952,9 +870,6 @@ function addOrStack(item) {
   else { state.open.unshift({ id:crypto.randomUUID(), group:item.group, productType:item.productType, article:item.article, size:item.size, color:item.color, purchasePrice:item.purchasePrice, profitshare:item.profitshare, instances:[inst] }); }
 }
 
-// ═══════════════════════════════════════════════════
-// RENDER STATISTIK
-// ═══════════════════════════════════════════════════
 function renderStats() {
   const years = [...new Set(state.sold.map(s=>s.saleDate.slice(0,4)))].sort((a,b)=>b-a);
   if (!years.length) years.push(state.year);
@@ -963,13 +878,11 @@ function renderStats() {
 
   const ys = state.sold.filter(s=>s.saleDate.startsWith(state.year));
 
-  // ── Grundzahlen ──
   const totalSets    = ys.length;
   const totalProfit  = ys.reduce((s,set)=>s+set.netProfit,0);
   const totalRevenue = ys.reduce((s,set)=>s+set.salePrice,0);
   const totalArtSold = ys.reduce((s,set)=>s+set.items.reduce((a,i)=>a+(i.quantity||1),0),0);
 
-  // ── Artikel-Maps ──
   const artCount = new Map(), artProfit = new Map(), artRevenue = new Map();
   ys.filter(set=>!set.setName && set.items.length===1).forEach(set=>{
     const share = set.salePrice/(set.items.length||1);
@@ -983,19 +896,14 @@ function renderStats() {
     });
   });
 
-  // Durchschnitt je Artikel berechnen
   const artProfitAvg  = new Map([...artProfit.entries()].map(([k,v])=>[k, v/(artCount.get(k)||1)]));
   const artRevenueAvg = new Map([...artRevenue.entries()].map(([k,v])=>[k, v/(artCount.get(k)||1)]));
 
-  // ── Top 10 Artikel (Gewinn + Umsatz) ──
   const top5Profit  = [...artProfitAvg.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10);
   const top5Revenue = [...artRevenueAvg.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10);
   const topCount    = [...artCount.entries()].sort((a,b)=>b[1]-a[1])[0];
-
-  // ── Top Set ──
   const topSet = ys.slice().sort((a,b)=>b.netProfit-a.netProfit)[0];
 
-  // ── Monats-Map ──
   const monthMap = new Map();
   ys.forEach(set=>{
     const m = fmtMonth(set.saleDate);
@@ -1011,7 +919,6 @@ function renderStats() {
   });
   const months = [...monthMap.entries()].sort((a,b)=>b[1].key.localeCompare(a[1].key));
 
-  // ── Stat Cards ──
   g('statsCards').innerHTML = [
     {k:'Verkaufte Artikel',  v:totalSets},
     {k:'Verkaufte Artikel', v:totalArtSold},
@@ -1021,8 +928,6 @@ function renderStats() {
     {k:'Top Set',         v:topSet ? `<span style="font-size:var(--text-sm);">${topSet.setName||'–'}</span><div style="font-size:var(--text-xs);color:var(--muted);margin-top:2px;">${topSet.items.map(i=>[i.productType,i.article].filter(Boolean).join(' · ')).join(', ')}</div>` : '-'},
   ].map(c=>`<div class="stat-card"><div class="k">${c.k}</div><div class="v">${c.v}</div></div>`).join('');
 
-  // ── Monatstabelle: Monat/Jahr auswählbar ──
-  // Profitshare pro Monat
   const monthPsProfit = new Map();
   const monthPsSets   = new Map();
   ys.filter(s=>s.hasProfitshare).forEach(set=>{
@@ -1041,7 +946,6 @@ function renderStats() {
        }).join('')}</tbody>`
     : '<tbody><tr><td colspan="7">Keine Verkäufe.</td></tr></tbody>';
 
-  // ── KPI: Top 5 Gewinn + Top 5 Umsatz ──
   const avgUnit = totalSets ? totalProfit/totalSets : 0;
   const psCount = ys.filter(s=>s.hasProfitshare).length;
   const mkTop5 = (title, entries, fmt) =>
@@ -1052,7 +956,6 @@ function renderStats() {
       </tbody></table>
     </div>`;
 
-  // Top 10 Sets
   const setByName = new Map();
   ys.forEach(set => {
     const name = set.setName || '(kein Name)';
@@ -1084,7 +987,6 @@ function renderStats() {
       <div class="kpi-card"><div class="k">Aktivste Gruppe</div><div class="v">${(()=>{const m=new Map();ys.forEach(s=>s.items.forEach(i=>{const g=i.group||'–';m.set(g,(m.get(g)||0)+1);}));const t=[...m.entries()].sort((a,b)=>b[1]-a[1])[0];return t?t[0]:'–';})()}</div><div class="d">Meist verkaufte Gruppe</div></div>
     </div>`;
 
-  // ── Monatskarten: Sets + Artikel-Einheiten getrennt ──
   const curMonthKey = new Date().toISOString().slice(0,7);
   g('monthCards').innerHTML = months.filter(([,d])=>d.items.length).map(([m,d])=>{
     const isCurrent = d.key === curMonthKey;
@@ -1108,10 +1010,6 @@ function renderStats() {
   }).join('') || '<div class="empty">Keine Verkäufe im gewählten Jahr.</div>';
 }
 
-
-// ═══════════════════════════════════════════════════
-// IMAGE PICKER MODAL
-// ═══════════════════════════════════════════════════
 let imagePickCallback = null;
 
 function syncNewImageLabel(url) {
@@ -1120,7 +1018,6 @@ function syncNewImageLabel(url) {
   if(lbl) lbl.textContent = url ? 'Aus Stammdaten gewählt' : 'Aus Stammdaten wählen…';
   if(prev) prev.textContent = url ? '🖼' : '📷';
 }
-
 
 function openNewImgPicker() {
   imagePickCallback = (url) => {
@@ -1158,10 +1055,99 @@ function closeImagePicker() {
   const modal = g('imagePickerModal');
   if(modal){ modal.classList.remove('show'); modal.style.display='none'; } document.documentElement.style.overflow='';
 }
+
+// ═══════════════════════════════════════════════════
+// SET BADGES MODAL LOGIC
+// ═══════════════════════════════════════════════════
+function openSetBadgesModal() {
+  const content = g('setBadgesContent');
+  
+  const groups = {};
+  state.open.forEach(item => {
+    if (item.group !== 'Besta' || item.productType !== 'Tür') return;
+    const art = item.article || '–';
+    const col = item.color || '–';
+    const key = art + '::' + col;
+    
+    if (!groups[key]) groups[key] = { article: art, color: col, counts: {} };
+    
+    const size = item.size || '–';
+    if (!groups[key].counts[size]) groups[key].counts[size] = 0;
+    groups[key].counts[size] += item.instances.length;
+  });
+
+  const badgeResults = {
+    'Sideboard 180': [],
+    'Sideboard 120': [],
+    'TV 180': [],
+    'TV 120': [],
+    'Highboard 4': [],
+    'Highboard 4S': [],
+    'Sideboard 180S': []
+  };
+
+  Object.keys(groups).sort().forEach(key => {
+    const grp = groups[key];
+    const c = grp.counts;
+    const c64 = c['64'] || 0;
+    const c38 = c['38'] || 0;
+    const c26 = c['26'] || 0;
+    
+    const label = `${grp.article} ${grp.color}`;
+
+    if (c64 >= 4) badgeResults['Highboard 4'].push(label);
+    if (c64 >= 3) badgeResults['Sideboard 180'].push(label);
+    if (c64 >= 2) badgeResults['Sideboard 120'].push(label);
+
+    if (c64 >= 2 && c38 >= 2) badgeResults['Highboard 4S'].push(label);
+    if (c64 >= 2 && c38 >= 1 && c26 >= 1) badgeResults['Sideboard 180S'].push(label);
+
+    if (c38 >= 3) badgeResults['TV 180'].push(label);
+    if (c38 >= 2) badgeResults['TV 120'].push(label);
+  });
+
+  let html = '';
+  let hasAny = false;
+
+  const displayOrder = [
+    'Sideboard 180',
+    'Sideboard 120',
+    'TV 180',
+    'TV 120',
+    'Highboard 4',
+    'Highboard 4S',
+    'Sideboard 180S'
+  ];
+
+  displayOrder.forEach(badgeName => {
+    const items = badgeResults[badgeName];
+    if (items && items.length > 0) {
+      hasAny = true;
+      html += `<div style="padding:var(--sp2) 0; border-bottom:1px solid var(--divider); line-height:1.4;">
+        <strong style="display:inline-block; min-width:130px; color:var(--primary);">${badgeName} :</strong> 
+        <span style="color:var(--text);">${items.join(' <span style="color:var(--muted); margin:0 4px;">|</span> ')}</span>
+      </div>`;
+    }
+  });
+
+  if (!hasAny) {
+     html = '<div class="empty">Aktuell können keine Sets aus den vorhandenen Besta Türen gebildet werden. (Nicht genügend gleiche Größen vorhanden)</div>';
+  }
+  
+  content.innerHTML = html;
+  g('setBadgesModal').style.display = 'flex';
+  g('setBadgesModal').classList.add('show');
+}
+
+function closeSetBadgesModal() {
+  g('setBadgesModal').classList.remove('show');
+  g('setBadgesModal').style.display = 'none';
+}
+
+
 // ═══════════════════════════════════════════════════
 // RENDER OFFEN
 // ═══════════════════════════════════════════════════
-
 function toggleStack(id) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -1208,15 +1194,11 @@ function deleteInst(itemId, instId) {
   save(); render();
 }
 
-
 function changeQty(itemId, delta) {
   const item = state.open.find(i=>i.id===itemId) || state.open.find(i=>stackKey(i)===itemId);
   if(!item) return;
-
   const current = item.instances.length;
-
   if(delta > 0) {
-    // Bild der ersten Instanz weitervererben
     const inheritImg = item.instances[0]?.image || item.image || '';
     item.instances.push({
       id: crypto.randomUUID(),
@@ -1228,24 +1210,15 @@ function changeQty(itemId, delta) {
       defect: ''
     });
   } else if(delta < 0 && current > 0) {
-    // Bild der zu löschenden Instanz retten bevor pop()
     const removedImg = item.instances[current-1]?.image || '';
     item.instances.pop();
-    // Falls alle Exemplare weg: Bild am item-Objekt sichern
-    if(item.instances.length === 0 && removedImg) {
-      item._savedImage = removedImg;
-    }
-    // Falls noch Exemplare da: Bild auf verbleibende übertragen falls leer
+    if(item.instances.length === 0 && removedImg) { item._savedImage = removedImg; }
     if(item.instances.length > 0 && removedImg) {
       item.instances.forEach(inst => { if(!inst.image) inst.image = removedImg; });
     }
   }
-
-  save();
-  renderOpen();
+  save(); renderOpen();
 }
-
-
 
 function editItemImage(itemId) {
   const item = state.open.find(i=>i.id===itemId);
@@ -1298,27 +1271,26 @@ function editEK(itemId) {
 
 function toggleGrp(el) {
   const key = el.dataset.key;
-  const body = document.querySelector('[data-body="' + key + '"]');
-  if(!body) return;
-  const isOpen = body.style.display !== 'none';
-  body.style.display = isOpen ? 'none' : 'block';
-  state.openCollapse['b_'+key] = !isOpen;
-  const arrow = el.querySelector('.group-title');
-  if(arrow) arrow.innerHTML = arrow.innerHTML.replace(isOpen ? '&#9660;' : '&#9658;', isOpen ? '&#9658;' : '&#9660;');
+  state.openCollapse[key] = ! (state.openCollapse[key] !== false);
+  renderOpen();
 }
+
 function toggleZeroFilter() {
   state.hideZero = !state.hideZero;
   updateZeroToggleUI();
   renderOpen();
 }
+
 function updateZeroToggleUI() {
+  const active = state.hideZero;
   const track = g('zeroFilterBtn');
   const knob = g('zeroFilterKnob');
   const label = g('zeroFilterLabel');
-  if(track) track.style.background = state.hideZero ? 'var(--primary)' : '#ccc';
-  if(knob) knob.style.left = state.hideZero ? '22px' : '2px';
-  if(label) label.textContent = state.hideZero ? 'Nullbestand einblenden' : 'Nullbestand ausblenden';
+  if(track) track.style.background = active ? 'var(--primary)' : '#ccc';
+  if(knob) knob.style.left = active ? '22px' : '2px';
+  if(label) label.textContent = active ? 'Nullbestand einblenden' : 'Nullbestand ausblenden';
 }
+
 function editInstEK(itemId, instId) {
   const item = state.open.find(i=>i.id===itemId);
   if(!item) return;
@@ -1330,15 +1302,9 @@ function editInstEK(itemId, instId) {
   save(); renderOpen();
 }
 
-
-function isOpen(key) { return state.openCollapse['b_'+key] === true; }
-function isStackOpen(id) { return state.openCollapse['s_'+id] === true; }
-
 function saveOpenState() {
   const sc = document.querySelector('.scroll-container');
   if(sc) state.openScrollPos = sc.scrollTop;
-  document.querySelectorAll('[data-body]').forEach(el => { state.openCollapse['b_'+el.dataset.body] = el.style.display !== 'none'; });
-  document.querySelectorAll('[data-stack]').forEach(el => { state.openCollapse['s_'+el.dataset.stack] = el.classList.contains('open'); });
 }
 function restoreOpenState() {
   requestAnimationFrame(() => {
@@ -1348,143 +1314,198 @@ function restoreOpenState() {
 }
 
 function renderOpen() {
-  saveOpenState();
+  if(typeof saveOpenState === 'function') saveOpenState();
   updateZeroToggleUI();
   g('setBuilder').classList.toggle('show', state.sel.size>0);
-  if(state.sel.size>0) buildSetImgDropdown();
-  // PS-Feld anzeigen wenn PS-Artikel gewählt
-  const hasPsSelected = [...state.sel].some(key=>{
-    const [itemId,instId] = key.split('::');
-    const item = state.open.find(i=>i.id===itemId);
-    return item?.instances.find(x=>x.id===instId)?.profitshare;
-  });
-
+  if(state.sel.size>0 && typeof buildSetImgDropdown === 'function') buildSetImgDropdown();
+  
   updatePsPreview();
   g('selSummary').textContent = `${state.sel.size} Artikel gewählt.`;
 
   if (!state.open.length) { g('openContent').innerHTML='<div class="empty">Keine offenen Artikel.<br>Über „Neu" Artikel hinzufügen.</div>'; return; }
 
-  // Ebene 1: Gruppe
-  const byGrp = {};
-  state.open.forEach(item=>{
-    const grp = item.group||'–';
-    (byGrp[grp] = byGrp[grp]||[]).push(item);
+  const countPcs = (arr) => arr.reduce((s, i) => s + i.instances.length, 0);
+  const isOpen = (key) => state.openCollapse[key] !== false;
+  const hashStr = s => Math.abs(s.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36);
+
+  const tree = {};
+  state.open.forEach(item => {
+    if (state.hideZero && item.instances.length === 0) return;
+    const grp = item.group || '–';
+    const pt  = item.productType || '–';
+    const art = item.article || '';
+    const col = item.color || '–';
+
+    if (!tree[grp]) tree[grp] = {};
+    if (!tree[grp][pt]) tree[grp][pt] = {};
+    if (!tree[grp][pt][art]) tree[grp][pt][art] = {};
+    if (!tree[grp][pt][art][col]) tree[grp][pt][art][col] = [];
+    tree[grp][pt][art][col].push(item);
   });
 
-  // Ebene 2: Gruppe › Produkttyp
-  const byGrpPT = {};
-  state.open.forEach(item=>{
-    const grp = item.group||'–';
-    const pt  = item.productType||'';
-    const key = pt ? grp + ' › ' + pt : grp;
-    (byGrpPT[key] = byGrpPT[key]||[]).push(item);
-  });
+  const sortKeys = (a, b) => a.localeCompare(b, 'de');
+  let html = '';
+  
+  Object.keys(tree).sort(sortKeys).forEach(grp => {
+    let grpHtml = '';
+    let grpTotal = 0;
 
-  const grpEntries = Object.entries(byGrp).sort((a,b)=>a[0].localeCompare(b[0],'de'));
+    Object.keys(tree[grp]).sort(sortKeys).forEach(pt => {
+      let ptHtml = '';
+      let ptTotal = 0;
 
-  g('openContent').innerHTML = grpEntries.map(([grp, grpItems])=>{
-    const filteredGrpItems = state.hideZero ? grpItems.filter(i=>i.instances.length>0) : grpItems;
-    if(state.hideZero && filteredGrpItems.length===0) return '';
-    const grpTotal = filteredGrpItems.reduce((s,i)=>s+i.instances.length, 0);
+      Object.keys(tree[grp][pt]).sort(sortKeys).forEach(art => {
+        let artTotal = 0;
+        let colHtmlMaster = '';
 
-    // Untergruppen dieser Gruppe filtern und sortieren
-    const subEntries = Object.entries(byGrpPT)
-      .filter(([k])=> k === grp || k.startsWith(grp + ' › '))
-      .map(([k,v])=> [k, state.hideZero ? v.filter(i=>i.instances.length>0) : v])
-      .filter(([k,v])=> !state.hideZero || v.length>0)
-      .sort((a,b)=>a[0].localeCompare(b[0],'de'));
+        Object.keys(tree[grp][pt][art]).sort(sortKeys).forEach(col => {
+          const items = tree[grp][pt][art][col];
+          const colTotal = countPcs(items);
+          if (colTotal === 0 && state.hideZero) return;
+          
+          artTotal += colTotal;
 
-    const subHtml = subEntries.map(([grpPT, items])=>{
-      const ptLabel = grpPT.includes(' › ') ? grpPT.split(' › ')[1] : '–';
-      const totalPcs = items.reduce((s,i)=>s+i.instances.length, 0);
+          const sizeMap = {};
+          items.forEach(i => {
+            const sKey = i.size || '–';
+            if (!sizeMap[sKey]) sizeMap[sKey] = [];
+            sizeMap[sKey].push(i);
+          });
 
-      // Ebene 3: Artikel stacken (nach Artikel+Farbe+Größe+EK)
-      const articleMap = {};
-      items.forEach(item=>{
-        const artKey = [item.article||'–', item.color||'–', item.size||'–'].join('||');
-        (articleMap[artKey] = articleMap[artKey]||[]).push(item);
-      });
+          let cardsHtml = '';
+          Object.values(sizeMap).forEach(sizeItems => {
+            const allInst = sizeItems.flatMap(item=>item.instances.map(inst=>({...inst,_itemId:item.id})));
+            const firstItem = sizeItems[0];
+            const img = allInst.find(x=>x.image)?.image || firstItem._savedImage || '';
+            const sdId = 'sdA_' + hashStr(grp+pt+art+col+(firstItem.size||'–'));
+            const ekSumme = allInst.reduce((s,i)=>s+(+i.purchasePrice||0),0);
+            const menge = allInst.length;
+            const einzel = menge > 0 ? ekSumme / menge : 0;
+            const hasPsh = allInst.some(x=>x.profitshare);
+            const selCount = allInst.filter(inst=>state.sel.has(inst._itemId+'::'+inst.id)).length;
 
-      return `<div style="margin-bottom:var(--sp4);margin-left:var(--sp2);">
-        <div class="group-head" onclick="toggleGrp(this)" data-key="pt__${grpPT}" style="margin-bottom:var(--sp2);cursor:pointer">
-          <h3 class="group-title" style="font-size:var(--text-sm);color:var(--muted);">${isOpen("pt__"+grpPT) ? "&#9660;" : "&#9658;"} ${ptLabel}</h3>
-          <span class="chip">${totalPcs} Stück</span>
-        </div>
-        <div class="grp-body" data-body="pt__${grpPT}" style="display:${isOpen("pt__"+grpPT) ? "block" : "none"}">
-        ${Object.entries(articleMap).map(([artKey, artItems])=>{
-          const allInst  = artItems.flatMap(item=>item.instances.map(inst=>({...inst,_itemId:item.id})));
-          const menge    = allInst.length;
-          const firstItem = artItems[0];
-          const img      = allInst.find(x=>x.image)?.image || firstItem._savedImage || '';
-          const hasPsh   = allInst.some(x=>x.profitshare);
-          const selCount = allInst.filter(inst=>state.sel.has(inst._itemId+'::'+inst.id)).length;
-          const ekSumme  = allInst.reduce((s,i)=>s+(+i.purchasePrice||0),0);
-          const einzel   = menge > 0 ? ekSumme / menge : 0;
-          if(state.hideZero && menge === 0) return '';
-          const sdId     = 'sdA_' + Math.abs([grpPT,artKey].join('').split('').reduce((h,c)=>Math.imul(31,h)+c.charCodeAt(0)|0,0));
-          return `<div class="item-card">
-          <div class="item-card-main">
-            ${menge===1
-              ?`<input class="item-chk" type="checkbox" data-chk-inst="${firstItem.id}::${allInst[0].id}" ${state.sel.has(firstItem.id+'::'+allInst[0].id)?'checked':''}>`
-              :`<div></div>`}
-            <div class="thumb">${img?`<img src="${img}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
-            <div class="item-info">
-              ${firstItem.productType?`<div style="font-size:var(--text-xs);color:var(--muted);margin-bottom:2px;">${firstItem.productType}</div>`:''}
-              <div class="item-title">${firstItem.article||'–'}</div>
-              <div class="chips">
-                <span class="chip">Gr. ${firstItem.size||'-'}</span>
-                <span class="chip">${firstItem.color||'-'}</span>
-                <span class="chip" style="cursor:pointer" onclick="editEK('${firstItem.id}')" title="EK bearbeiten">EK ${euro(einzel)} ✎</span>
-                <button class="chip" style="cursor:pointer;border:none" onclick="editItemImage('${firstItem.id}')" title="Bild ändern">🖼 Bild</button>
-                <button class="chip" style="cursor:pointer;border:none" onclick="toggleItemProfitshare('${firstItem.id}')" title="Profitshare ändern">${hasPsh?'PS ✓':'PS ✎'}</button>
-                ${`<span class="chip stack" style="display:flex;gap:3px;align-items:center;padding:0 4px"><button onclick="changeQty('${firstItem.id}',1)" style="width:16px;height:16px;border-radius:50%;background:#4CAF50;color:white;font-size:10px;border:none;font-weight:bold;cursor:pointer;line-height:1">+</button>${menge}<button onclick="changeQty('${firstItem.id}',-1)" style="width:16px;height:16px;border-radius:50%;background:#f44336;color:white;font-size:10px;border:none;font-weight:bold;cursor:pointer;line-height:1">−</button></span>`}
-                ${hasPsh?'<span class="chip ps">Profitshare</span>':''}
-                ${selCount>0?`<span class="chip sel">✓ ${selCount}</span>`:''}
-              </div>
-            </div>
-          </div>
-          <div class="item-footer">
-            <div class="item-price-row">${menge} × Ø${euro(einzel)} = <b>${euro(ekSumme)}</b></div>
-            <div class="item-actions">
-              ${menge>1?`<button class="btn btn-ghost" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="toggleStack('${sdId}')">Details</button>`:''}
-              <button class="btn btn-ghost" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="editItem('${firstItem.id}')">✏️</button>
-              <button class="btn btn-danger" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="deleteItem('${firstItem.id}')">🗑</button>
-            </div>
-          </div>
-          ${menge>1?`
-          <button class="stack-toggle" onclick="toggleStack('${sdId}')">▸ ${menge} Exemplare anzeigen</button>
-          <div class="stack-details" id="${sdId}">
-            ${allInst.map(inst=>`
-            <div class="stack-inst">
-              <input class="item-chk" type="checkbox" data-chk-inst="${firstItem.id}::${inst.id}" ${state.sel.has(firstItem.id+'::'+inst.id)?'checked':''}>
-              <div class="inst-thumb">${inst.image?`<img src="${inst.image}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
-              <div>
-                <div style="font-size:var(--text-xs);color:var(--muted);cursor:pointer" onclick="editInstEK('${firstItem.id}','${inst.id}')" title="EK bearbeiten">EK ${euro(inst.purchasePrice||0)} ✎ · ${fmtDate(inst.entryDate)}</div>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
-                  <button class="btn btn-ghost" style="min-height:24px;padding:.15rem .4rem;font-size:var(--text-xs);" onclick="editInstImage('${firstItem.id}','${inst.id}')">🖼 Bild</button>
-                  <button class="btn btn-ghost" style="min-height:24px;padding:.15rem .4rem;font-size:var(--text-xs);" onclick="toggleInstProfitshare('${firstItem.id}','${inst.id}')">${inst.profitshare?'PS ✓':'PS ✎'}</button>
+            cardsHtml += `<div class="item-card">
+              <div class="item-card-main">
+                ${menge===1 ? `<input class="item-chk" type="checkbox" data-chk-inst="${firstItem.id}::${allInst[0].id}" ${state.sel.has(firstItem.id+'::'+allInst[0].id)?'checked':''}>` : '<div></div>'}
+                <div class="thumb">${img?`<img src="${img}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
+                <div class="item-info">
+                  ${firstItem.productType && (!art || art === '–') ? `<div style="font-size:var(--text-xs);color:var(--muted);margin-bottom:2px;">${firstItem.productType}</div>` : ''}
+                  <div class="item-title">${firstItem.article || '–'}</div>
+                  <div class="chips">
+                    <span class="chip">Gr. ${firstItem.size||'-'}</span>
+                    <span class="chip">${firstItem.color||'-'}</span>
+                    <span class="chip" style="cursor:pointer" onclick="editEK('${firstItem.id}')" title="EK bearbeiten">EK ${euro(einzel)} ✎</span>
+                    <button class="chip" style="cursor:pointer;border:none" onclick="editItemImage('${firstItem.id}')" title="Bild ändern">🖼 Bild</button>
+                    <button class="chip" style="cursor:pointer;border:none" onclick="toggleItemProfitshare('${firstItem.id}')" title="Profitshare ändern">${hasPsh?'PS ✓':'PS ✎'}</button>
+                    ${`<span class="chip stack" style="display:flex;gap:3px;align-items:center;padding:0 4px"><button onclick="changeQty('${firstItem.id}',1)" style="width:16px;height:16px;border-radius:50%;background:#4CAF50;color:white;font-size:10px;border:none;font-weight:bold;cursor:pointer;line-height:1">+</button>${menge}<button onclick="changeQty('${firstItem.id}',-1)" style="width:16px;height:16px;border-radius:50%;background:#f44336;color:white;font-size:10px;border:none;font-weight:bold;cursor:pointer;line-height:1">−</button></span>`}
+                    ${hasPsh?'<span class="chip ps">Profitshare</span>':''}
+                    ${selCount>0?`<span class="chip sel">✓ ${selCount}</span>`:''}
+                  </div>
                 </div>
-                ${inst.comment?`<div style="font-size:var(--text-xs);color:var(--muted);">${inst.comment}</div>`:''}
-                ${inst.defect?`<div style="font-size:var(--text-xs);color:var(--warn);">⚠ ${inst.defect}</div>`:''}
               </div>
-              <button class="btn btn-danger" style="min-height:30px;padding:.2rem .5rem;font-size:var(--text-xs);" onclick="deleteInst('${firstItem.id}','${inst.id}')">🗑</button>
-            </div>`).join('')}
-          </div>`:''}
+              <div class="item-footer">
+                <div class="item-price-row">${menge} × Ø${euro(einzel)} = <b>${euro(ekSumme)}</b></div>
+                <div class="item-actions">
+                  ${menge>1?`<button class="btn btn-ghost" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="toggleStack('${sdId}')">Details</button>`:''}
+                  <button class="btn btn-ghost" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="editItem('${firstItem.id}')">✏️</button>
+                  <button class="btn btn-danger" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="deleteItem('${firstItem.id}')">🗑</button>
+                </div>
+              </div>
+              ${menge>1?`
+              <button class="stack-toggle" onclick="toggleStack('${sdId}')">▸ ${menge} Exemplare anzeigen</button>
+              <div class="stack-details" id="${sdId}">
+                ${allInst.map(inst=>`
+                <div class="stack-inst">
+                  <input class="item-chk" type="checkbox" data-chk-inst="${firstItem.id}::${inst.id}" ${state.sel.has(firstItem.id+'::'+inst.id)?'checked':''}>
+                  <div class="inst-thumb">${inst.image?`<img src="${inst.image}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
+                  <div>
+                    <div style="font-size:var(--text-xs);color:var(--muted);cursor:pointer" onclick="editInstEK('${firstItem.id}','${inst.id}')" title="EK bearbeiten">EK ${euro(inst.purchasePrice||0)} ✎ · ${fmtDate(inst.entryDate)}</div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+                      <button class="btn btn-ghost" style="min-height:24px;padding:.15rem .4rem;font-size:var(--text-xs);" onclick="editInstImage('${firstItem.id}','${inst.id}')">🖼 Bild</button>
+                      <button class="btn btn-ghost" style="min-height:24px;padding:.15rem .4rem;font-size:var(--text-xs);" onclick="toggleInstProfitshare('${firstItem.id}','${inst.id}')">${inst.profitshare?'PS ✓':'PS ✎'}</button>
+                    </div>
+                    ${inst.comment?`<div style="font-size:var(--text-xs);color:var(--muted);">${inst.comment}</div>`:''}
+                    ${inst.defect?`<div style="font-size:var(--text-xs);color:var(--warn);">⚠ ${inst.defect}</div>`:''}
+                  </div>
+                  <button class="btn btn-danger" style="min-height:30px;padding:.2rem .5rem;font-size:var(--text-xs);" onclick="deleteInst('${firstItem.id}','${inst.id}')">🗑</button>
+                </div>`).join('')}
+              </div>`:''}
+            </div>`;
+          });
+
+          const hasColor = col && col.trim() !== '' && col !== '–' && col !== '-';
+          
+          if (hasColor) {
+            const cKey = 'c_' + hashStr(grp+pt+art+col);
+            colHtmlMaster += `
+              <div style="margin-bottom:var(--sp3); margin-left:var(--sp2);">
+                <div class="group-head" onclick="toggleGrp(this)" data-key="${cKey}" style="cursor:pointer;">
+                  <h5 class="group-title" style="font-size:var(--text-xs);color:var(--muted);text-transform:uppercase;">${isOpen(cKey) ? "▼" : "▶"} Farbe: ${col}</h5>
+                  <span class="chip">${colTotal} Stück</span>
+                </div>
+                <div class="grp-body" data-body="${cKey}" style="display:${isOpen(cKey) ? "block" : "none"}">
+                  ${cardsHtml}
+                </div>
+              </div>`;
+          } else {
+            colHtmlMaster += `<div style="margin-bottom:var(--sp2); margin-left:var(--sp2);">${cardsHtml}</div>`;
+          }
+        }); 
+
+        ptTotal += artTotal;
+        if (artTotal === 0) return;
+
+        const hasArt = art && art.trim() !== '' && art !== '–' && art !== '-';
+        
+        if (hasArt) {
+          const aKey = 'a_' + hashStr(grp+pt+art);
+          ptHtml += `
+            <div style="margin-bottom:var(--sp3); margin-left:var(--sp2);">
+              <div class="group-head" onclick="toggleGrp(this)" data-key="${aKey}" style="cursor:pointer;">
+                <h4 class="group-title" style="font-size:var(--text-sm);">${isOpen(aKey) ? "▼" : "▶"} ${art}</h4>
+                <span class="chip">${artTotal} Stück</span>
+              </div>
+              <div class="grp-body" data-body="${aKey}" style="display:${isOpen(aKey) ? "block" : "none"}">
+                ${colHtmlMaster}
+              </div>
+            </div>`;
+        } else {
+          ptHtml += `<div>${colHtmlMaster}</div>`;
+        }
+      }); 
+
+      grpTotal += ptTotal;
+      if (ptTotal === 0) return;
+
+      const pKey = 'p_' + hashStr(grp+pt);
+      grpHtml += `
+        <div style="margin-bottom:var(--sp4); margin-left:var(--sp2);">
+          <div class="group-head" onclick="toggleGrp(this)" data-key="${pKey}" style="cursor:pointer;">
+            <h3 class="group-title" style="font-size:var(--text-sm);color:var(--muted);">${isOpen(pKey) ? "▼" : "▶"} ${pt}</h3>
+            <span class="chip">${ptTotal} Stück</span>
+          </div>
+          <div class="grp-body" data-body="${pKey}" style="display:${isOpen(pKey) ? "block" : "none"}">
+            ${ptHtml}
+          </div>
         </div>`;
-        }).join('')}
-      </div></div>`;
-    }).join('');
+    }); 
 
-    return `<div style="margin-bottom:var(--sp6);">
-      <div class="group-head" onclick="toggleGrp(this)" data-key="grp__${grp}" style="cursor:pointer">
-        <h2 class="group-title" style="font-size:var(--text-base);font-weight:700;">${isOpen("grp__"+grp) ? "&#9660;" : "&#9658;"} ${grp}</h2>
-        <span class="chip stack">${grpTotal} Stück</span>
-      </div>
-      <div class="grp-body" data-body="grp__${grp}" style="display:${isOpen("grp__"+grp) ? "block" : "none"}">${subHtml}</div>
-    </div>`;
-  }).join('') || '<div class="empty">Keine offenen Artikel.</div>';
+    if (grpTotal === 0) return;
+    const gKey = 'g_' + hashStr(grp);
+    html += `
+      <div style="margin-bottom:var(--sp6);">
+        <div class="group-head" onclick="toggleGrp(this)" data-key="${gKey}" style="cursor:pointer;">
+          <h2 class="group-title">${isOpen(gKey) ? "▼" : "▶"} ${grp}</h2>
+          <span class="chip stack">${grpTotal} Stück</span>
+        </div>
+        <div class="grp-body" data-body="${gKey}" style="display:${isOpen(gKey) ? "block" : "none"}">
+          ${grpHtml}
+        </div>
+      </div>`;
+  });
 
-  // Checkboxen binden
+  g('openContent').innerHTML = html || '<div class="empty">Keine offenen Artikel.<br>Über „Neu" Artikel hinzufügen.</div>';
+  
   g('openContent').querySelectorAll('[data-chk-inst]').forEach(cb=>{
     cb.addEventListener('change', e=>{
       const key = e.target.dataset.chkInst;
@@ -1492,12 +1513,11 @@ function renderOpen() {
       g('setBuilder').classList.toggle('show', state.sel.size>0);
       g('selSummary').textContent = state.sel.size + ' Artikel gewählt.';
       updatePsPreview();
-      if(state.sel.size>0) buildSetImgDropdown();
+      if(state.sel.size>0 && typeof buildSetImgDropdown === 'function') buildSetImgDropdown();
       save();
     });
   });
 }
-
 
 function editSoldName(id) {
   const set = state.sold.find(s=>s.id===id);
@@ -1562,15 +1582,11 @@ function renderSold() {
     </div>`).join('');
 }
 
-// ═══════════════════════════════════════════════════
-// RENDER STAMMDATEN
-// ═══════════════════════════════════════════════════
 function renderMaster() {
   const cat = state.master.catalog || {};
   const groups = Object.keys(cat).sort((a,b)=>a.localeCompare(b,'de'));
   let html = '';
 
-  // Katalog-Baum
   if (groups.length) {
     groups.forEach(grp => {
       const typs = Object.keys(cat[grp]).sort((a,b)=>a.localeCompare(b,'de'));
@@ -1607,7 +1623,6 @@ function renderMaster() {
     html += `<div class="empty">Noch keine Gruppen angelegt.<br>Beginne mit Kategorie → Gruppe.</div>`;
   }
 
-  // Bilder
   const imgs = state.master.images || [];
   html += `<div class="card"><div class="card-head"><h3 class="card-title">🖼 Bilder</h3><span class="chip">${imgs.length}</span></div>
     <div class="card-body">
@@ -1623,12 +1638,8 @@ function renderMaster() {
     </div></div>`;
 
   g('masterContent').innerHTML = html;
-  renderMasterImageGallery();
 }
 
-// ═══════════════════════════════════════════════════
-// RENDER (Router)
-// ═══════════════════════════════════════════════════
 function render() {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.page===state.page));
@@ -1640,17 +1651,11 @@ function render() {
   if(state.page !== 'open') { const sc=document.querySelector('.scroll-container'); if(sc) sc.scrollTop=0; }
 }
 
-// ═══════════════════════════════════════════════════
-// EVENTS
-// ═══════════════════════════════════════════════════
-
-// Navigation
 document.querySelector('.bottom-nav').addEventListener('click', e => {
   const btn = e.target.closest('.nav-btn'); if(!btn) return;
   state.page = btn.dataset.page; render();
 });
 
-// Artikel hinzufügen
 g('itemForm').addEventListener('submit', e => {
   e.preventDefault();
   const totalPrice = +g('purchasePrice').value||0;
@@ -1676,8 +1681,6 @@ g('itemForm').addEventListener('submit', e => {
   state.page='open'; render();
 });
 
-// Stammdaten
-// ── STAMMDATEN FORMULAR ─────────────────────────────────────────
 function masterSubmit(e) {
   e.preventDefault();
   try {
@@ -1687,15 +1690,7 @@ function masterSubmit(e) {
     const typ  = document.getElementById('masterProdType').value;
 
     if (!state.master.catalog) state.master.catalog = {};
-
-    if (type === 'images') {
-      // Bilder werden via handleMasterImgFiles gespeichert
-      return;
-    }
-    if (type === 'setimages') {
-      // Set-Bilder werden via handleMasterImgFiles gespeichert
-      return;
-    }
+    if (type === 'images' || type === 'setimages') return;
 
     if (type === 'groups') {
       if (!val) return alert('Bitte Gruppenname eingeben.');
@@ -1734,26 +1729,22 @@ function masterSubmit(e) {
 }
 document.getElementById('masterForm').addEventListener('submit', masterSubmit);
 
-// ── STAMMDATEN FORMULAR ANZEIGE ──────────────────────────────────
 function updateMasterForm() {
   const type = document.getElementById('masterType').value;
   const needGrp = ['producttypes','articles','sizes','colors'].includes(type);
   const needTyp = ['articles','sizes','colors'].includes(type);
 
-  // Gruppe-Dropdown füllen
   const groups = Object.keys(state.master.catalog || {}).sort((a,b)=>a.localeCompare(b,'de'));
   const mGrp = document.getElementById('masterGroup');
   const curGrp = mGrp.value;
   mGrp.innerHTML = '<option value="">– Gruppe wählen –</option>' + groups.map(g=>`<option value="${g}"${g===curGrp?' selected':''}>${g}</option>`).join('');
 
-  // Produkttyp-Dropdown füllen
   const selGrp = mGrp.value;
   const typs = selGrp ? Object.keys(state.master.catalog[selGrp]||{}).sort((a,b)=>a.localeCompare(b,'de')) : [];
   const mTyp = document.getElementById('masterProdType');
   const curTyp = mTyp.value;
   mTyp.innerHTML = '<option value="">– Produkttyp wählen –</option>' + typs.map(t=>`<option value="${t}"${t===curTyp?' selected':''}>${t}</option>`).join('');
 
-  // Felder ein-/ausblenden
   document.querySelectorAll('.mf-grp').forEach(el => el.style.display = needGrp ? 'grid' : 'none');
   document.querySelectorAll('.mf-typ').forEach(el => el.style.display = needTyp ? 'grid' : 'none');
   document.querySelectorAll('.mf-val').forEach(el => el.style.display = type !== 'images' ? 'grid' : 'none');
@@ -1761,14 +1752,13 @@ function updateMasterForm() {
 
   const labels = {groups:'Gruppenname', producttypes:'Produkttyp-Name', articles:'Artikelname', sizes:'Größe', colors:'Farbe'};
   const placeholders = {groups:'z.B. Besta', producttypes:'z.B. Tür', articles:'z.B. Selsviken', sizes:'z.B. 64×64', colors:'z.B. Schwarz'};
-  document.getElementById('masterValueLabel').textContent = labels[type] || 'Wert';
-  document.getElementById('masterValue').placeholder = placeholders[type] || '';
+  if (document.getElementById('masterValueLabel')) document.getElementById('masterValueLabel').textContent = labels[type] || 'Wert';
+  if (document.getElementById('masterValue')) document.getElementById('masterValue').placeholder = placeholders[type] || '';
 }
 
 document.getElementById('masterType').addEventListener('change', updateMasterForm);
 document.getElementById('masterGroup').addEventListener('change', updateMasterForm);
 
-// Set verkaufen
 g('createSetBtn').addEventListener('click', () => {
   const selPairs = [];
   state.sel.forEach(key => {
@@ -1791,7 +1781,6 @@ g('createSetBtn').addEventListener('click', () => {
 
   const purchaseTotal = selPairs.reduce((s,{inst})=>s+(+inst.purchasePrice||0),0);
   const rawProfit = sp - purchaseTotal;
-  const psAll  = selPairs.every(({inst})=>inst.profitshare);
   const psSome = selPairs.some(({inst})=>inst.profitshare);
   let netProfit = rawProfit;
   if (psSome) {
@@ -1809,7 +1798,7 @@ g('createSetBtn').addEventListener('click', () => {
     const rmIds = new Set(insts.map(x=>x.id));
     item.instances = item.instances.filter(x=>!rmIds.has(x.id));
   });
-  // Artikel mit 0 Exemplaren bleiben erhalten
+  
   state.sel.clear();
   g('setName').value=''; g('salePrice').value=''; if(g('manualPsShare')) g('manualPsShare').value='50'; setPsShare && [10,20,30,40].forEach(p=>{const b=g('psbtn'+p);if(b){b.style.background='var(--surfoff)';b.style.color='';b.style.borderColor='var(--border)';}});
   setSetImgVal(''); g('clearSetImg').style.display='none';
@@ -1824,11 +1813,9 @@ g('themeToggle').addEventListener('click', ()=>{
   document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
 });
 
-// Export/Import
-[g('exportBtn'), g('exportBtn2')].forEach(btn => btn.addEventListener('click', exportData));
-[g('importFile'), g('importFile2')].forEach(inp => inp.addEventListener('change', function(){ importData(this.files[0]); this.value=''; }));
+[g('exportBtn'), g('exportBtn2')].forEach(btn => btn?.addEventListener('click', exportData));
+[g('importFile'), g('importFile2')].forEach(inp => inp?.addEventListener('change', function(){ importData(this.files[0]); this.value=''; }));
 
-// Delegierte Events
 document.addEventListener('click', e => {
   if (e.target.matches('[data-chk-inst]')) {
     const key = e.target.dataset.chkInst;
@@ -1874,21 +1861,14 @@ document.addEventListener('click', e => {
     else if (key==='prodtype') { delete state.master.catalog[grp]?.[typ]; }
     else if (key==='images') { state.master.images.splice(+idx,1); }
     else { state.master.catalog[grp]?.[typ]?.[key]?.splice(+idx,1); }
-    fillMasterDropdowns(); save(); renderMaster(); renderMasterImageGallery(); return;
+    fillMasterDropdowns(); save(); renderMaster(); return;
   }
 });
 
-
-// ═══════════════════════════════════════════════════
-// SERVICE WORKER (Offline-Fähigkeit)
-// ═══════════════════════════════════════════════════
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
 
-// ═══════════════════════════════════════════════════
-// PWA INSTALL BUTTON
-// ═══════════════════════════════════════════════════
 let deferredPrompt = null;
 const installBtn = document.getElementById('installBtn');
 
@@ -1913,83 +1893,48 @@ if (installBtn) {
       deferredPrompt = null;
       installBtn.style.display = 'none';
     } else {
-      // iOS Safari Anleitung
-      alert('Auf iPhone/iPad:\nSafari → Teilen-Symbol → \"Zum Home-Bildschirm\"\n\nAuf Android:\nChrome → Menü (⋮) → \"App installieren\"');
+      alert('Auf iPhone/iPad:\nSafari → Teilen-Symbol → "Zum Home-Bildschirm"\n\nAuf Android:\nChrome → Menü (⋮) → "App installieren"');
     }
   });
 }
 
-
-// Demo-Katalog wenn leer
 function initDemoCatalog() {
   if (Object.keys(state.master.catalog).length > 0) return;
   state.master.catalog = {
     "Besta": {
-      "Tür": {
-        articles: ["Selsviken","Lappviken","Hanviken","Sindvik","Kallviken","Notviken"],
-        sizes:    ["64×64","32×64","32×38"],
-        colors:   ["Schwarz","Weiß","Grau","Braun","Walnuss"]
-      },
-      "Korpus": {
-        articles: ["Besta Korpus"],
-        sizes:    ["120×64×40","60×128×40","60×64×40","120×128×40"],
-        colors:   ["Schwarz","Weiß","Grau"]
-      },
-      "Regal": {
-        articles: ["Besta Regal"],
-        sizes:    ["120×40","60×40"],
-        colors:   ["Schwarz","Weiß"]
-      }
-    },
-    "Malm": {
-      "Kommode": {
-        articles: ["Malm 3-Schubladen","Malm 4-Schubladen","Malm 6-Schubladen"],
-        sizes:    ["40×55","80×100","160×48"],
-        colors:   ["Schwarz-Braun","Weiß","Weiß gebeizt"]
-      },
-      "Bett": {
-        articles: ["Malm Bettgestell","Malm Bettgestell mit Stauraum"],
-        sizes:    ["90×200","140×200","160×200","180×200"],
-        colors:   ["Schwarz-Braun","Weiß"]
-      }
-    },
-    "Kallax": {
-      "Regal": {
-        articles: ["Kallax 1×4","Kallax 2×2","Kallax 2×4","Kallax 4×4"],
-        sizes:    ["42×147","77×77","77×147","147×147"],
-        colors:   ["Schwarz-Braun","Weiß","Grau"]
-      },
-      "Einsatz": {
-        articles: ["Kallax Türeinsatz","Kallax Schubladeneinsatz","Kallax Korbeinssatz"],
-        sizes:    ["33×33"],
-        colors:   ["Schwarz","Weiß","Braun"]
-      }
+      "Tür": { articles: ["Selsviken","Lappviken"], sizes: ["64×64","32×64"], colors: ["Schwarz","Weiß"] },
+      "Korpus": { articles: ["Besta Korpus"], sizes: ["120×64×40","60×64×40"], colors: ["Schwarz","Weiß"] }
     }
   };
   save();
 }
 
-// ── ROBUSTES SPEICHERN FÜR ANDROID PWA ──
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') save();
 });
 window.addEventListener('pagehide', save);
 window.addEventListener('beforeunload', save);
 
-// ═══════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════
-load(); // async - ruft intern fillPrices/render auf
-// Schnellauswahl-Buttons
+load();
+
 (function(){
-  // 1,2,3,4 dann 5,10,15...100
   const ekBtns = [0,3,5,10,15,20];
   const style = 'padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;';
-  g('ekQuick').innerHTML = ekBtns.map(v=>`<button type="button" style="${style}" onclick="g('purchasePrice').value='${v}'">${v}€</button>`).join('');
+  const ekq = g('ekQuick');
+  if(ekq) ekq.innerHTML = ekBtns.map(v=>`<button type="button" style="${style}" onclick="g('purchasePrice').value='${v}'">${v}€</button>`).join('');
 })();
 
-// Manifest ist jetzt extern als manifest.json
 </script>
+
+<div id="setBadgesModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--surface);color:var(--text);max-width:600px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.25);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
+      <h3 style="margin:0;font-weight:700;font-size:var(--text-lg);">Mögliche Sets (Besta Türen)</h3>
+      <button type="button" class="btn btn-ghost" onclick="closeSetBadgesModal()">Schließen</button>
+    </div>
+    <div id="setBadgesContent"></div>
+  </div>
+</div>
 
 <input type="file" id="instImgInput" accept="image/*" style="display:none">
 <script>
@@ -2033,7 +1978,6 @@ function resetItemForm() {
   if (g('imgPreview')) g('imgPreview').innerHTML = '';
   if (g('uploadPreview')) g('uploadPreview').classList.remove('show');
 }
-
 </script>
 
 <script>
@@ -2049,7 +1993,7 @@ function showAddInput(id) {
   sel.parentNode.appendChild(inp);
   inp.focus();
 
-  function save() {
+  function save_input() {
     var val = inp.value.trim();
     inp.remove();
     if (!val) return;
@@ -2074,23 +2018,14 @@ function showAddInput(id) {
     }
   }
 
-  // save() überschreibt sich selbst mit der echten save() Funktion
   function save_state() { if(window.save) window.save(); }
 
   inp.addEventListener('keydown', function(e) {
-    if (e.key==='Enter') { e.preventDefault(); save(); }
+    if (e.key==='Enter') { e.preventDefault(); save_input(); }
     if (e.key==='Escape') { inp.remove(); }
   });
-  inp.addEventListener('blur', function() { setTimeout(save, 150); });
+  inp.addEventListener('blur', function() { setTimeout(save_input, 150); });
 }
 </script>
-
-<div id="imagePickerModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:#ffffff;color:#222;max-width:1100px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:16px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
-      <div style="font-weight:600;">Bild aus Stammdaten wählen</div>
-      <button type="button" class="btn btn-ghost" onclick="closeImagePicker()">Schließen</button>
-    </div>
-    <div id="imagePickerList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;"></div>
-  </div>
-</div>>
+</body>
+</html>
