@@ -134,11 +134,11 @@ img{max-width:100%;display:block;}
 .item-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad-lg);overflow:hidden;margin-bottom:var(--sp3);}
 .item-card-main{display:grid;grid-template-columns:24px 72px 1fr;gap:var(--sp3);padding:var(--sp3) var(--sp4);align-items:center;}
 .item-chk{width:22px;height:22px;accent-color:var(--primary);cursor:pointer;flex-shrink:0;}
-.thumb{width:72px;height:72px;border-radius:var(--rad-md);background:var(--surfoff);display:grid;place-items:center;overflow:hidden;border:1px solid var(--border);font-size:1.5rem;flex-shrink:0;}
+.thumb{width:72px;height:72px;border-radius:var(--rad-md);background:var(--surfoff);display:grid;place-items:center;overflow:hidden;border:1px solid var(--border);font-size:1.5rem;flex-shrink:0;cursor:pointer;}
 .thumb img{width:100%;height:100%;object-fit:cover;}
 .item-info .item-title{font-weight:700;font-size:var(--text-base);}
 .chips{display:flex;flex-wrap:wrap;gap:var(--sp1);margin-top:var(--sp1);}
-.chip{padding:.2rem .5rem;border-radius:999px;font-size:var(--text-xs);background:var(--surfoff);border:1px solid var(--border);}
+.chip{padding:.2rem .5rem;border-radius:999px;font-size:var(--text-xs);background:var(--surfoff);border:1px solid var(--border); transition: 0.2s;}
 .chip.stack{background:#e0f2f1;border-color:#80cbc4;color:#00695c;font-weight:700;}
 [data-theme="dark"] .chip.stack{background:#1a3533;border-color:#2e6b66;color:#4f98a3;}
 .chip.ps{border-color:var(--warn);color:var(--warn);}
@@ -152,7 +152,7 @@ img{max-width:100%;display:block;}
 .stack-details.open{display:block;}
 .stack-inst{display:grid;grid-template-columns:24px 52px 1fr auto;gap:var(--sp2);padding:var(--sp3) var(--sp4);border-bottom:1px solid var(--divider);align-items:center;font-size:var(--text-sm);}
 .stack-inst:last-child{border-bottom:0;}
-.inst-thumb{width:52px;height:52px;border-radius:var(--rad-md);background:var(--surfoff);display:grid;place-items:center;overflow:hidden;border:1px solid var(--border);font-size:1.1rem;}
+.inst-thumb{width:52px;height:52px;border-radius:var(--rad-md);background:var(--surfoff);display:grid;place-items:center;overflow:hidden;border:1px solid var(--border);font-size:1.1rem;cursor:pointer;}
 .inst-thumb img{width:100%;height:100%;object-fit:cover;}
 
 /* ── SOLD CARD ───────────────────────────── */
@@ -364,8 +364,11 @@ img{max-width:100%;display:block;}
     </div>
   </div>
   
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-    <button class="btn btn-ghost" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-sm);background:var(--surface2);" onclick="openSetBadgesModal()">🏆 Set Badges</button>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-ghost" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-sm);background:var(--surface2);" onclick="openSetBadgesModal()">🏆 Set Badges</button>
+      <button class="btn btn-ghost" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-sm);background:var(--surface2);" onclick="toggleAllOpen()">↕ Alle auf/zu</button>
+    </div>
     <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;user-select:none">
       <span id="zeroFilterLabel" style="color:var(--muted)">Nullbestand ausblenden</span>
       <span onclick="toggleZeroFilter()" id="zeroFilterBtn" style="
@@ -412,8 +415,8 @@ img{max-width:100%;display:block;}
             <option value="articles">Artikelname</option>
             <option value="sizes">Größe</option>
             <option value="colors">Farbe</option>
-            <option value="images">Bilder (Upload)</option>
-            <option value="setimages">Set-Bilder (Upload)</option>
+            <option value="images">Bilder (Produkttyp)</option>
+            <option value="setimages">Globale / Set-Bilder (Upload)</option>
           </select>
         </div>
 
@@ -440,13 +443,9 @@ img{max-width:100%;display:block;}
           <span class="uz-txt">Bilder hochladen (mehrere möglich)</span>
           <input type="file" id="masterImgInput" accept="image/*" multiple style="display:none">
         </label>
-        <div class="card" style="margin-top:0;grid-column:1 / -1;">
-          <div class="card-head"><h3 class="card-title">Vorhandene Bilder</h3></div>
-          <div class="card-body"><div id="masterImageGallery" class="img-gallery"></div></div>
-        </div>
 
         <div style="display:flex;gap:var(--sp3);">
-  <button type="submit" class="btn btn-primary" style="flex:1;">Hinzufügen</button>
+  <button type="submit" id="masterSubmitBtn" class="btn btn-primary" style="flex:1;">Hinzufügen</button>
   <button type="button" class="btn btn-ghost" onclick="resetItemForm()" style="flex:0 0 auto;padding:0 var(--sp5);">↺ Reset</button>
 </div>
       </form>
@@ -474,6 +473,26 @@ img{max-width:100%;display:block;}
   <button class="nav-btn" data-page="sold"><span class="nav-icon">💰</span>Verkauft</button>
   <button class="nav-btn" data-page="master"><span class="nav-icon">⚙️</span>Stammdaten</button>
 </nav>
+
+<div id="imagePickerModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--surface);color:var(--text);max-width:1100px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.25);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
+      <h3 style="margin:0;font-weight:700;font-size:var(--text-lg);">Bild wählen</h3>
+      <button type="button" class="btn btn-ghost" onclick="closeImagePicker()">Schließen</button>
+    </div>
+    <div id="imagePickerList"></div>
+  </div>
+</div>
+
+<div id="setBadgesModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--surface);color:var(--text);max-width:600px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.25);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
+      <h3 style="margin:0;font-weight:700;font-size:var(--text-lg);">Mögliche Sets (Besta)</h3>
+      <button type="button" class="btn btn-ghost" onclick="closeSetBadgesModal()">Schließen</button>
+    </div>
+    <div id="setBadgesContent"></div>
+  </div>
+</div>
 
 <script>
 
@@ -766,7 +785,7 @@ function buildImgDropdown() {
   const grp = g('group')?.value || '';
   const typ = g('productType')?.value || '';
   const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
-  const allImgs = [...new Set([...catImgs, ...(state.master.images||[]), ...(state.master.setImages||[])])];
+  const allImgs = [...new Set([...catImgs, ...(state.master.images||[])])];
   const opts = [{ url:'', label:'Kein Bild' }, ...allImgs.map(u=>({
     url:u, label: u.startsWith('data:') ? (catImgs.includes(u) ? `📌 ${typ}` : 'Upload-Bild') : (u.split('id=')[1]?.slice(0,22)||u.slice(-22))
   }))];
@@ -776,6 +795,7 @@ function buildImgDropdown() {
       <span>${o.label}</span>
     </div>`).join('');
 }
+
 function setImgVal(url) {
   g('imgValue').value = url;
   const lbl = url ? (url.startsWith('data:') ? 'Upload-Bild' : (url.split('id=')[1]?.slice(0,22)||url.slice(-22))) : 'Kein Bild';
@@ -784,6 +804,7 @@ function setImgVal(url) {
   p.innerHTML = url ? `<img src="${url}" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">` : '📷';
   g('imgDropdown').querySelectorAll('.iso').forEach(o=>o.classList.toggle('active', o.dataset.val===url));
 }
+
 document.addEventListener('click', e => {
   const setWrap = g('setImgWrap');
   if (setWrap) {
@@ -805,6 +826,7 @@ function handleUploadDrop(event) {
   event.currentTarget.classList.remove('drag');
   handleUploadFiles(Array.from(event.dataTransfer.files).filter(f=>f.type.startsWith('image/')));
 }
+
 function handleUploadFiles(files) {
   Array.from(files).forEach((file, idx) => {
     const reader = new FileReader();
@@ -827,14 +849,21 @@ function handleMasterImgDrop(e) {
   e.preventDefault(); e.currentTarget.classList.remove('drag');
   handleMasterImgFiles(Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/')));
 }
+
 function handleMasterImgFiles(files) {
+  const type = document.getElementById('masterType').value;
   const grp = document.getElementById('masterGroup')?.value || '';
   const typ = document.getElementById('masterProdType')?.value || '';
+
+  if (type === 'images' && (!grp || !typ)) {
+    return alert('Bitte zuerst Gruppe und Produkttyp wählen.');
+  }
+
   Array.from(files).forEach(file => {
     const r = new FileReader();
     r.onload = ev => {
       const url = ev.target.result;
-      if (grp && typ && state.master.catalog[grp]?.[typ]) {
+      if (type === 'images') {
         if (!state.master.catalog[grp][typ].images) state.master.catalog[grp][typ].images = [];
         if (!state.master.catalog[grp][typ].images.includes(url)) state.master.catalog[grp][typ].images.push(url);
       } else {
@@ -858,6 +887,7 @@ g('setImgInput').addEventListener('change', function() {
   };
   r.readAsDataURL(file);
 });
+
 g('clearSetImg').addEventListener('click', () => {
   setSetImgVal(''); g('clearSetImg').style.display='none'; g('setImgInput').value='';
 });
@@ -1010,39 +1040,21 @@ function renderStats() {
   }).join('') || '<div class="empty">Keine Verkäufe im gewählten Jahr.</div>';
 }
 
-let imagePickCallback = null;
-
-function syncNewImageLabel(url) {
-  const lbl = g('imgLabel');
-  const prev = g('imgPreview');
-  if(lbl) lbl.textContent = url ? 'Aus Stammdaten gewählt' : 'Aus Stammdaten wählen…';
-  if(prev) prev.textContent = url ? '🖼' : '📷';
-}
-
-function openNewImgPicker() {
-  imagePickCallback = (url) => {
-    g('imgValue').value = url;
-    const prev = g('imgPreview');
-    const lbl = g('imgLabel');
-    if(prev) prev.innerHTML = url ? `<img src="${url}" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">` : '🖼';
-    if(lbl) lbl.textContent = url ? 'Bild gewählt ✓' : 'Aus Stammdaten wählen…';
-  };
-  openImagePicker(g('imgValue')?.value || '');
-}
-
-function openImagePicker(currentUrl='') {
+function openImagePicker(currentUrl='', grp='', typ='') {
   const modal = g('imagePickerModal');
   const list = g('imagePickerList');
   if(!modal || !list) return;
-  const grp = g('group')?.value || '';
-  const typ = g('productType')?.value || '';
+  
   const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
-  const allImgs = [...new Set([...catImgs, ...(state.master.images||[]), ...(state.master.setImages||[])])];
+  const globalImgs = state.master.images || [];
+  const allImgs = [...new Set([...catImgs, ...globalImgs])];
+  
   list.innerHTML = allImgs.length ? allImgs.map(u => `
     <button type="button" class="img-pick" data-url="${u.replace(/"/g,'&quot;')}" style="border:2px solid ${u===currentUrl?'#4caf50':'transparent'}">
       <img src="${u}" loading="lazy" style="width:100%;height:100px;object-fit:cover;border-radius:8px;">
-      <div style="font-size:var(--text-xs);margin-top:4px;word-break:break-all;">${catImgs.includes(u) ? 'Stammdaten' : (state.master.setImages||[]).includes(u) ? 'Set-Bild' : 'Upload'}</div>
+      <div style="font-size:var(--text-xs);margin-top:4px;word-break:break-all;">${catImgs.includes(u) ? 'Produkttyp-Bild' : 'Globales Bild'}</div>
     </button>`).join('') : '<div class="empty">Keine Bilder vorhanden.</div>';
+  
   modal.style.display='flex'; modal.classList.add('show'); document.documentElement.style.overflow='hidden';
   modal.onclick = e => {
     const b = e.target.closest('[data-url]');
@@ -1051,6 +1063,7 @@ function openImagePicker(currentUrl='') {
     closeImagePicker();
   };
 }
+
 function closeImagePicker() {
   const modal = g('imagePickerModal');
   if(modal){ modal.classList.remove('show'); modal.style.display='none'; } document.documentElement.style.overflow='';
@@ -1062,76 +1075,114 @@ function closeImagePicker() {
 function openSetBadgesModal() {
   const content = g('setBadgesContent');
   
-  const groups = {};
-  state.open.forEach(item => {
-    if (item.group !== 'Besta' || item.productType !== 'Tür') return;
-    const art = item.article || '–';
-    const col = item.color || '–';
-    const key = art + '::' + col;
-    
-    if (!groups[key]) groups[key] = { article: art, color: col, counts: {} };
-    
-    const size = item.size || '–';
-    if (!groups[key].counts[size]) groups[key].counts[size] = 0;
-    groups[key].counts[size] += item.instances.length;
-  });
-
   const badgeResults = {
+    // Türen
     'Sideboard 180': [],
     'Sideboard 120': [],
     'TV 180': [],
     'TV 120': [],
     'Highboard 4': [],
     'Highboard 4S': [],
-    'Sideboard 180S': []
+    'Sideboard 180 Schublade': [],
+    // Korpus
+    'Korpus Sideboard 180': [],
+    'Korpus Sideboard 180 schmal': [],
+    'Korpus TV 180 schmal': [],
+    'Korpus TV 180': [],
+    'Korpus Highboard S': [],
+    'Korpus Highboard': [],
+    'Korpus Hochschrank': [],
+    'Korpus Dual Hochschrank': []
   };
 
-  Object.keys(groups).sort().forEach(key => {
-    const grp = groups[key];
+  const groupsTueren = {};
+  const groupsKorpus = {};
+
+  state.open.forEach(item => {
+    if (item.group !== 'Besta') return;
+    if (state.hideZero && item.instances.length === 0) return;
+    
+    const art = item.article || '–';
+    const col = item.color || '–';
+    const key = art + '::' + col;
+    
+    if (item.productType === 'Tür') {
+      if (!groupsTueren[key]) groupsTueren[key] = { article: art, color: col, counts: {} };
+      const size = item.size || '–';
+      if (!groupsTueren[key].counts[size]) groupsTueren[key].counts[size] = 0;
+      groupsTueren[key].counts[size] += item.instances.length;
+    } 
+    else if (item.productType === 'Korpus') {
+      if (!groupsKorpus[key]) groupsKorpus[key] = { article: art, color: col, counts: {} };
+      const size = (item.size || '–').replace(/\s+/g, '').toLowerCase(); 
+      if (!groupsKorpus[key].counts[size]) groupsKorpus[key].counts[size] = 0;
+      groupsKorpus[key].counts[size] += item.instances.length;
+    }
+  });
+
+  Object.keys(groupsTueren).sort().forEach(key => {
+    const grp = groupsTueren[key];
     const c = grp.counts;
     const c64 = c['64'] || 0;
     const c38 = c['38'] || 0;
     const c26 = c['26'] || 0;
-    
     const label = `${grp.article} ${grp.color}`;
 
     if (c64 >= 4) badgeResults['Highboard 4'].push(label);
     if (c64 >= 3) badgeResults['Sideboard 180'].push(label);
     if (c64 >= 2) badgeResults['Sideboard 120'].push(label);
-
     if (c64 >= 2 && c38 >= 2) badgeResults['Highboard 4S'].push(label);
-    if (c64 >= 2 && c38 >= 1 && c26 >= 1) badgeResults['Sideboard 180S'].push(label);
-
+    if (c64 >= 2 && c38 >= 1 && c26 >= 1) badgeResults['Sideboard 180 Schublade'].push(label);
     if (c38 >= 3) badgeResults['TV 180'].push(label);
     if (c38 >= 2) badgeResults['TV 120'].push(label);
+  });
+
+  Object.keys(groupsKorpus).sort().forEach(key => {
+    const grp = groupsKorpus[key];
+    const c = grp.counts;
+    
+    const count = (s) => c[s] || 0;
+    const label = `${grp.article !== '–' ? grp.article + ' ' : ''}${grp.color}`;
+
+    if ((count('60x40x64') >= 1 && count('120x40x64') >= 1) || count('60x40x64') >= 3) badgeResults['Korpus Sideboard 180'].push(label);
+    if ((count('60x20x64') >= 1 && count('120x20x64') >= 1) || count('60x20x64') >= 3) badgeResults['Korpus Sideboard 180 schmal'].push(label);
+    if ((count('60x20x38') >= 1 && (count('120x20x64') >= 1 || count('120x20x38') >= 1)) || count('60x20x38') >= 3) badgeResults['Korpus TV 180 schmal'].push(label);
+    if ((count('60x40x38') >= 1 && (count('120x40x64') >= 1 || count('120x40x38') >= 1)) || count('60x40x38') >= 3) badgeResults['Korpus TV 180'].push(label);
+    if (count('120x40x64') >= 1 && count('120x40x38') >= 1) badgeResults['Korpus Highboard S'].push(label);
+    if (count('120x40x64') >= 2) badgeResults['Korpus Highboard'].push(label);
+    if (count('60x40x192') >= 1) badgeResults['Korpus Hochschrank'].push(label);
+    if (count('120x40x192') >= 1) badgeResults['Korpus Dual Hochschrank'].push(label);
   });
 
   let html = '';
   let hasAny = false;
 
-  const displayOrder = [
-    'Sideboard 180',
-    'Sideboard 120',
-    'TV 180',
-    'TV 120',
-    'Highboard 4',
-    'Highboard 4S',
-    'Sideboard 180S'
-  ];
-
-  displayOrder.forEach(badgeName => {
-    const items = badgeResults[badgeName];
-    if (items && items.length > 0) {
-      hasAny = true;
-      html += `<div style="padding:var(--sp2) 0; border-bottom:1px solid var(--divider); line-height:1.4;">
-        <strong style="display:inline-block; min-width:130px; color:var(--primary);">${badgeName} :</strong> 
-        <span style="color:var(--text);">${items.join(' <span style="color:var(--muted); margin:0 4px;">|</span> ')}</span>
-      </div>`;
+  const renderSection = (title, keys, badgePrefix = '') => {
+    let secHtml = '';
+    keys.forEach(badgeName => {
+      const items = badgeResults[badgeName];
+      if (items && items.length > 0) {
+        hasAny = true;
+        const displayName = badgePrefix ? badgeName.replace(badgePrefix, '').trim() : badgeName;
+        secHtml += `<div style="padding:var(--sp2) 0; border-bottom:1px solid var(--divider); line-height:1.4; display:flex; gap:12px; align-items:flex-start;">
+          <strong style="min-width:130px; color:var(--primary);">${displayName} :</strong> 
+          <span style="color:var(--text); flex:1;">${items.join(' <span style="color:var(--muted); margin:0 4px;">|</span> ')}</span>
+        </div>`;
+      }
+    });
+    if (secHtml) {
+      html += `<h4 style="margin-top:var(--sp4); margin-bottom:var(--sp2); font-size:var(--text-sm); color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;">${title}</h4>` + secHtml;
     }
-  });
+  };
+
+  const displayOrderTueren = ['Sideboard 180', 'Sideboard 120', 'TV 180', 'TV 120', 'Highboard 4', 'Highboard 4S', 'Sideboard 180 Schublade'];
+  const displayOrderKorpus = ['Korpus Sideboard 180', 'Korpus Sideboard 180 schmal', 'Korpus TV 180', 'Korpus TV 180 schmal', 'Korpus Highboard', 'Korpus Highboard S', 'Korpus Hochschrank', 'Korpus Dual Hochschrank'];
+
+  renderSection('Türen', displayOrderTueren);
+  renderSection('Korpus', displayOrderKorpus, 'Korpus ');
 
   if (!hasAny) {
-     html = '<div class="empty">Aktuell können keine Sets aus den vorhandenen Besta Türen gebildet werden. (Nicht genügend gleiche Größen vorhanden)</div>';
+     html = '<div class="empty">Aktuell können keine Sets aus den vorhandenen Besta Artikeln gebildet werden.</div>';
   }
   
   content.innerHTML = html;
@@ -1148,6 +1199,21 @@ function closeSetBadgesModal() {
 // ═══════════════════════════════════════════════════
 // RENDER OFFEN
 // ═══════════════════════════════════════════════════
+function toggleAllOpen() {
+  const heads = document.querySelectorAll('.group-head[data-key]');
+  if (!heads.length) return;
+  const keys = Array.from(heads).map(el => el.dataset.key);
+  const allCollapsed = keys.every(k => state.openCollapse['b_'+k] === false);
+  
+  if (allCollapsed) {
+    keys.forEach(k => delete state.openCollapse['b_'+k]);
+  } else {
+    keys.forEach(k => state.openCollapse['b_'+k] = false);
+  }
+  save();
+  renderOpen();
+}
+
 function toggleStack(id) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -1160,6 +1226,7 @@ function toggleStack(id) {
       ? `▾ ${menge} Exemplare ausblenden`
       : `▸ ${menge} Exemplare anzeigen`;
   }
+  save();
 }
 
 function editItem(itemId) {
@@ -1229,7 +1296,7 @@ function editItemImage(itemId) {
     syncNewImageLabel(url);
     save(); renderOpen();
   };
-  openImagePicker(item._savedImage || item.instances[0]?.image || '');
+  openImagePicker(item._savedImage || item.instances[0]?.image || '', item.group, item.productType);
 }
 
 function toggleItemProfitshare(itemId) {
@@ -1246,7 +1313,7 @@ function editInstImage(itemId, instId) {
   const inst = item.instances.find(i=>i.id===instId);
   if(!inst) return;
   imagePickCallback = (url) => { inst.image = url; syncNewImageLabel(url); save(); renderOpen(); };
-  openImagePicker(inst.image || item._savedImage || '');
+  openImagePicker(inst.image || item._savedImage || '', item.group, item.productType);
 }
 
 function toggleInstProfitshare(itemId, instId) {
@@ -1271,8 +1338,14 @@ function editEK(itemId) {
 
 function toggleGrp(el) {
   const key = el.dataset.key;
-  state.openCollapse[key] = ! (state.openCollapse[key] !== false);
-  renderOpen();
+  const body = document.querySelector('[data-body="' + key + '"]');
+  if(!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  state.openCollapse['b_'+key] = !isOpen;
+  const arrow = el.querySelector('.group-title');
+  if(arrow) arrow.innerHTML = arrow.innerHTML.replace(isOpen ? '&#9660;' : '&#9658;', isOpen ? '&#9658;' : '&#9660;');
+  save();
 }
 
 function toggleZeroFilter() {
@@ -1302,6 +1375,9 @@ function editInstEK(itemId, instId) {
   save(); renderOpen();
 }
 
+function isOpen(key) { return state.openCollapse['b_'+key] !== false; }
+function isStackOpen(id) { return state.openCollapse['s_'+id] === true; }
+
 function saveOpenState() {
   const sc = document.querySelector('.scroll-container');
   if(sc) state.openScrollPos = sc.scrollTop;
@@ -1325,7 +1401,6 @@ function renderOpen() {
   if (!state.open.length) { g('openContent').innerHTML='<div class="empty">Keine offenen Artikel.<br>Über „Neu" Artikel hinzufügen.</div>'; return; }
 
   const countPcs = (arr) => arr.reduce((s, i) => s + i.instances.length, 0);
-  const isOpen = (key) => state.openCollapse[key] !== false;
   const hashStr = s => Math.abs(s.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36);
 
   const tree = {};
@@ -1335,12 +1410,14 @@ function renderOpen() {
     const pt  = item.productType || '–';
     const art = item.article || '';
     const col = item.color || '–';
+    const size = item.size || '–';
 
     if (!tree[grp]) tree[grp] = {};
     if (!tree[grp][pt]) tree[grp][pt] = {};
     if (!tree[grp][pt][art]) tree[grp][pt][art] = {};
-    if (!tree[grp][pt][art][col]) tree[grp][pt][art][col] = [];
-    tree[grp][pt][art][col].push(item);
+    if (!tree[grp][pt][art][col]) tree[grp][pt][art][col] = {};
+    if (!tree[grp][pt][art][col][size]) tree[grp][pt][art][col][size] = [];
+    tree[grp][pt][art][col][size].push(item);
   });
 
   const sortKeys = (a, b) => a.localeCompare(b, 'de');
@@ -1359,35 +1436,30 @@ function renderOpen() {
         let colHtmlMaster = '';
 
         Object.keys(tree[grp][pt][art]).sort(sortKeys).forEach(col => {
-          const items = tree[grp][pt][art][col];
-          const colTotal = countPcs(items);
-          if (colTotal === 0 && state.hideZero) return;
-          
-          artTotal += colTotal;
+          let colTotal = 0;
+          let sizeHtmlMaster = '';
 
-          const sizeMap = {};
-          items.forEach(i => {
-            const sKey = i.size || '–';
-            if (!sizeMap[sKey]) sizeMap[sKey] = [];
-            sizeMap[sKey].push(i);
-          });
+          Object.keys(tree[grp][pt][art][col]).sort(sortKeys).forEach(size => {
+            const items = tree[grp][pt][art][col][size];
+            const sizeTotal = countPcs(items);
+            if (sizeTotal === 0 && state.hideZero) return;
+            
+            colTotal += sizeTotal;
 
-          let cardsHtml = '';
-          Object.values(sizeMap).forEach(sizeItems => {
-            const allInst = sizeItems.flatMap(item=>item.instances.map(inst=>({...inst,_itemId:item.id})));
-            const firstItem = sizeItems[0];
+            const allInst = items.flatMap(item=>item.instances.map(inst=>({...inst,_itemId:item.id})));
+            const firstItem = items[0];
             const img = allInst.find(x=>x.image)?.image || firstItem._savedImage || '';
-            const sdId = 'sdA_' + hashStr(grp+pt+art+col+(firstItem.size||'–'));
+            const sdId = 'sdA_' + hashStr(grp+pt+art+col+size);
             const ekSumme = allInst.reduce((s,i)=>s+(+i.purchasePrice||0),0);
             const menge = allInst.length;
             const einzel = menge > 0 ? ekSumme / menge : 0;
             const hasPsh = allInst.some(x=>x.profitshare);
             const selCount = allInst.filter(inst=>state.sel.has(inst._itemId+'::'+inst.id)).length;
 
-            cardsHtml += `<div class="item-card">
+            let cardsHtml = `<div class="item-card">
               <div class="item-card-main">
                 ${menge===1 ? `<input class="item-chk" type="checkbox" data-chk-inst="${firstItem.id}::${allInst[0].id}" ${state.sel.has(firstItem.id+'::'+allInst[0].id)?'checked':''}>` : '<div></div>'}
-                <div class="thumb">${img?`<img src="${img}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
+                <div class="thumb" style="cursor:pointer;" onclick="editItemImage('${firstItem.id}')" title="Bild ändern">${img?`<img src="${img}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
                 <div class="item-info">
                   ${firstItem.productType && (!art || art === '–') ? `<div style="font-size:var(--text-xs);color:var(--muted);margin-bottom:2px;">${firstItem.productType}</div>` : ''}
                   <div class="item-title">${firstItem.article || '–'}</div>
@@ -1395,10 +1467,8 @@ function renderOpen() {
                     <span class="chip">Gr. ${firstItem.size||'-'}</span>
                     <span class="chip">${firstItem.color||'-'}</span>
                     <span class="chip" style="cursor:pointer" onclick="editEK('${firstItem.id}')" title="EK bearbeiten">EK ${euro(einzel)} ✎</span>
-                    <button class="chip" style="cursor:pointer;border:none" onclick="editItemImage('${firstItem.id}')" title="Bild ändern">🖼 Bild</button>
-                    <button class="chip" style="cursor:pointer;border:none" onclick="toggleItemProfitshare('${firstItem.id}')" title="Profitshare ändern">${hasPsh?'PS ✓':'PS ✎'}</button>
+                    <button class="chip" style="cursor:pointer; border:1px solid ${hasPsh ? 'var(--success)' : 'var(--border)'}; background:${hasPsh ? 'var(--success)' : 'var(--surface)'}; color:${hasPsh ? '#fff' : 'var(--muted)'}; font-weight:${hasPsh ? '700' : 'normal'};" onclick="toggleItemProfitshare('${firstItem.id}')" title="Profitshare umschalten">Profitshare</button>
                     ${`<span class="chip stack" style="display:flex;gap:3px;align-items:center;padding:0 4px"><button onclick="changeQty('${firstItem.id}',1)" style="width:16px;height:16px;border-radius:50%;background:#4CAF50;color:white;font-size:10px;border:none;font-weight:bold;cursor:pointer;line-height:1">+</button>${menge}<button onclick="changeQty('${firstItem.id}',-1)" style="width:16px;height:16px;border-radius:50%;background:#f44336;color:white;font-size:10px;border:none;font-weight:bold;cursor:pointer;line-height:1">−</button></span>`}
-                    ${hasPsh?'<span class="chip ps">Profitshare</span>':''}
                     ${selCount>0?`<span class="chip sel">✓ ${selCount}</span>`:''}
                   </div>
                 </div>
@@ -1406,23 +1476,21 @@ function renderOpen() {
               <div class="item-footer">
                 <div class="item-price-row">${menge} × Ø${euro(einzel)} = <b>${euro(ekSumme)}</b></div>
                 <div class="item-actions">
-                  ${menge>1?`<button class="btn btn-ghost" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="toggleStack('${sdId}')">Details</button>`:''}
+                  ${menge>1?`<button class="btn btn-ghost stack-toggle" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="toggleStack('${sdId}')">${isStackOpen(sdId) ? '▾ Details' : '▸ Details'}</button>`:''}
                   <button class="btn btn-ghost" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="editItem('${firstItem.id}')">✏️</button>
                   <button class="btn btn-danger" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="deleteItem('${firstItem.id}')">🗑</button>
                 </div>
               </div>
               ${menge>1?`
-              <button class="stack-toggle" onclick="toggleStack('${sdId}')">▸ ${menge} Exemplare anzeigen</button>
-              <div class="stack-details" id="${sdId}">
+              <div class="stack-details ${isStackOpen(sdId) ? 'open' : ''}" id="${sdId}">
                 ${allInst.map(inst=>`
                 <div class="stack-inst">
                   <input class="item-chk" type="checkbox" data-chk-inst="${firstItem.id}::${inst.id}" ${state.sel.has(firstItem.id+'::'+inst.id)?'checked':''}>
-                  <div class="inst-thumb">${inst.image?`<img src="${inst.image}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
+                  <div class="inst-thumb" style="cursor:pointer;" onclick="editInstImage('${firstItem.id}','${inst.id}')" title="Bild ändern">${inst.image?`<img src="${inst.image}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
                   <div>
                     <div style="font-size:var(--text-xs);color:var(--muted);cursor:pointer" onclick="editInstEK('${firstItem.id}','${inst.id}')" title="EK bearbeiten">EK ${euro(inst.purchasePrice||0)} ✎ · ${fmtDate(inst.entryDate)}</div>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
-                      <button class="btn btn-ghost" style="min-height:24px;padding:.15rem .4rem;font-size:var(--text-xs);" onclick="editInstImage('${firstItem.id}','${inst.id}')">🖼 Bild</button>
-                      <button class="btn btn-ghost" style="min-height:24px;padding:.15rem .4rem;font-size:var(--text-xs);" onclick="toggleInstProfitshare('${firstItem.id}','${inst.id}')">${inst.profitshare?'PS ✓':'PS ✎'}</button>
+                      <button class="chip" style="cursor:pointer; border:1px solid ${inst.profitshare ? 'var(--success)' : 'var(--border)'}; background:${inst.profitshare ? 'var(--success)' : 'var(--surface)'}; color:${inst.profitshare ? '#fff' : 'var(--muted)'}; font-weight:${inst.profitshare ? '700' : 'normal'}; min-height:24px; padding:.15rem .4rem; font-size:var(--text-xs);" onclick="toggleInstProfitshare('${firstItem.id}','${inst.id}')">Profitshare</button>
                     </div>
                     ${inst.comment?`<div style="font-size:var(--text-xs);color:var(--muted);">${inst.comment}</div>`:''}
                     ${inst.defect?`<div style="font-size:var(--text-xs);color:var(--warn);">⚠ ${inst.defect}</div>`:''}
@@ -1431,7 +1499,27 @@ function renderOpen() {
                 </div>`).join('')}
               </div>`:''}
             </div>`;
-          });
+
+            const hasSize = size && size.trim() !== '' && size !== '–' && size !== '-';
+            if (hasSize) {
+              const szKey = 'sz_' + hashStr(grp+pt+art+col+size);
+              sizeHtmlMaster += `
+                <div style="margin-bottom:var(--sp3); margin-left:var(--sp2);">
+                  <div class="group-head" onclick="toggleGrp(this)" data-key="${szKey}" style="cursor:pointer;">
+                    <h6 class="group-title" style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">${isOpen(szKey) ? "▼" : "▶"} Größe: ${size}</h6>
+                    <span class="chip">${sizeTotal} Stück</span>
+                  </div>
+                  <div class="grp-body" data-body="${szKey}" style="display:${isOpen(szKey) ? "block" : "none"}">
+                    ${cardsHtml}
+                  </div>
+                </div>`;
+            } else {
+              sizeHtmlMaster += `<div style="margin-bottom:var(--sp2); margin-left:var(--sp2);">${cardsHtml}</div>`;
+            }
+          }); 
+
+          artTotal += colTotal;
+          if (colTotal === 0) return;
 
           const hasColor = col && col.trim() !== '' && col !== '–' && col !== '-';
           
@@ -1440,15 +1528,15 @@ function renderOpen() {
             colHtmlMaster += `
               <div style="margin-bottom:var(--sp3); margin-left:var(--sp2);">
                 <div class="group-head" onclick="toggleGrp(this)" data-key="${cKey}" style="cursor:pointer;">
-                  <h5 class="group-title" style="font-size:var(--text-xs);color:var(--muted);text-transform:uppercase;">${isOpen(cKey) ? "▼" : "▶"} Farbe: ${col}</h5>
+                  <h5 class="group-title" style="font-size:var(--text-sm);color:var(--text);">${isOpen(cKey) ? "▼" : "▶"} Farbe: ${col}</h5>
                   <span class="chip">${colTotal} Stück</span>
                 </div>
                 <div class="grp-body" data-body="${cKey}" style="display:${isOpen(cKey) ? "block" : "none"}">
-                  ${cardsHtml}
+                  ${sizeHtmlMaster}
                 </div>
               </div>`;
           } else {
-            colHtmlMaster += `<div style="margin-bottom:var(--sp2); margin-left:var(--sp2);">${cardsHtml}</div>`;
+            colHtmlMaster += `<div style="margin-bottom:var(--sp2); margin-left:var(--sp2);">${sizeHtmlMaster}</div>`;
           }
         }); 
 
@@ -1462,7 +1550,7 @@ function renderOpen() {
           ptHtml += `
             <div style="margin-bottom:var(--sp3); margin-left:var(--sp2);">
               <div class="group-head" onclick="toggleGrp(this)" data-key="${aKey}" style="cursor:pointer;">
-                <h4 class="group-title" style="font-size:var(--text-sm);">${isOpen(aKey) ? "▼" : "▶"} ${art}</h4>
+                <h4 class="group-title" style="font-size:var(--text-base);">${isOpen(aKey) ? "▼" : "▶"} ${art}</h4>
                 <span class="chip">${artTotal} Stück</span>
               </div>
               <div class="grp-body" data-body="${aKey}" style="display:${isOpen(aKey) ? "block" : "none"}">
@@ -1481,7 +1569,7 @@ function renderOpen() {
       grpHtml += `
         <div style="margin-bottom:var(--sp4); margin-left:var(--sp2);">
           <div class="group-head" onclick="toggleGrp(this)" data-key="${pKey}" style="cursor:pointer;">
-            <h3 class="group-title" style="font-size:var(--text-sm);color:var(--muted);">${isOpen(pKey) ? "▼" : "▶"} ${pt}</h3>
+            <h3 class="group-title" style="font-size:var(--text-lg);color:var(--muted);">${isOpen(pKey) ? "▼" : "▶"} ${pt}</h3>
             <span class="chip">${ptTotal} Stück</span>
           </div>
           <div class="grp-body" data-body="${pKey}" style="display:${isOpen(pKey) ? "block" : "none"}">
@@ -1495,7 +1583,7 @@ function renderOpen() {
     html += `
       <div style="margin-bottom:var(--sp6);">
         <div class="group-head" onclick="toggleGrp(this)" data-key="${gKey}" style="cursor:pointer;">
-          <h2 class="group-title">${isOpen(gKey) ? "▼" : "▶"} ${grp}</h2>
+          <h2 class="group-title" style="font-size:var(--text-xl);">${isOpen(gKey) ? "▼" : "▶"} ${grp}</h2>
           <span class="chip stack">${grpTotal} Stück</span>
         </div>
         <div class="grp-body" data-body="${gKey}" style="display:${isOpen(gKey) ? "block" : "none"}">
@@ -1614,8 +1702,22 @@ function renderMaster() {
                 </span>`).join('') || '<span class="muted" style="font-size:var(--text-xs);">Noch keine Einträge</span>'}
               </div>
             </div>`;
-          }).join('')}
-        </div>`;
+          }).join('')}`;
+
+        const cImgs = d.images || [];
+        if(cImgs.length) {
+          html += `<div style="margin-bottom:var(--sp2);">
+            <div class="muted" style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--sp1);">Bilder (${typ})</div>
+            <div class="img-grid" style="grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap:6px;">
+              ${cImgs.map((url, idx) => `<div class="img-card" style="border-radius:4px;overflow:hidden;position:relative;">
+                <img src="${url}" loading="lazy" style="width:100%;height:40px;object-fit:cover;">
+                <button style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;" data-rm="catimage" data-grp="${grp}" data-typ="${typ}" data-idx="${idx}">×</button>
+              </div>`).join('')}
+            </div>
+          </div>`;
+        }
+
+        html += `</div>`;
       });
       html += `</div></div>`;
     });
@@ -1624,7 +1726,7 @@ function renderMaster() {
   }
 
   const imgs = state.master.images || [];
-  html += `<div class="card"><div class="card-head"><h3 class="card-title">🖼 Bilder</h3><span class="chip">${imgs.length}</span></div>
+  html += `<div class="card"><div class="card-head"><h3 class="card-title">🖼 Globale Bilder / Set-Bilder</h3><span class="chip">${imgs.length}</span></div>
     <div class="card-body">
       <div class="img-grid">
         ${imgs.length ? imgs.map((url,i)=>`
@@ -1633,7 +1735,7 @@ function renderMaster() {
             <div class="img-lbl">${url.startsWith('data:')?'Upload '+(i+1):url.slice(-14)}</div>
             <button class="img-del" data-rm="images" data-idx="${i}">×</button>
           </div>`).join('')
-          : '<div class="empty" style="grid-column:1/-1;">Noch keine Bilder.</div>'}
+          : '<div class="empty" style="grid-column:1/-1;">Noch keine globalen Bilder.</div>'}
       </div>
     </div></div>`;
 
@@ -1731,8 +1833,8 @@ document.getElementById('masterForm').addEventListener('submit', masterSubmit);
 
 function updateMasterForm() {
   const type = document.getElementById('masterType').value;
-  const needGrp = ['producttypes','articles','sizes','colors'].includes(type);
-  const needTyp = ['articles','sizes','colors'].includes(type);
+  const needGrp = ['producttypes','articles','sizes','colors','images'].includes(type);
+  const needTyp = ['articles','sizes','colors','images'].includes(type);
 
   const groups = Object.keys(state.master.catalog || {}).sort((a,b)=>a.localeCompare(b,'de'));
   const mGrp = document.getElementById('masterGroup');
@@ -1747,8 +1849,8 @@ function updateMasterForm() {
 
   document.querySelectorAll('.mf-grp').forEach(el => el.style.display = needGrp ? 'grid' : 'none');
   document.querySelectorAll('.mf-typ').forEach(el => el.style.display = needTyp ? 'grid' : 'none');
-  document.querySelectorAll('.mf-val').forEach(el => el.style.display = type !== 'images' ? 'grid' : 'none');
-  document.getElementById('masterImgZone').style.display = type === 'images' ? 'flex' : 'none';
+  document.querySelectorAll('.mf-val').forEach(el => el.style.display = type !== 'images' && type !== 'setimages' ? 'grid' : 'none');
+  document.getElementById('masterImgZone').style.display = (type === 'images' || type === 'setimages') ? 'flex' : 'none';
 
   const labels = {groups:'Gruppenname', producttypes:'Produkttyp-Name', articles:'Artikelname', sizes:'Größe', colors:'Farbe'};
   const placeholders = {groups:'z.B. Besta', producttypes:'z.B. Tür', articles:'z.B. Selsviken', sizes:'z.B. 64×64', colors:'z.B. Schwarz'};
@@ -1824,10 +1926,6 @@ document.addEventListener('click', e => {
     g('selSummary').textContent=`${state.sel.size} Artikel gewählt.`;
     return;
   }
-  if (e.target.matches('[data-tog]')) {
-    const d=document.getElementById('sd-'+e.target.dataset.tog);
-    if(d) d.classList.toggle('open'); return;
-  }
   if (e.target.matches('[data-ps-inst]')) {
     const [itemId, instId] = e.target.dataset.psInst.split('::');
     const item = state.open.find(i=>i.id===itemId);
@@ -1860,6 +1958,7 @@ document.addEventListener('click', e => {
     if (key==='group')       { delete state.master.catalog[grp]; }
     else if (key==='prodtype') { delete state.master.catalog[grp]?.[typ]; }
     else if (key==='images') { state.master.images.splice(+idx,1); }
+    else if (key==='catimage') { state.master.catalog[grp][typ].images.splice(+idx,1); }
     else { state.master.catalog[grp]?.[typ]?.[key]?.splice(+idx,1); }
     fillMasterDropdowns(); save(); renderMaster(); return;
   }
@@ -1925,16 +2024,6 @@ load();
 })();
 
 </script>
-
-<div id="setBadgesModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--surface);color:var(--text);max-width:600px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.25);">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
-      <h3 style="margin:0;font-weight:700;font-size:var(--text-lg);">Mögliche Sets (Besta Türen)</h3>
-      <button type="button" class="btn btn-ghost" onclick="closeSetBadgesModal()">Schließen</button>
-    </div>
-    <div id="setBadgesContent"></div>
-  </div>
-</div>
 
 <input type="file" id="instImgInput" accept="image/*" style="display:none">
 <script>
