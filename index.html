@@ -364,8 +364,11 @@ img{max-width:100%;display:block;}
     </div>
   </div>
   
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-    <button class="btn btn-ghost" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-sm);background:var(--surface2);" onclick="openSetBadgesModal()">🏆 Set Badges</button>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
+    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+      <button class="btn btn-ghost" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-sm);background:var(--surface2);" onclick="openSetBadgesModal()">🏆 Set Badges</button>
+      <button class="btn btn-ghost" id="toggleAllBtn" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-sm);background:var(--surface2);" onclick="toggleAllGroups()">↕ Alle aufklappen</button>
+    </div>
     <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;user-select:none">
       <span id="zeroFilterLabel" style="color:var(--muted)">Nullbestand ausblenden</span>
       <span onclick="toggleZeroFilter()" id="zeroFilterBtn" style="
@@ -527,6 +530,9 @@ const state = {
   openScrollPos: 0,
   hideZero: false
 };
+
+// Standardmäßig ist alles zugeklappt
+let globalExpandState = false;
 
 // ═══════════════════════════════════════════════════
 // IndexedDB - persistenter Speicher für Android/PWA
@@ -1235,6 +1241,12 @@ function toggleStack(id) {
   }
 }
 
+function toggleAllGroups() {
+  globalExpandState = !globalExpandState;
+  state.openCollapse = {};
+  renderOpen();
+}
+
 function editItem(itemId) {
   const item = state.open.find(i=>i.id===itemId);
   if (!item) return;
@@ -1344,7 +1356,8 @@ function editEK(itemId) {
 
 function toggleGrp(el) {
   const key = el.dataset.key;
-  state.openCollapse[key] = ! (state.openCollapse[key] !== false);
+  const current = state.openCollapse[key] !== undefined ? state.openCollapse[key] : globalExpandState;
+  state.openCollapse[key] = !current;
   renderOpen();
 }
 
@@ -1389,6 +1402,12 @@ function restoreOpenState() {
 function renderOpen() {
   if(typeof saveOpenState === 'function') saveOpenState();
   updateZeroToggleUI();
+  
+  const toggleAllBtn = g('toggleAllBtn');
+  if (toggleAllBtn) {
+    toggleAllBtn.innerHTML = globalExpandState ? '↕ Alle einklappen' : '↕ Alle aufklappen';
+  }
+
   g('setBuilder').classList.toggle('show', state.sel.size>0);
   if(state.sel.size>0 && typeof buildSetImgDropdown === 'function') buildSetImgDropdown();
   
@@ -1398,7 +1417,7 @@ function renderOpen() {
   if (!state.open.length) { g('openContent').innerHTML='<div class="empty">Keine offenen Artikel.<br>Über „Neu" Artikel hinzufügen.</div>'; return; }
 
   const countPcs = (arr) => arr.reduce((s, i) => s + i.instances.length, 0);
-  const isOpen = (key) => state.openCollapse[key] !== false;
+  const isOpen = (key) => state.openCollapse[key] !== undefined ? state.openCollapse[key] : globalExpandState;
   const hashStr = s => Math.abs(s.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36);
 
   const tree = {};
