@@ -525,7 +525,7 @@ const state = {
   sold: [],
   soldFilter: '',
   year: String(new Date().getFullYear()),
-  master: { groups:[], articles:[], sizes:[], colors:[], images:[] },
+  master: { groups:[], articles:[], sizes:[], colors:[], images:[], badgeRules: [] },
   openCollapse: {},
   openScrollPos: 0,
   hideZero: false
@@ -606,9 +606,23 @@ function load() {
 function applyState(d) {
   state.open   = d.open   || [];
   state.sold   = d.sold   || [];
-  state.master = { images:[], catalog:{}, ...(d.master||{}) };
+  state.master = { images:[], catalog:{}, badgeRules:[], ...(d.master||{}) };
   if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
   state.year   = d.year   || state.year;
+  
+  // Standard Badge Regeln anlegen, falls komplett leer (z.B. beim ersten Start)
+  if (d.master && d.master.badgeRules === undefined) {
+      state.master.badgeRules = [
+          { name: 'Highboard 4', group: 'Besta', productType: 'Tür', reqs: [{size: '64', qty: 4}] },
+          { name: 'Sideboard 180', group: 'Besta', productType: 'Tür', reqs: [{size: '64', qty: 3}] },
+          { name: 'Sideboard 120', group: 'Besta', productType: 'Tür', reqs: [{size: '64', qty: 2}] },
+          { name: 'Highboard 4S', group: 'Besta', productType: 'Tür', reqs: [{size: '64', qty: 2}, {size: '38', qty: 2}] },
+          { name: 'Sideboard 180S', group: 'Besta', productType: 'Tür', reqs: [{size: '64', qty: 2}, {size: '38', qty: 1}, {size: '26', qty: 1}] },
+          { name: 'TV 180', group: 'Besta', productType: 'Tür', reqs: [{size: '38', qty: 3}] },
+          { name: 'TV 120', group: 'Besta', productType: 'Tür', reqs: [{size: '38', qty: 2}] }
+      ];
+  }
+
   const migrateProductType = (article, group) => {
     const cat = state.master.catalog || {};
     let found = '';
@@ -625,7 +639,7 @@ function applyState(d) {
 }
 
 // ═══════════════════════════════════════════════════
-// JSONBIN.IO SYNC
+// JSONBIN.IO SYNC (Bilder-sichere Version)
 // ═══════════════════════════════════════════════════
 async function saveToJsonBin() {
   const binId = g('binId').value.trim();
@@ -633,13 +647,31 @@ async function saveToJsonBin() {
   if(!binId || !apiKey) return toast('Bitte Bin ID und API Key eingeben.');
   localStorage.setItem('jsonBinId', binId);
   localStorage.setItem('jsonBinKey', apiKey);
-  const payload = { open:state.open, sold:state.sold, master:state.master, year:state.year };
+
+  // 1. Daten für den Upload klonen (damit auf dem Handy nichts gelöscht wird)
+  const cloudPayload = JSON.parse(JSON.stringify({ open:state.open, sold:state.sold, master:state.master, year:state.year }));
+
+  // 2. Bilder aus dem Cloud-Paket entfernen (zu groß für JSONbin!)
+  cloudPayload.master.images = [];
+  if(cloudPayload.master.catalog) {
+    Object.keys(cloudPayload.master.catalog).forEach(grp => {
+      Object.keys(cloudPayload.master.catalog[grp]).forEach(typ => {
+         if(cloudPayload.master.catalog[grp][typ].images) cloudPayload.master.catalog[grp][typ].images = [];
+      });
+    });
+  }
+  cloudPayload.open.forEach(item => {
+    delete item._savedImage;
+    if(item.instances) item.instances.forEach(inst => inst.image = '');
+  });
+  cloudPayload.sold.forEach(set => set.previewImage = '');
+
   try {
-    toast('Speichere in Cloud...');
+    toast('Speichere in Cloud (Texte)...');
     const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(cloudPayload)
     });
     if(res.ok) toast('Cloud Sync erfolgreich ✓');
     else toast('Cloud Sync Fehler!');
@@ -661,7 +693,46 @@ async function loadFromJsonBin() {
       const json = await res.json();
       const d = json.record;
       if(d) {
+        // LOKALE BILDER RETTEN:
+        // Da die Cloud keine Bilder hat, merken wir uns kurz die lokalen Bilder
+        const localOpen = JSON.parse(JSON.stringify(state.open));
+        const localSold = JSON.parse(JSON.stringify(state.sold));
+        const localMasterImgs = state.master.images || [];
+        const localCatalog = JSON.parse(JSON.stringify(state.master.catalog || {}));
+
+        // Überschreibt den State mit Texten/Zahlen aus der Cloud
         applyState(d);
+
+        // BILDER ZURÜCKFÜGEN:
+        state.master.images = localMasterImgs;
+        if(state.master.catalog) {
+          Object.keys(state.master.catalog).forEach(grp => {
+            Object.keys(state.master.catalog[grp]).forEach(typ => {
+               if(localCatalog[grp] && localCatalog[grp][typ] && localCatalog[grp][typ].images) {
+                  if (!state.master.catalog[grp]) state.master.catalog[grp] = {};
+                  if (!state.master.catalog[grp][typ]) state.master.catalog[grp][typ] = {};
+                  state.master.catalog[grp][typ].images = localCatalog[grp][typ].images;
+               }
+            });
+          });
+        }
+        state.open.forEach(item => {
+          const oldItem = localOpen.find(i => i.id === item.id);
+          if (oldItem) {
+            item._savedImage = oldItem._savedImage;
+            if(item.instances) {
+              item.instances.forEach(inst => {
+                const oldInst = oldItem.instances ? oldItem.instances.find(x => x.id === inst.id) : null;
+                if (oldInst && oldInst.image) inst.image = oldInst.image;
+              });
+            }
+          }
+        });
+        state.sold.forEach(set => {
+          const oldSet = localSold.find(s => s.id === set.id);
+          if (oldSet && oldSet.previewImage) set.previewImage = oldSet.previewImage;
+        });
+
         save();
         fillMasterDropdowns();
         render();
@@ -764,7 +835,7 @@ function importData(file) {
       state.open   = d.open   || [];
       console.log('📂 Geladen:', state.open.length, 'Artikel');
       state.sold   = d.sold   || [];
-      state.master = { images:[], catalog:{}, ...(d.master||{}) };
+      state.master = { images:[], catalog:{}, badgeRules:[], ...(d.master||{}) };
       if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
       state.year   = d.year   || state.year;
       save();
@@ -841,6 +912,8 @@ function buildImgDropdown() {
   const grp = g('group')?.value || '';
   const typ = g('productType')?.value || '';
   const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
+  
+  // BUGFIX: Modal-Bilder richtig füllen
   const allImgs = [...new Set([...catImgs, ...(state.master.images||[]), ...(state.master.setImages||[])])];
   const opts = [{ url:'', label:'Kein Bild' }, ...allImgs.map(u=>({
     url:u, label: u.startsWith('data:') ? (catImgs.includes(u) ? `📌 ${typ}` : 'Upload-Bild') : (u.split('id=')[1]?.slice(0,22)||u.slice(-22))
@@ -851,6 +924,7 @@ function buildImgDropdown() {
       <span>${o.label}</span>
     </div>`).join('');
 }
+
 function setImgVal(url) {
   g('imgValue').value = url;
   const lbl = url ? (url.startsWith('data:') ? 'Upload-Bild' : (url.split('id=')[1]?.slice(0,22)||url.slice(-22))) : 'Kein Bild';
@@ -1135,68 +1209,157 @@ function closeImagePicker() {
   if(modal){ modal.classList.remove('show'); modal.style.display='none'; } document.documentElement.style.overflow='';
 }
 
+
 // ═══════════════════════════════════════════════════
-// SET BADGES MODAL LOGIC
+// NEU: BADGE REGELN FUNKTIONEN (Bearbeiten, Erstellen, Löschen)
+// ═══════════════════════════════════════════════════
+window.currentEditBadgeIndex = null;
+
+window.updateBadgeProdType = function() {
+    const grp = document.getElementById('newBadgeGroup').value;
+    const ptSel = document.getElementById('newBadgeProdType');
+    if(!grp || !state.master.catalog[grp]) {
+        ptSel.innerHTML = '<option value="">– Produkttyp –</option>';
+        return;
+    }
+    const typs = Object.keys(state.master.catalog[grp]);
+    const currentVal = ptSel.value; // Behalte Auswahl, falls sie noch gültig ist
+    ptSel.innerHTML = '<option value="">– Produkttyp –</option>' + typs.map(t => `<option value="${t}">${t}</option>`).join('');
+    if (typs.includes(currentVal)) ptSel.value = currentVal;
+};
+
+window.addBadgeRule = function() {
+    const name = document.getElementById('newBadgeName').value.trim();
+    const grp = document.getElementById('newBadgeGroup').value;
+    const pt = document.getElementById('newBadgeProdType').value;
+    const reqsStr = document.getElementById('newBadgeReqs').value.trim();
+
+    if(!name || !grp || !pt || !reqsStr) return alert('Bitte alle Felder ausfüllen.');
+
+    const reqs = reqsStr.split(',').map(s => {
+        const parts = s.toLowerCase().split('x');
+        if(parts.length !== 2) return null;
+        const size = parts[0].trim();
+        const qty = parseInt(parts[1].trim());
+        if(!size || isNaN(qty)) return null;
+        return {size, qty};
+    }).filter(Boolean);
+
+    if(reqs.length === 0) return alert('Ungültiges Bedarfs-Format. Bitte z.B. 64x2 eingeben.');
+
+    if(!state.master.badgeRules) state.master.badgeRules = [];
+
+    if (window.currentEditBadgeIndex !== null && window.currentEditBadgeIndex >= 0) {
+        state.master.badgeRules[window.currentEditBadgeIndex] = { name, group: grp, productType: pt, reqs };
+        window.currentEditBadgeIndex = null;
+        toast('Regel aktualisiert ✓');
+    } else {
+        state.master.badgeRules.push({ name, group: grp, productType: pt, reqs });
+        toast('Regel hinzugefügt ✓');
+    }
+    save();
+    renderMaster();
+};
+
+window.editBadgeRule = function(idx) {
+    const rule = state.master.badgeRules[idx];
+    document.getElementById('newBadgeName').value = rule.name;
+    document.getElementById('newBadgeGroup').value = rule.group;
+    window.updateBadgeProdType();
+    document.getElementById('newBadgeProdType').value = rule.productType;
+    document.getElementById('newBadgeReqs').value = rule.reqs.map(r => `${r.size}x${r.qty}`).join(', ');
+
+    window.currentEditBadgeIndex = idx;
+    
+    document.getElementById('badgeFormTitle').textContent = 'Regel bearbeiten';
+    document.getElementById('saveBadgeBtn').innerHTML = '✓ Aktualisieren';
+    document.getElementById('cancelBadgeBtn').style.display = 'inline-flex';
+    document.getElementById('saveBadgeBtn').scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
+window.cancelEditBadgeRule = function() {
+    window.currentEditBadgeIndex = null;
+    document.getElementById('newBadgeName').value = '';
+    document.getElementById('newBadgeGroup').value = '';
+    document.getElementById('newBadgeProdType').innerHTML = '<option value="">– Produkttyp –</option>';
+    document.getElementById('newBadgeReqs').value = '';
+
+    document.getElementById('badgeFormTitle').textContent = 'Neue Regel erstellen';
+    document.getElementById('saveBadgeBtn').innerHTML = '✚ Regel speichern';
+    document.getElementById('cancelBadgeBtn').style.display = 'none';
+};
+
+window.deleteBadgeRule = function(idx) {
+    if(!confirm('Regel löschen?')) return;
+    state.master.badgeRules.splice(idx, 1);
+    if (window.currentEditBadgeIndex === idx) window.cancelEditBadgeRule();
+    save();
+    renderMaster();
+};
+
+// ═══════════════════════════════════════════════════
+// SET BADGES MODAL LOGIC (Offene Artikel)
 // ═══════════════════════════════════════════════════
 function openSetBadgesModal() {
   const content = g('setBadgesContent');
-  
-  const groups = {};
+  const rules = state.master.badgeRules || [];
+
+  // Vorbereiten der Resultat-Liste anhand der definierten Regeln
+  const badgeResults = {};
+  const displayOrder = [];
+  rules.forEach(r => {
+     if(!badgeResults[r.name]) {
+         badgeResults[r.name] = [];
+         displayOrder.push(r.name);
+     }
+  });
+
+  // Inventar gruppieren (Gruppe + Produkttyp + Artikel + Farbe)
+  const inventory = {};
   state.open.forEach(item => {
-    if (item.group !== 'Besta' || item.productType !== 'Tür') return;
+    if (item.instances.length === 0) return; // Zähler mit 0 überspringen
+
+    const grp = item.group || '–';
+    const pt = item.productType || '–';
     const art = item.article || '–';
     const col = item.color || '–';
-    const key = art + '::' + col;
-    
-    if (!groups[key]) groups[key] = { article: art, color: col, counts: {} };
-    
+    const key = grp + '::' + pt + '::' + art + '::' + col;
+
+    if (!inventory[key]) inventory[key] = { grp, pt, art, col, counts: {} };
+
     const size = item.size || '–';
-    if (!groups[key].counts[size]) groups[key].counts[size] = 0;
-    groups[key].counts[size] += item.instances.length;
+    if (!inventory[key].counts[size]) inventory[key].counts[size] = 0;
+    inventory[key].counts[size] += item.instances.length;
   });
 
-  const badgeResults = {
-    'Sideboard 180': [],
-    'Sideboard 120': [],
-    'TV 180': [],
-    'TV 120': [],
-    'Highboard 4': [],
-    'Highboard 4S': [],
-    'Sideboard 180S': []
-  };
-
-  Object.keys(groups).sort().forEach(key => {
-    const grp = groups[key];
-    const c = grp.counts;
-    const c64 = c['64'] || 0;
-    const c38 = c['38'] || 0;
-    const c26 = c['26'] || 0;
-    
-    const label = `${grp.article} ${grp.color}`;
-
-    if (c64 >= 4) badgeResults['Highboard 4'].push(label);
-    if (c64 >= 3) badgeResults['Sideboard 180'].push(label);
-    if (c64 >= 2) badgeResults['Sideboard 120'].push(label);
-
-    if (c64 >= 2 && c38 >= 2) badgeResults['Highboard 4S'].push(label);
-    if (c64 >= 2 && c38 >= 1 && c26 >= 1) badgeResults['Sideboard 180S'].push(label);
-
-    if (c38 >= 3) badgeResults['TV 180'].push(label);
-    if (c38 >= 2) badgeResults['TV 120'].push(label);
+  // Inventar gegen Regeln prüfen
+  Object.values(inventory).forEach(inv => {
+     const label = `${inv.art} ${inv.col}`;
+     
+     rules.forEach(rule => {
+        // Stimmt Gruppe und Produkttyp überein?
+        if (inv.grp !== rule.group || inv.pt !== rule.productType) return;
+        
+        // Prüfen, ob alle Größenanforderungen (Bedarf) erfüllt sind
+        let pass = true;
+        for (let req of rule.reqs) {
+            if ((inv.counts[req.size] || 0) < req.qty) {
+                pass = false; break;
+            }
+        }
+        
+        // Wenn bestanden und die Regel mind. 1 Anforderung hat -> Treffer!
+        if (pass && rule.reqs.length > 0) {
+            if(!badgeResults[rule.name].includes(label)) {
+                badgeResults[rule.name].push(label);
+            }
+        }
+     });
   });
 
+  // HTML generieren
   let html = '';
   let hasAny = false;
-
-  const displayOrder = [
-    'Sideboard 180',
-    'Sideboard 120',
-    'TV 180',
-    'TV 120',
-    'Highboard 4',
-    'Highboard 4S',
-    'Sideboard 180S'
-  ];
 
   displayOrder.forEach(badgeName => {
     const items = badgeResults[badgeName];
@@ -1210,7 +1373,7 @@ function openSetBadgesModal() {
   });
 
   if (!hasAny) {
-     html = '<div class="empty">Aktuell können keine Sets aus den vorhandenen Besta Türen gebildet werden. (Nicht genügend gleiche Größen vorhanden)</div>';
+     html = '<div class="empty">Aktuell können keine Sets aus den offenen Artikeln gebildet werden, die den definierten Regeln entsprechen.</div>';
   }
   
   content.innerHTML = html;
@@ -1674,10 +1837,14 @@ function renderSold() {
     </div>`).join('');
 }
 
+// BUGFIX HIER: Wenn g('imgDropdown') nicht gefunden wird, bricht die Funktion ab.
+// Wir fügen eine kleine Verzögerung oder ein try-catch ein, falls das DOM noch nicht ready ist.
 function renderMaster() {
   const cat = state.master.catalog || {};
   const groups = Object.keys(cat).sort((a,b)=>a.localeCompare(b,'de'));
   let html = '';
+
+  window.currentEditBadgeIndex = null; // Reset edit state when re-rendering
 
   if (groups.length) {
     groups.forEach(grp => {
@@ -1729,6 +1896,44 @@ function renderMaster() {
       </div>
     </div></div>`;
 
+  // NEU: Set Badges Regeln Karte
+  html += `<div class="card" style="margin-bottom:var(--sp4);">
+        <div class="card-head"><h3 class="card-title">🏆 Set Badges (Regeln)</h3></div>
+        <div class="card-body">
+            <div id="badgeRulesList" style="margin-bottom:var(--sp3);">
+                ${(state.master.badgeRules||[]).map((r, i) => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--divider); padding:var(--sp2) 0;">
+                        <div>
+                            <b style="font-size:var(--text-base);">${r.name}</b> <span style="color:var(--muted); font-size:var(--text-xs);">(${r.group} · ${r.productType})</span><br>
+                            <span style="font-size:var(--text-sm); font-weight:600; color:var(--primary);">${r.reqs.map(req => `${req.qty}x Gr. ${req.size}`).join(', ')}</span>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-ghost" style="min-height:28px;padding:.2rem .5rem;font-size:var(--text-xs);" onclick="editBadgeRule(${i})" title="Regel bearbeiten">✏️</button>
+                            <button class="btn btn-danger" style="min-height:28px;padding:.2rem .5rem;font-size:var(--text-xs);" onclick="deleteBadgeRule(${i})" title="Regel löschen">🗑</button>
+                        </div>
+                    </div>
+                `).join('') || '<div class="empty">Keine Regeln definiert.</div>'}
+            </div>
+            <div style="background:var(--surface2); padding:var(--sp3); border-radius:var(--rad-md); border:1px solid var(--border);">
+                <h4 id="badgeFormTitle" style="font-size:var(--text-sm); margin:0 0 var(--sp2);">Neue Regel erstellen</h4>
+                <div class="grid2" style="gap:8px;">
+                    <input type="text" class="input" id="newBadgeName" placeholder="Name (z.B. TV 180)">
+                    <select class="select" id="newBadgeGroup" onchange="updateBadgeProdType()">
+                        <option value="">– Gruppe wählen –</option>
+                        ${groups.map(g => `<option value="${g}">${g}</option>`).join('')}
+                    </select>
+                    <select class="select" id="newBadgeProdType"><option value="">– Produkttyp –</option></select>
+                    <input type="text" class="input" id="newBadgeReqs" placeholder="Bedarf (z.B. 64x2, 38x1)">
+                </div>
+                <div style="display:flex; gap:8px; margin-top:var(--sp3);">
+                    <button id="saveBadgeBtn" class="btn btn-primary" style="flex:1;" onclick="addBadgeRule()">✚ Regel speichern</button>
+                    <button id="cancelBadgeBtn" class="btn btn-ghost" style="display:none;" onclick="cancelEditBadgeRule()">Abbrechen</button>
+                </div>
+                <div style="font-size:11px; color:var(--muted); margin-top:6px; line-height:1.3;"><b>Bedarf-Format:</b> [Größe]x[Anzahl] (kommagetrennt).<br><i>Beispiel:</i> Um eine Regel für 2x Größe 64 und 1x Größe 38 zu erstellen, gib "64x2, 38x1" ein.</div>
+            </div>
+        </div>
+    </div>`;
+
   g('masterContent').innerHTML = html;
 }
 
@@ -1741,6 +1946,9 @@ function render() {
   if (state.page==='sold')   renderSold();
   if (state.page==='master') renderMaster();
   if(state.page !== 'open') { const sc=document.querySelector('.scroll-container'); if(sc) sc.scrollTop=0; }
+  
+  // Wichtig für den Bugfix: Modal Bilder nur aktualisieren wenn das Element auch existiert
+  if(document.getElementById('imgDropdown')) buildImgDropdown();
 }
 
 document.querySelector('.bottom-nav').addEventListener('click', e => {
@@ -2021,7 +2229,7 @@ load();
 <div id="setBadgesModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
   <div style="background:var(--surface);color:var(--text);max-width:600px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.25);">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
-      <h3 style="margin:0;font-weight:700;font-size:var(--text-lg);">Mögliche Sets (Besta Türen)</h3>
+      <h3 style="margin:0;font-weight:700;font-size:var(--text-lg);">Mögliche Sets</h3>
       <button type="button" class="btn btn-ghost" onclick="closeSetBadgesModal()">Schließen</button>
     </div>
     <div id="setBadgesContent"></div>
@@ -2061,63 +2269,4 @@ function resetItemForm() {
   g('itemForm').reset();
   if (g('purchasePrice')) g('purchasePrice').value = '';
   if (g('quantity')) g('quantity').value = '1';
-  if (g('productType')) g('productType').innerHTML = '<option value="">Gruppe wählen</option>';
-  if (g('article')) g('article').innerHTML = '<option value="">Produkttyp wählen</option>';
-  if (g('size')) g('size').innerHTML = '<option value=""></option>';
-  if (g('color')) g('color').innerHTML = '<option value=""></option>';
-  if (g('imgValue')) g('imgValue').value = '';
-  if (g('imgLabel')) g('imgLabel').textContent = 'Aus Stammdaten wählen';
-  if (g('imgPreview')) g('imgPreview').innerHTML = '';
-  if (g('uploadPreview')) g('uploadPreview').classList.remove('show');
-}
-</script>
-
-<script>
-function showAddInput(id) {
-  if (document.getElementById('addinp_'+id)) return;
-  var sel = document.getElementById(id);
-  var labels = {group:'Gruppe',productType:'Produkttyp',article:'Artikelname',size:'Größe',color:'Farbe'};
-  var inp = document.createElement('input');
-  inp.id = 'addinp_'+id;
-  inp.type = 'text';
-  inp.placeholder = labels[id] + ' eingeben…';
-  inp.style.cssText = 'width:100%;height:48px;padding:0 12px;border-radius:8px;border:2px solid #01696f;background:#fbfbf9;color:#28251d;font-size:16px;font-family:inherit;box-sizing:border-box;margin-top:6px;display:block;';
-  sel.parentNode.appendChild(inp);
-  inp.focus();
-
-  function save_input() {
-    var val = inp.value.trim();
-    inp.remove();
-    if (!val) return;
-    var cat = state.master.catalog;
-    var grp = document.getElementById('group').value;
-    var pt  = document.getElementById('productType').value;
-    if (id==='group') {
-      if (!cat[val]) { cat[val]={}; save_state(); toast('Gruppe "'+val+'" ✓'); }
-      fillMasterDropdowns(); document.getElementById('group').value=val; onGroupChange();
-    } else if (id==='productType') {
-      if (grp && !cat[grp][val]) { cat[grp][val]={articles:[],sizes:[],colors:[]}; save_state(); toast('Produkttyp "'+val+'" ✓'); }
-      onGroupChange(); document.getElementById('productType').value=val; onProductTypeChange();
-    } else if (id==='article') {
-      if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.articles.includes(val)){d.articles.push(val);save_state();toast('Artikel "'+val+'" ✓');} }
-      document.getElementById('article').value=val; onProductTypeChange(); document.getElementById('article').value=val;
-    } else if (id==='size') {
-      if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.sizes.includes(val)){d.sizes.push(val);save_state();toast('Größe "'+val+'" ✓');} }
-      document.getElementById('size').value=val; onProductTypeChange(); document.getElementById('size').value=val;
-    } else if (id==='color') {
-      if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.colors.includes(val)){d.colors.push(val);save_state();toast('Farbe "'+val+'" ✓');} }
-      document.getElementById('color').value=val; onProductTypeChange(); document.getElementById('color').value=val;
-    }
-  }
-
-  function save_state() { if(window.save) window.save(); }
-
-  inp.addEventListener('keydown', function(e) {
-    if (e.key==='Enter') { e.preventDefault(); save_input(); }
-    if (e.key==='Escape') { inp.remove(); }
-  });
-  inp.addEventListener('blur', function() { setTimeout(save_input, 150); });
-}
-</script>
-</body>
-</html>
+  if (g('productType')) g('productType').innerHTML = '<option value="">
