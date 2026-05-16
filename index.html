@@ -321,12 +321,23 @@ img{max-width:100%;display:block;}
     <h2>Offene Artikel</h2>
     <div class="sub">Einzelne Artikel wählen → Verkaufen</div>
   </div>
+  
+  <div class="card" style="margin-bottom:var(--sp4);">
+    <div class="card-body">
+      <input class="input" id="openSearch" type="text" placeholder="🔍 Offene Artikel suchen…">
+    </div>
+  </div>
+
   <div class="set-builder" id="setBuilder">
     <h3 class="card-title" style="margin-bottom:var(--sp4);">🛒 Verkaufensfenster</h3>
     <div class="grid">
       <div class="grid2">
         <div class="field"><label>Name <span style="color:var(--faint);font-weight:400;">(optional)</span></label><input class="input" id="setName" type="text"></div>
-        <div class="field"><label>Verkaufspreis (€)</label><input class="input" id="salePrice" type="number" min="0" step="1" oninput="updatePsPreview()"></div>
+        <div class="field">
+            <label>Verkaufspreis (€)</label>
+            <input class="input" id="salePrice" type="number" min="0" step="1" oninput="updatePsPreview()">
+            <div id="histAvgPreview" style="font-size:var(--text-xs);margin-top:4px;line-height:1.4;"></div>
+        </div>
           <div id="psShareField">
             <div class="quick-btns" style="justify-content:center;margin-top:6px;display:flex;flex-wrap:wrap;gap:5px;">
               <button type="button" id="psbtn10" style="padding:5px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="setPsShare(10)">10%</button>
@@ -334,7 +345,11 @@ img{max-width:100%;display:block;}
               <button type="button" id="psbtn30" style="padding:5px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="setPsShare(30)">30%</button>
               <button type="button" id="psbtn40" style="padding:5px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;" onclick="setPsShare(40)">40%</button>
             </div>
-            <input type="hidden" id="manualPsShare" value="50">
+            <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:8px;">
+              <label style="font-size:var(--text-xs);color:var(--muted);font-weight:700;">Manuell:</label>
+              <input class="input" type="number" id="manualPsShare" value="50" style="width:70px; min-height:32px; padding:4px 8px; text-align:center; font-size:var(--text-sm);" oninput="resetPsButtons(); updatePsPreview();">
+              <span style="font-size:var(--text-xs);color:var(--muted);font-weight:700;">%</span>
+            </div>
             <div id="psSharePreview" style="font-size:var(--text-xs);color:var(--muted);margin-top:6px;text-align:center;"></div>
           </div>
       </div>
@@ -522,6 +537,7 @@ const state = {
   page: 'new',
   sel: new Set(),
   open: [],
+  openFilter: '',
   sold: [],
   soldFilter: '',
   year: String(new Date().getFullYear()),
@@ -610,7 +626,6 @@ function applyState(d) {
   if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
   state.year   = d.year   || state.year;
   
-  // Standard Badge Regeln anlegen, falls komplett leer (z.B. beim ersten Start)
   if (d.master && d.master.badgeRules === undefined) {
       state.master.badgeRules = [
           { name: 'Highboard 4', group: 'Besta', productType: 'Tür', reqs: [{size: '64', qty: 4}] },
@@ -648,10 +663,8 @@ async function saveToJsonBin() {
   localStorage.setItem('jsonBinId', binId);
   localStorage.setItem('jsonBinKey', apiKey);
 
-  // 1. Daten für den Upload klonen (damit auf dem Handy nichts gelöscht wird)
   const cloudPayload = JSON.parse(JSON.stringify({ open:state.open, sold:state.sold, master:state.master, year:state.year }));
 
-  // 2. Bilder aus dem Cloud-Paket entfernen (zu groß für JSONbin!)
   cloudPayload.master.images = [];
   if(cloudPayload.master.catalog) {
     Object.keys(cloudPayload.master.catalog).forEach(grp => {
@@ -693,17 +706,13 @@ async function loadFromJsonBin() {
       const json = await res.json();
       const d = json.record;
       if(d) {
-        // LOKALE BILDER RETTEN:
-        // Da die Cloud keine Bilder hat, merken wir uns kurz die lokalen Bilder
         const localOpen = JSON.parse(JSON.stringify(state.open));
         const localSold = JSON.parse(JSON.stringify(state.sold));
         const localMasterImgs = state.master.images || [];
         const localCatalog = JSON.parse(JSON.stringify(state.master.catalog || {}));
 
-        // Überschreibt den State mit Texten/Zahlen aus der Cloud
         applyState(d);
 
-        // BILDER ZURÜCKFÜGEN:
         state.master.images = localMasterImgs;
         if(state.master.catalog) {
           Object.keys(state.master.catalog).forEach(grp => {
@@ -772,19 +781,103 @@ function setPsShare(pct) {
   updatePsPreview();
 }
 
+function resetPsButtons() {
+  [10,20,30,40].forEach(p => {
+    const btn = g('psbtn'+p);
+    if (!btn) return;
+    btn.style.background   = 'var(--surfoff)';
+    btn.style.color        = '';
+    btn.style.borderColor  = 'var(--border)';
+  });
+}
+
 function updatePsPreview() {
   const sp = +g('salePrice')?.value || 0;
-  const pct = +(g('manualPsShare')?.value || 50);
-  const purchaseTotal = [...state.sel].reduce((s,key)=>{
+  const pct = +(g('manualPsShare')?.value || 0);
+  
+  // Lookup für historische Preise erstellen
+  const histLookup = new Map();
+  state.sold.forEach(set => {
+    const shareRev = set.items.length ? set.salePrice / set.items.length : set.salePrice;
+    set.items.forEach(i => {
+      const hGrp = i.group || '–';
+      const hPt  = i.productType || '–';
+      const hArt = i.article || '';
+      const hCol = i.color || '–';
+      const keys = [`g_${hGrp}`, `p_${hGrp}_${hPt}`, `a_${hGrp}_${hPt}_${hArt}`, `c_${hGrp}_${hPt}_${hArt}_${hCol}`];
+      keys.forEach(k => {
+        if (!histLookup.has(k)) histLookup.set(k, { rev: 0, qty: 0 });
+        const e = histLookup.get(k);
+        e.rev += shareRev; e.qty += (i.menge || 1);
+      });
+    });
+  });
+
+  let purchaseTotal = 0;
+  let totalHistAvg = 0;
+  let missingData = false;
+
+  [...state.sel].forEach(key=>{
     const [itemId,instId] = key.split('::');
     const item = state.open.find(i=>i.id===itemId);
     const inst = item?.instances.find(x=>x.id===instId);
-    return s + (+inst?.purchasePrice||0);
-  }, 0);
+    
+    if (inst) {
+        purchaseTotal += (+inst.purchasePrice||0);
+    }
+    
+    if (item) {
+        const grp = item.group || '–';
+        const pt = item.productType || '–';
+        const art = item.article || '';
+        const col = item.color || '–';
+        const kC = `c_${grp}_${pt}_${art}_${col}`;
+        const kA = `a_${grp}_${pt}_${art}`;
+        const kP = `p_${grp}_${pt}`;
+        const kG = `g_${grp}`;
+
+        let avg = 0;
+        if (histLookup.has(kC) && histLookup.get(kC).qty > 0) avg = histLookup.get(kC).rev / histLookup.get(kC).qty;
+        else if (histLookup.has(kA) && histLookup.get(kA).qty > 0) avg = histLookup.get(kA).rev / histLookup.get(kA).qty;
+        else if (histLookup.has(kP) && histLookup.get(kP).qty > 0) avg = histLookup.get(kP).rev / histLookup.get(kP).qty;
+        else if (histLookup.has(kG) && histLookup.get(kG).qty > 0) avg = histLookup.get(kG).rev / histLookup.get(kG).qty;
+
+        if (avg > 0) totalHistAvg += avg;
+        else missingData = true;
+    }
+  });
+
   const raw = sp - purchaseTotal;
   const net = raw * (1 - pct/100);
+  
   if (g('psSharePreview') && sp > 0) {
     g('psSharePreview').textContent = `Rohgewinn ${euro(raw)} − ${pct}% PS = Nettogewinn ${euro(net)}`;
+  } else if (g('psSharePreview')) {
+    g('psSharePreview').textContent = '';
+  }
+
+  // Historischen Ø Verkaufswert in der UI updaten
+  const histPreviewEl = g('histAvgPreview');
+  if (histPreviewEl) {
+      if (state.sel.size > 0 && totalHistAvg > 0) {
+          let hint = missingData ? ' <span style="color:var(--faint);font-weight:normal;">(teilw. geschätzt)</span>' : '';
+          let compareHtml = '';
+          if (sp > 0) {
+              const diff = sp - totalHistAvg;
+              if (diff > 0) {
+                  compareHtml = `<span style="color:var(--success);font-weight:600;">▲ +${euro(diff)} über Ø</span>`;
+              } else if (diff < 0) {
+                  compareHtml = `<span style="color:var(--err);font-weight:600;">▼ ${euro(Math.abs(diff))} unter Ø</span>`;
+              } else {
+                  compareHtml = `<span style="color:var(--muted);font-weight:600;">▶ exakt im Ø</span>`;
+              }
+          }
+          histPreviewEl.innerHTML = `<span style="color:var(--primary);">Historischer Ø Wert: <b>${euro(totalHistAvg)}</b></span>${hint}${compareHtml ? '<br>' + compareHtml : ''}`;
+      } else if (state.sel.size > 0) {
+          histPreviewEl.innerHTML = `<span style="color:var(--muted);font-weight:normal;">Noch keine historischen Daten für diese Auswahl.</span>`;
+      } else {
+          histPreviewEl.innerHTML = '';
+      }
   }
 }
 
@@ -932,6 +1025,7 @@ function setImgVal(url) {
   p.innerHTML = url ? `<img src="${url}" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">` : '📷';
   g('imgDropdown').querySelectorAll('.iso').forEach(o=>o.classList.toggle('active', o.dataset.val===url));
 }
+
 document.addEventListener('click', e => {
   const setWrap = g('setImgWrap');
   if (setWrap) {
@@ -1026,7 +1120,7 @@ function renderStats() {
 
   const ys = state.sold.filter(s=>s.saleDate.startsWith(state.year));
 
-  const totalSets    = ys.length; // 1 sale operation = 1
+  const totalSets    = ys.length; 
   const totalProfit  = ys.reduce((s,set)=>s+set.netProfit,0);
   const totalRevenue = ys.reduce((s,set)=>s+set.salePrice,0);
   const totalArtSold = ys.reduce((s,set)=>s+set.items.reduce((a,i)=>a+(i.quantity||1),0),0);
@@ -1135,7 +1229,7 @@ function renderStats() {
       <div class="kpi-card"><div class="k">Aktivste Gruppe</div><div class="v">${(()=>{const m=new Map();ys.forEach(s=>s.items.forEach(i=>{const g=i.group||'–';m.set(g,(m.get(g)||0)+1);}));const t=[...m.entries()].sort((a,b)=>b[1]-a[1])[0];return t?t[0]:'–';})()}</div><div class="d">Meist verkaufte Gruppe</div></div>
       <div class="kpi-card"><div class="k">Aktivster Produkttyp</div><div class="v">${topPt ? topPt[0] : '–'}</div><div class="d">${topPt ? topPt[1] + 'x verkauft' : ''}</div></div>
       <div class="kpi-card"><div class="k">Aktivste Artikelnamen</div><div class="v">${topArt ? topArt[0] : '–'}</div><div class="d">Oft verkauft</div></div>
-      <div class="kpi-card"><div class="k">Meiste verkaufte Exemplare</div><div class="v">${topArt ? topArt[0] : '–'}</div><div class="d">${topArt ? topArt[1] + ' Stück' : ''}</div></div>
+      <div class="kpi-card"><div class="k">Meiste verkaufte Exemplare</div><div class="v">${topArt ? topArt[0] : '–'}</div><div class="d">${topArt ? topArt[1] + ' Stück · Ø VK ' + euro(topArtRev ? topArtRev[1]/topArt[1] : 0) : ''}</div></div>
       <div class="kpi-card"><div class="k">Top Umsatz Artikel</div><div class="v">${topArtRev ? topArtRev[0] : '–'}</div><div class="d">${topArtRev ? euro(topArtRev[1]) : ''}</div></div>
     </div>`;
 
@@ -1203,6 +1297,7 @@ function openImagePicker(currentUrl='') {
     closeImagePicker();
   };
 }
+
 function closeImagePicker() {
   const modal = g('imagePickerModal');
   if(modal){ modal.classList.remove('show'); modal.style.display='none'; } document.documentElement.style.overflow='';
@@ -1222,7 +1317,7 @@ window.updateBadgeProdType = function() {
         return;
     }
     const typs = Object.keys(state.master.catalog[grp]);
-    const currentVal = ptSel.value; // Behalte Auswahl, falls sie noch gültig ist
+    const currentVal = ptSel.value;
     ptSel.innerHTML = '<option value="">– Produkttyp –</option>' + typs.map(t => `<option value="${t}">${t}</option>`).join('');
     if (typs.includes(currentVal)) ptSel.value = currentVal;
 };
@@ -1303,7 +1398,6 @@ function openSetBadgesModal() {
   const content = g('setBadgesContent');
   const rules = state.master.badgeRules || [];
 
-  // Vorbereiten der Resultat-Liste anhand der definierten Regeln
   const badgeResults = {};
   const displayOrder = [];
   rules.forEach(r => {
@@ -1313,10 +1407,9 @@ function openSetBadgesModal() {
      }
   });
 
-  // Inventar gruppieren (Gruppe + Produkttyp + Artikel + Farbe)
   const inventory = {};
   state.open.forEach(item => {
-    if (item.instances.length === 0) return; // Zähler mit 0 überspringen
+    if (item.instances.length === 0) return; 
 
     const grp = item.group || '–';
     const pt = item.productType || '–';
@@ -1331,15 +1424,12 @@ function openSetBadgesModal() {
     inventory[key].counts[size] += item.instances.length;
   });
 
-  // Inventar gegen Regeln prüfen
   Object.values(inventory).forEach(inv => {
      const label = `${inv.art} ${inv.col}`;
      
      rules.forEach(rule => {
-        // Stimmt Gruppe und Produkttyp überein?
         if (inv.grp !== rule.group || inv.pt !== rule.productType) return;
         
-        // Prüfen, ob alle Größenanforderungen (Bedarf) erfüllt sind
         let pass = true;
         for (let req of rule.reqs) {
             if ((inv.counts[req.size] || 0) < req.qty) {
@@ -1347,7 +1437,6 @@ function openSetBadgesModal() {
             }
         }
         
-        // Wenn bestanden und die Regel mind. 1 Anforderung hat -> Treffer!
         if (pass && rule.reqs.length > 0) {
             if(!badgeResults[rule.name].includes(label)) {
                 badgeResults[rule.name].push(label);
@@ -1356,7 +1445,6 @@ function openSetBadgesModal() {
      });
   });
 
-  // HTML generieren
   let html = '';
   let hasAny = false;
 
@@ -1582,636 +1670,53 @@ function renderOpen() {
   const isOpen = (key) => state.openCollapse[key] !== undefined ? state.openCollapse[key] : globalExpandState;
   const hashStr = s => Math.abs(s.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36);
 
-  const tree = {};
-  state.open.forEach(item => {
-    if (state.hideZero && item.instances.length === 0) return;
-    const grp = item.group || '–';
-    const pt  = item.productType || '–';
-    const art = item.article || '';
-    const col = item.color || '–';
-
-    if (!tree[grp]) tree[grp] = {};
-    if (!tree[grp][pt]) tree[grp][pt] = {};
-    if (!tree[grp][pt][art]) tree[grp][pt][art] = {};
-    if (!tree[grp][pt][art][col]) tree[grp][pt][art][col] = [];
-    tree[grp][pt][art][col].push(item);
-  });
-
-  const sortKeys = (a, b) => a.localeCompare(b, 'de');
-  let html = '';
-  
-  Object.keys(tree).sort(sortKeys).forEach(grp => {
-    let grpHtml = '';
-    let grpTotal = 0;
-
-    Object.keys(tree[grp]).sort(sortKeys).forEach(pt => {
-      let ptHtml = '';
-      let ptTotal = 0;
-
-      Object.keys(tree[grp][pt]).sort(sortKeys).forEach(art => {
-        let artTotal = 0;
-        let colHtmlMaster = '';
-
-        Object.keys(tree[grp][pt][art]).sort(sortKeys).forEach(col => {
-          const items = tree[grp][pt][art][col];
-          const colTotal = countPcs(items);
-          if (colTotal === 0 && state.hideZero) return;
-          
-          artTotal += colTotal;
-
-          const sizeMap = {};
-          items.forEach(i => {
-            const sKey = i.size || '–';
-            if (!sizeMap[sKey]) sizeMap[sKey] = [];
-            sizeMap[sKey].push(i);
-          });
-
-          let cardsHtml = '';
-          Object.values(sizeMap).forEach(sizeItems => {
-            const allInst = sizeItems.flatMap(item=>item.instances.map(inst=>({...inst,_itemId:item.id})));
-            const firstItem = sizeItems[0];
-            const img = allInst.find(x=>x.image)?.image || firstItem._savedImage || '';
-            const sdId = 'sdA_' + hashStr(grp+pt+art+col+(firstItem.size||'–'));
-            const ekSumme = allInst.reduce((s,i)=>s+(+i.purchasePrice||0),0);
-            const menge = allInst.length;
-            const einzel = menge > 0 ? ekSumme / menge : 0;
-            const hasPsh = allInst.some(x=>x.profitshare);
-            const selCount = allInst.filter(inst=>state.sel.has(inst._itemId+'::'+inst.id)).length;
-
-            cardsHtml += `<div class="item-card">
-              <div class="item-card-main">
-                ${menge===1 ? `<input class="item-chk" type="checkbox" data-chk-inst="${firstItem.id}::${allInst[0].id}" ${state.sel.has(firstItem.id+'::'+allInst[0].id)?'checked':''}>` : '<div></div>'}
-                <div class="thumb">${img?`<img src="${img}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
-                <div class="item-info">
-                  ${firstItem.productType && (!art || art === '–') ? `<div style="font-size:var(--text-xs);color:var(--muted);margin-bottom:2px;">${firstItem.productType}</div>` : ''}
-                  <div class="item-title">${firstItem.article || '–'}</div>
-                  <div class="chips">
-                    <span class="chip">Gr. ${firstItem.size||'-'}</span>
-                    <span class="chip">${firstItem.color||'-'}</span>
-                    <span class="chip" style="cursor:pointer" onclick="editEK('${firstItem.id}')" title="EK bearbeiten">EK ${euro(einzel)} ✎</span>
-                    <button class="chip" style="cursor:pointer;border:none" onclick="editItemImage('${firstItem.id}')" title="Bild ändern">🖼 Bild</button>
-                    <button class="chip" style="cursor:pointer;border:none" onclick="toggleItemProfitshare('${firstItem.id}')" title="Profitshare ändern">${hasPsh?'PS ✓':'PS ✎'}</button>
-                    ${`<span class="chip stack" style="display:flex;gap:3px;align-items:center;padding:0 4px"><button onclick="changeQty('${firstItem.id}',1)" style="width:16px;height:16px;border-radius:50%;background:#4CAF50;color:white;font-size:10px;border:none;font-weight:bold;cursor:pointer;line-height:1">+</button>${menge}<button onclick="changeQty('${firstItem.id}',-1)" style="width:16px;height:16px;border-radius:50%;background:#f44336;color:white;font-size:10px;border:none;font-weight:bold;cursor:pointer;line-height:1">−</button></span>`}
-                    ${hasPsh?'<span class="chip ps">Profitshare</span>':''}
-                    ${selCount>0?`<span class="chip sel">✓ ${selCount}</span>`:''}
-                  </div>
-                </div>
-              </div>
-              <div class="item-footer">
-                <div class="item-price-row">${menge} × Ø${euro(einzel)} = <b>${euro(ekSumme)}</b></div>
-                <div class="item-actions">
-                  ${menge>1?`<button class="btn btn-ghost" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="toggleStack('${sdId}')">Details</button>`:''}
-                  <button class="btn btn-ghost" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="editItem('${firstItem.id}')">✏️</button>
-                  <button class="btn btn-danger" style="min-height:36px;padding:.3rem .7rem;font-size:var(--text-xs);" onclick="deleteItem('${firstItem.id}')">🗑</button>
-                </div>
-              </div>
-              ${menge>1?`
-              <button class="stack-toggle" onclick="toggleStack('${sdId}')">▸ ${menge} Exemplare anzeigen</button>
-              <div class="stack-details" id="${sdId}">
-                ${allInst.map(inst=>`
-                <div class="stack-inst">
-                  <input class="item-chk" type="checkbox" data-chk-inst="${firstItem.id}::${inst.id}" ${state.sel.has(firstItem.id+'::'+inst.id)?'checked':''}>
-                  <div class="inst-thumb">${inst.image?`<img src="${inst.image}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
-                  <div>
-                    <div style="font-size:var(--text-xs);color:var(--muted);cursor:pointer" onclick="editInstEK('${firstItem.id}','${inst.id}')" title="EK bearbeiten">EK ${euro(inst.purchasePrice||0)} ✎ · ${fmtDate(inst.entryDate)}</div>
-                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
-                      <button class="btn btn-ghost" style="min-height:24px;padding:.15rem .4rem;font-size:var(--text-xs);" onclick="editInstImage('${firstItem.id}','${inst.id}')">🖼 Bild</button>
-                      <button class="btn btn-ghost" style="min-height:24px;padding:.15rem .4rem;font-size:var(--text-xs);" onclick="toggleInstProfitshare('${firstItem.id}','${inst.id}')">${inst.profitshare?'PS ✓':'PS ✎'}</button>
-                    </div>
-                    ${inst.comment?`<div style="font-size:var(--text-xs);color:var(--muted);">${inst.comment}</div>`:''}
-                    ${inst.defect?`<div style="font-size:var(--text-xs);color:var(--warn);">⚠ ${inst.defect}</div>`:''}
-                  </div>
-                  <button class="btn btn-danger" style="min-height:30px;padding:.2rem .5rem;font-size:var(--text-xs);" onclick="deleteInst('${firstItem.id}','${inst.id}')">🗑</button>
-                </div>`).join('')}
-              </div>`:''}
-            </div>`;
-          });
-
-          const hasColor = col && col.trim() !== '' && col !== '–' && col !== '-';
-          
-          if (hasColor) {
-            const cKey = 'c_' + hashStr(grp+pt+art+col);
-            colHtmlMaster += `
-              <div style="margin-bottom:var(--sp3); margin-left:var(--sp2);">
-                <div class="group-head" onclick="toggleGrp(this)" data-key="${cKey}" style="cursor:pointer;">
-                  <h5 class="group-title" style="font-size:var(--text-xs);color:var(--muted);text-transform:uppercase;">${isOpen(cKey) ? "▼" : "▶"} Farbe: ${col}</h5>
-                  <span class="chip">${colTotal} Stück</span>
-                </div>
-                <div class="grp-body" data-body="${cKey}" style="display:${isOpen(cKey) ? "block" : "none"}">
-                  ${cardsHtml}
-                </div>
-              </div>`;
-          } else {
-            colHtmlMaster += `<div style="margin-bottom:var(--sp2); margin-left:var(--sp2);">${cardsHtml}</div>`;
-          }
-        }); 
-
-        ptTotal += artTotal;
-        if (artTotal === 0) return;
-
-        const hasArt = art && art.trim() !== '' && art !== '–' && art !== '-';
-        
-        if (hasArt) {
-          const aKey = 'a_' + hashStr(grp+pt+art);
-          ptHtml += `
-            <div style="margin-bottom:var(--sp3); margin-left:var(--sp2);">
-              <div class="group-head" onclick="toggleGrp(this)" data-key="${aKey}" style="cursor:pointer;">
-                <h4 class="group-title" style="font-size:var(--text-sm);">${isOpen(aKey) ? "▼" : "▶"} ${art}</h4>
-                <span class="chip">${artTotal} Stück</span>
-              </div>
-              <div class="grp-body" data-body="${aKey}" style="display:${isOpen(aKey) ? "block" : "none"}">
-                ${colHtmlMaster}
-              </div>
-            </div>`;
-        } else {
-          ptHtml += `<div>${colHtmlMaster}</div>`;
-        }
-      }); 
-
-      grpTotal += ptTotal;
-      if (ptTotal === 0) return;
-
-      const pKey = 'p_' + hashStr(grp+pt);
-      grpHtml += `
-        <div style="margin-bottom:var(--sp4); margin-left:var(--sp2);">
-          <div class="group-head" onclick="toggleGrp(this)" data-key="${pKey}" style="cursor:pointer;">
-            <h3 class="group-title" style="font-size:var(--text-sm);color:var(--muted);">${isOpen(pKey) ? "▼" : "▶"} ${pt}</h3>
-            <span class="chip">${ptTotal} Stück</span>
-          </div>
-          <div class="grp-body" data-body="${pKey}" style="display:${isOpen(pKey) ? "block" : "none"}">
-            ${ptHtml}
-          </div>
-        </div>`;
-    }); 
-
-    if (grpTotal === 0) return;
-    const gKey = 'g_' + hashStr(grp);
-    html += `
-      <div style="margin-bottom:var(--sp6);">
-        <div class="group-head" onclick="toggleGrp(this)" data-key="${gKey}" style="cursor:pointer;">
-          <h2 class="group-title">${isOpen(gKey) ? "▼" : "▶"} ${grp}</h2>
-          <span class="chip stack">${grpTotal} Stück</span>
-        </div>
-        <div class="grp-body" data-body="${gKey}" style="display:${isOpen(gKey) ? "block" : "none"}">
-          ${grpHtml}
-        </div>
-      </div>`;
-  });
-
-  g('openContent').innerHTML = html || '<div class="empty">Keine offenen Artikel.<br>Über „Neu" Artikel hinzufügen.</div>';
-  
-  g('openContent').querySelectorAll('[data-chk-inst]').forEach(cb=>{
-    cb.addEventListener('change', e=>{
-      const key = e.target.dataset.chkInst;
-      e.target.checked ? state.sel.add(key) : state.sel.delete(key);
-      g('setBuilder').classList.toggle('show', state.sel.size>0);
-      g('selSummary').textContent = state.sel.size + ' Artikel gewählt.';
-      updatePsPreview();
-      if(state.sel.size>0 && typeof buildSetImgDropdown === 'function') buildSetImgDropdown();
-      save();
+  const histLookup = new Map();
+  state.sold.forEach(set => {
+    const shareRev = set.items.length ? set.salePrice / set.items.length : set.salePrice;
+    set.items.forEach(i => {
+      const hGrp = i.group || '–';
+      const hPt  = i.productType || '–';
+      const hArt = i.article || '';
+      const hCol = i.color || '–';
+      
+      const keys = [
+        `g_${hGrp}`,
+        `p_${hGrp}_${hPt}`,
+        `a_${hGrp}_${hPt}_${hArt}`,
+        `c_${hGrp}_${hPt}_${hArt}_${hCol}`
+      ];
+      
+      keys.forEach(k => {
+        if (!histLookup.has(k)) histLookup.set(k, { rev: 0, qty: 0 });
+        const e = histLookup.get(k);
+        e.rev += shareRev;
+        e.qty += (i.menge || 1);
+      });
     });
   });
-}
 
-function editSoldName(id) {
-  const set = state.sold.find(s=>s.id===id);
-  if(!set) return;
-  const val = prompt('Name:', set.setName||'');
-  if(val===null) return;
-  set.setName = val.trim();
-  save(); renderSold();
-}
-
-function editSoldPrice(id) {
-  const set = state.sold.find(s=>s.id===id);
-  if(!set) return;
-  const val = prompt('Verkaufspreis (EUR):', set.salePrice||0);
-  if(val===null) return;
-  const price = parseFloat(val.replace(',','.'));
-  if(isNaN(price)) return alert('Ungültiger Preis');
-  set.salePrice = price;
-  set.netProfit = price - (set.purchaseTotal||0);
-  save(); renderSold();
-}
-
-function editSoldImage(id) {
-  const set = state.sold.find(s=>s.id===id);
-  if(!set) return;
-  imagePickCallback = (url) => {
-    set.previewImage = url;
-    save(); renderSold();
+  const getAvgVkChip = (k) => {
+    const stat = histLookup.get(k);
+    if (!stat || stat.qty === 0) return '';
+    return `<span class="chip" style="background:var(--surfoff); border-color:var(--primary); color:var(--primary); font-weight:700;" title="Historischer Ø Verkaufspreis pro Stück">Ø VK ${euro(stat.rev / stat.qty)}</span>`;
   };
-  openImagePicker(set.previewImage||'');
-}
 
-function renderSold() {
-  const needle = state.soldFilter.trim().toLowerCase();
-  const sets = needle ? state.sold.filter(s=>s.setName.toLowerCase().includes(needle)) : state.sold;
-  if (!sets.length) { g('soldContent').innerHTML='<div class="empty">Keine Einträge.</div>'; return; }
-  const totalArtUnits = sets.reduce((s,set)=>s+set.items.reduce((a,i)=>a+(i.quantity||1),0),0);
-  const sub = g('soldSubtitle'); if(sub) sub.textContent = sets.length+' Sets · '+totalArtUnits+' Artikel';
-  g('soldContent').innerHTML = sets.map(set=>`
-    <div class="sold-card">
-      <div class="sold-card-main">
-        <div class="sold-thumb">${set.previewImage?`<img src="${set.previewImage}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
-        <div>
-          <div class="item-title">${set.setName}</div>
-          <div class="chips" style="margin-top:var(--sp1);">
-            <span class="chip">${set.items.reduce((s,i)=>s+(i.menge||1),0)} Artikel</span>
-            <span class="chip">${fmtDate(set.saleDate)}</span>
-            ${set.hasProfitshare?'<span class="chip ps">PS</span>':''}
-          </div>
-          <div class="muted" style="font-size:var(--text-xs);margin-top:var(--sp2);">${set.items.map(i=>{ const label=(set.setName?[i.productType,i.article]:[i.group,i.productType,i.article,i.size,i.color]).filter(Boolean).join(' · '); return label+(i.menge>1?' ×'+i.menge:''); }).join(', ')}</div>
-        </div>
-      </div>
-      <div class="item-footer">
-        <div class="item-price-row">VK ${euro(set.salePrice)} · EK ${euro(set.purchaseTotal)} · <b class="profit">+${euro(set.netProfit)}</b></div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-          <button class="btn btn-ghost" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-xs);" onclick="editSoldName('${set.id}')">✎ Name</button>
-          <button class="btn btn-ghost" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-xs);" onclick="editSoldPrice('${set.id}')">✎ VK</button>
-          <button class="btn btn-ghost" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-xs);" onclick="editSoldImage('${set.id}')">🖼 Bild</button>
-          <button class="btn btn-danger" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-xs);" data-del-sold="${set.id}">🗑</button>
-        </div>
-      </div>
-    </div>`).join('');
-}
+  const tree = {};
+  
+  // Suchfilter-Logik
+  const needle = (state.openFilter || '').trim().toLowerCase();
+  const searchTerms = needle.split(' ').filter(Boolean);
 
-// ═══════════════════════════════════════════════════
-// NEU: BADGE REGELN FUNKTIONEN (Bearbeiten, Erstellen, Löschen)
-// ═══════════════════════════════════════════════════
-window.currentEditBadgeIndex = null;
-
-window.updateBadgeProdType = function() {
-    const grp = document.getElementById('newBadgeGroup').value;
-    const ptSel = document.getElementById('newBadgeProdType');
-    if(!grp || !state.master.catalog[grp]) {
-        ptSel.innerHTML = '<option value="">– Produkttyp –</option>';
-        return;
-    }
-    const typs = Object.keys(state.master.catalog[grp]);
-    const currentVal = ptSel.value; // Behalte Auswahl, falls sie noch gültig ist
-    ptSel.innerHTML = '<option value="">– Produkttyp –</option>' + typs.map(t => `<option value="${t}">${t}</option>`).join('');
-    if (typs.includes(currentVal)) ptSel.value = currentVal;
-};
-
-window.addBadgeRule = function() {
-    const name = document.getElementById('newBadgeName').value.trim();
-    const grp = document.getElementById('newBadgeGroup').value;
-    const pt = document.getElementById('newBadgeProdType').value;
-    const reqsStr = document.getElementById('newBadgeReqs').value.trim();
-
-    if(!name || !grp || !pt || !reqsStr) return alert('Bitte alle Felder ausfüllen.');
-
-    const reqs = reqsStr.split(',').map(s => {
-        const parts = s.toLowerCase().split('x');
-        if(parts.length !== 2) return null;
-        const size = parts[0].trim();
-        const qty = parseInt(parts[1].trim());
-        if(!size || isNaN(qty)) return null;
-        return {size, qty};
-    }).filter(Boolean);
-
-    if(reqs.length === 0) return alert('Ungültiges Bedarfs-Format. Bitte z.B. 64x2 eingeben.');
-
-    if(!state.master.badgeRules) state.master.badgeRules = [];
-
-    if (window.currentEditBadgeIndex !== null && window.currentEditBadgeIndex >= 0) {
-        state.master.badgeRules[window.currentEditBadgeIndex] = { name, group: grp, productType: pt, reqs };
-        window.currentEditBadgeIndex = null;
-        toast('Regel aktualisiert ✓');
-    } else {
-        state.master.badgeRules.push({ name, group: grp, productType: pt, reqs });
-        toast('Regel hinzugefügt ✓');
-    }
-    save();
-    renderMaster();
-};
-
-window.editBadgeRule = function(idx) {
-    const rule = state.master.badgeRules[idx];
-    document.getElementById('newBadgeName').value = rule.name;
-    document.getElementById('newBadgeGroup').value = rule.group;
-    window.updateBadgeProdType();
-    document.getElementById('newBadgeProdType').value = rule.productType;
-    document.getElementById('newBadgeReqs').value = rule.reqs.map(r => `${r.size}x${r.qty}`).join(', ');
-
-    window.currentEditBadgeIndex = idx;
+  state.open.forEach(item => {
+    if (state.hideZero && item.instances.length === 0) return;
     
-    document.getElementById('badgeFormTitle').textContent = 'Regel bearbeiten';
-    document.getElementById('saveBadgeBtn').innerHTML = '✓ Aktualisieren';
-    document.getElementById('cancelBadgeBtn').style.display = 'inline-flex';
-    document.getElementById('saveBadgeBtn').scrollIntoView({ behavior: 'smooth', block: 'center' });
-};
-
-window.cancelEditBadgeRule = function() {
-    window.currentEditBadgeIndex = null;
-    document.getElementById('newBadgeName').value = '';
-    document.getElementById('newBadgeGroup').value = '';
-    document.getElementById('newBadgeProdType').innerHTML = '<option value="">– Produkttyp –</option>';
-    document.getElementById('newBadgeReqs').value = '';
-
-    document.getElementById('badgeFormTitle').textContent = 'Neue Regel erstellen';
-    document.getElementById('saveBadgeBtn').innerHTML = '✚ Regel speichern';
-    document.getElementById('cancelBadgeBtn').style.display = 'none';
-};
-
-window.deleteBadgeRule = function(idx) {
-    if(!confirm('Regel löschen?')) return;
-    state.master.badgeRules.splice(idx, 1);
-    if (window.currentEditBadgeIndex === idx) window.cancelEditBadgeRule();
-    save();
-    renderMaster();
-};
-
-// ═══════════════════════════════════════════════════
-// SET BADGES MODAL LOGIC (Offene Artikel)
-// ═══════════════════════════════════════════════════
-function openSetBadgesModal() {
-  const content = g('setBadgesContent');
-  const rules = state.master.badgeRules || [];
-
-  // Vorbereiten der Resultat-Liste anhand der definierten Regeln
-  const badgeResults = {};
-  const displayOrder = [];
-  rules.forEach(r => {
-     if(!badgeResults[r.name]) {
-         badgeResults[r.name] = [];
-         displayOrder.push(r.name);
-     }
-  });
-
-  // Inventar gruppieren (Gruppe + Produkttyp + Artikel + Farbe)
-  const inventory = {};
-  state.open.forEach(item => {
-    if (item.instances.length === 0) return; // Zähler mit 0 überspringen
-
-    const grp = item.group || '–';
-    const pt = item.productType || '–';
-    const art = item.article || '–';
-    const col = item.color || '–';
-    const key = grp + '::' + pt + '::' + art + '::' + col;
-
-    if (!inventory[key]) inventory[key] = { grp, pt, art, col, counts: {} };
-
-    const size = item.size || '–';
-    if (!inventory[key].counts[size]) inventory[key].counts[size] = 0;
-    inventory[key].counts[size] += item.instances.length;
-  });
-
-  // Inventar gegen Regeln prüfen
-  Object.values(inventory).forEach(inv => {
-     const label = `${inv.art} ${inv.col}`;
-     
-     rules.forEach(rule => {
-        // Stimmt Gruppe und Produkttyp überein?
-        if (inv.grp !== rule.group || inv.pt !== rule.productType) return;
-        
-        // Prüfen, ob alle Größenanforderungen (Bedarf) erfüllt sind
-        let pass = true;
-        for (let req of rule.reqs) {
-            if ((inv.counts[req.size] || 0) < req.qty) {
-                pass = false; break;
-            }
-        }
-        
-        // Wenn bestanden und die Regel mind. 1 Anforderung hat -> Treffer!
-        if (pass && rule.reqs.length > 0) {
-            if(!badgeResults[rule.name].includes(label)) {
-                badgeResults[rule.name].push(label);
-            }
-        }
-     });
-  });
-
-  // HTML generieren
-  let html = '';
-  let hasAny = false;
-
-  displayOrder.forEach(badgeName => {
-    const items = badgeResults[badgeName];
-    if (items && items.length > 0) {
-      hasAny = true;
-      html += `<div style="padding:var(--sp2) 0; border-bottom:1px solid var(--divider); line-height:1.4;">
-        <strong style="display:inline-block; min-width:130px; color:var(--primary);">${badgeName} :</strong> 
-        <span style="color:var(--text);">${items.join(' <span style="color:var(--muted); margin:0 4px;">|</span> ')}</span>
-      </div>`;
+    // Suchen nach Gruppe, Produkttyp, Artikel, Farbe oder Größe
+    if (searchTerms.length > 0) {
+        const searchStr = `${item.group || ''} ${item.productType || ''} ${item.article || ''} ${item.size || ''} ${item.color || ''}`.toLowerCase();
+        const matchesAll = searchTerms.every(term => searchStr.includes(term));
+        if (!matchesAll) return;
     }
-  });
 
-  if (!hasAny) {
-     html = '<div class="empty">Aktuell können keine Sets aus den offenen Artikeln gebildet werden, die den definierten Regeln entsprechen.</div>';
-  }
-  
-  content.innerHTML = html;
-  g('setBadgesModal').style.display = 'flex';
-  g('setBadgesModal').classList.add('show');
-}
-
-function closeSetBadgesModal() {
-  g('setBadgesModal').classList.remove('show');
-  g('setBadgesModal').style.display = 'none';
-}
-
-
-// ═══════════════════════════════════════════════════
-// RENDER OFFEN
-// ═══════════════════════════════════════════════════
-function toggleStack(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const btn = el.previousElementSibling;
-  el.classList.toggle('open');
-  state.openCollapse['s_'+id] = el.classList.contains('open');
-  if (btn && btn.classList.contains('stack-toggle')) {
-    const menge = el.querySelectorAll('.stack-inst').length;
-    btn.textContent = el.classList.contains('open')
-      ? `▾ ${menge} Exemplare ausblenden`
-      : `▸ ${menge} Exemplare anzeigen`;
-  }
-}
-
-function toggleAllGroups() {
-  globalExpandState = !globalExpandState;
-  state.openCollapse = {};
-  renderOpen();
-}
-
-function editItem(itemId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if (!item) return;
-  const newArticle = prompt('Artikelname:', item.article||'');
-  if(newArticle === null) return;
-  const newSize = prompt('Groesse:', item.size||'');
-  if(newSize === null) return;
-  const newColor = prompt('Farbe:', item.color||'');
-  if(newColor === null) return;
-  item.article = newArticle;
-  item.size = newSize;
-  item.color = newColor;
-  save(); renderOpen();
-}
-
-function deleteItem(itemId) {
-  if (!confirm('Artikel löschen?')) return;
-  state.open = state.open.filter(i=>i.id!==itemId);
-  state.sel.delete(itemId);
-  save(); render();
-}
-
-function deleteInst(itemId, instId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if (!item) return;
-  if (!confirm('Exemplar löschen?')) return;
-  item.instances = item.instances.filter(x=>x.id!==instId);
-  if (item.instances.length===0) state.open = state.open.filter(i=>i.id!==itemId);
-  state.sel.delete(itemId+'::'+instId);
-  save(); render();
-}
-
-function changeQty(itemId, delta) {
-  const item = state.open.find(i=>i.id===itemId) || state.open.find(i=>stackKey(i)===itemId);
-  if(!item) return;
-  const current = item.instances.length;
-  if(delta > 0) {
-    const inheritImg = item.instances[0]?.image || item.image || '';
-    item.instances.push({
-      id: crypto.randomUUID(),
-      purchasePrice: item.instances[0]?.purchasePrice || item.purchasePrice || 0,
-      profitshare: item.profitshare || false,
-      image: inheritImg,
-      entryDate: today(),
-      comment: '',
-      defect: ''
-    });
-  } else if(delta < 0 && current > 0) {
-    const removedImg = item.instances[current-1]?.image || '';
-    item.instances.pop();
-    if(item.instances.length === 0 && removedImg) { item._savedImage = removedImg; }
-    if(item.instances.length > 0 && removedImg) {
-      item.instances.forEach(inst => { if(!inst.image) inst.image = removedImg; });
-    }
-  }
-  save(); renderOpen();
-}
-
-function editItemImage(itemId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if(!item) return;
-  imagePickCallback = (url) => {
-    item._savedImage = url;
-    if(item.instances[0] && !item.instances[0].image) item.instances[0].image = url;
-    syncNewImageLabel(url);
-    save(); renderOpen();
-  };
-  openImagePicker(item._savedImage || item.instances[0]?.image || '');
-}
-
-function toggleItemProfitshare(itemId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if(!item) return;
-  const newVal = !item.instances.some(x=>x.profitshare);
-  item.instances.forEach(x=>x.profitshare = newVal);
-  save(); renderOpen();
-}
-
-function editInstImage(itemId, instId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if(!item) return;
-  const inst = item.instances.find(i=>i.id===instId);
-  if(!inst) return;
-  imagePickCallback = (url) => { inst.image = url; syncNewImageLabel(url); save(); renderOpen(); };
-  openImagePicker(inst.image || item._savedImage || '');
-}
-
-function toggleInstProfitshare(itemId, instId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if(!item) return;
-  const inst = item.instances.find(i=>i.id===instId);
-  if(!inst) return;
-  inst.profitshare = !inst.profitshare;
-  save(); renderOpen();
-}
-
-function editEK(itemId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if(!item) return;
-  const val = prompt('EK Preis eingeben (€):', item.purchasePrice||0);
-  if(val === null) return;
-  const price = parseFloat(val.replace(',','.')) || 0;
-  item.purchasePrice = price;
-  item.instances.forEach(inst => inst.purchasePrice = price);
-  save(); renderOpen();
-}
-
-function toggleGrp(el) {
-  const key = el.dataset.key;
-  const current = state.openCollapse[key] !== undefined ? state.openCollapse[key] : globalExpandState;
-  state.openCollapse[key] = !current;
-  renderOpen();
-}
-
-function toggleZeroFilter() {
-  state.hideZero = !state.hideZero;
-  updateZeroToggleUI();
-  renderOpen();
-}
-
-function updateZeroToggleUI() {
-  const active = state.hideZero;
-  const track = g('zeroFilterBtn');
-  const knob = g('zeroFilterKnob');
-  const label = g('zeroFilterLabel');
-  if(track) track.style.background = active ? 'var(--primary)' : '#ccc';
-  if(knob) knob.style.left = active ? '22px' : '2px';
-  if(label) label.textContent = active ? 'Nullbestand einblenden' : 'Nullbestand ausblenden';
-}
-
-function editInstEK(itemId, instId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if(!item) return;
-  const inst = item.instances.find(i=>i.id===instId);
-  if(!inst) return;
-  const val = prompt('EK Preis (EUR):', inst.purchasePrice||0);
-  if(val === null) return;
-  inst.purchasePrice = parseFloat(val.replace(',','.')) || 0;
-  save(); renderOpen();
-}
-
-function saveOpenState() {
-  const sc = document.querySelector('.scroll-container');
-  if(sc) state.openScrollPos = sc.scrollTop;
-}
-function restoreOpenState() {
-  requestAnimationFrame(() => {
-    const sc = document.querySelector('.scroll-container');
-    if(sc && state.openScrollPos) sc.scrollTop = state.openScrollPos;
-  });
-}
-
-function renderOpen() {
-  if(typeof saveOpenState === 'function') saveOpenState();
-  updateZeroToggleUI();
-  
-  const toggleAllBtn = g('toggleAllBtn');
-  if (toggleAllBtn) {
-    toggleAllBtn.innerHTML = globalExpandState ? '↕ Alle einklappen' : '↕ Alle aufklappen';
-  }
-
-  g('setBuilder').classList.toggle('show', state.sel.size>0);
-  if(state.sel.size>0 && typeof buildSetImgDropdown === 'function') buildSetImgDropdown();
-  
-  updatePsPreview();
-  g('selSummary').textContent = `${state.sel.size} Artikel gewählt.`;
-
-  if (!state.open.length) { g('openContent').innerHTML='<div class="empty">Keine offenen Artikel.<br>Über „Neu" Artikel hinzufügen.</div>'; return; }
-
-  const countPcs = (arr) => arr.reduce((s, i) => s + i.instances.length, 0);
-  const isOpen = (key) => state.openCollapse[key] !== undefined ? state.openCollapse[key] : globalExpandState;
-  const hashStr = s => Math.abs(s.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36);
-
-  const tree = {};
-  state.open.forEach(item => {
-    if (state.hideZero && item.instances.length === 0) return;
     const grp = item.group || '–';
     const pt  = item.productType || '–';
     const art = item.article || '';
@@ -2318,11 +1823,15 @@ function renderOpen() {
           
           if (hasColor) {
             const cKey = 'c_' + hashStr(grp+pt+art+col);
+            const histKeyC = `c_${grp}_${pt}_${art}_${col}`;
             colHtmlMaster += `
               <div style="margin-bottom:var(--sp3); margin-left:var(--sp2);">
                 <div class="group-head" onclick="toggleGrp(this)" data-key="${cKey}" style="cursor:pointer;">
                   <h5 class="group-title" style="font-size:var(--text-xs);color:var(--muted);text-transform:uppercase;">${isOpen(cKey) ? "▼" : "▶"} Farbe: ${col}</h5>
-                  <span class="chip">${colTotal} Stück</span>
+                  <div style="display:flex;gap:6px;align-items:center;">
+                      ${getAvgVkChip(histKeyC)}
+                      <span class="chip">${colTotal} Stück</span>
+                  </div>
                 </div>
                 <div class="grp-body" data-body="${cKey}" style="display:${isOpen(cKey) ? "block" : "none"}">
                   ${cardsHtml}
@@ -2340,11 +1849,15 @@ function renderOpen() {
         
         if (hasArt) {
           const aKey = 'a_' + hashStr(grp+pt+art);
+          const histKeyA = `a_${grp}_${pt}_${art}`;
           ptHtml += `
             <div style="margin-bottom:var(--sp3); margin-left:var(--sp2);">
               <div class="group-head" onclick="toggleGrp(this)" data-key="${aKey}" style="cursor:pointer;">
                 <h4 class="group-title" style="font-size:var(--text-sm);">${isOpen(aKey) ? "▼" : "▶"} ${art}</h4>
-                <span class="chip">${artTotal} Stück</span>
+                <div style="display:flex;gap:6px;align-items:center;">
+                    ${getAvgVkChip(histKeyA)}
+                    <span class="chip">${artTotal} Stück</span>
+                </div>
               </div>
               <div class="grp-body" data-body="${aKey}" style="display:${isOpen(aKey) ? "block" : "none"}">
                 ${colHtmlMaster}
@@ -2359,11 +1872,15 @@ function renderOpen() {
       if (ptTotal === 0) return;
 
       const pKey = 'p_' + hashStr(grp+pt);
+      const histKeyP = `p_${grp}_${pt}`;
       grpHtml += `
         <div style="margin-bottom:var(--sp4); margin-left:var(--sp2);">
           <div class="group-head" onclick="toggleGrp(this)" data-key="${pKey}" style="cursor:pointer;">
             <h3 class="group-title" style="font-size:var(--text-sm);color:var(--muted);">${isOpen(pKey) ? "▼" : "▶"} ${pt}</h3>
-            <span class="chip">${ptTotal} Stück</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+                ${getAvgVkChip(histKeyP)}
+                <span class="chip">${ptTotal} Stück</span>
+            </div>
           </div>
           <div class="grp-body" data-body="${pKey}" style="display:${isOpen(pKey) ? "block" : "none"}">
             ${ptHtml}
@@ -2373,11 +1890,15 @@ function renderOpen() {
 
     if (grpTotal === 0) return;
     const gKey = 'g_' + hashStr(grp);
+    const histKeyG = `g_${grp}`;
     html += `
       <div style="margin-bottom:var(--sp6);">
         <div class="group-head" onclick="toggleGrp(this)" data-key="${gKey}" style="cursor:pointer;">
           <h2 class="group-title">${isOpen(gKey) ? "▼" : "▶"} ${grp}</h2>
-          <span class="chip stack">${grpTotal} Stück</span>
+          <div style="display:flex;gap:6px;align-items:center;">
+              ${getAvgVkChip(histKeyG)}
+              <span class="chip stack">${grpTotal} Stück</span>
+          </div>
         </div>
         <div class="grp-body" data-body="${gKey}" style="display:${isOpen(gKey) ? "block" : "none"}">
           ${grpHtml}
@@ -2385,7 +1906,7 @@ function renderOpen() {
       </div>`;
   });
 
-  g('openContent').innerHTML = html || '<div class="empty">Keine offenen Artikel.<br>Über „Neu" Artikel hinzufügen.</div>';
+  g('openContent').innerHTML = html || (needle ? '<div class="empty">Keine Artikel für diese Suche gefunden.</div>' : '<div class="empty">Keine offenen Artikel.<br>Über „Neu" Artikel hinzufügen.</div>');
   
   g('openContent').querySelectorAll('[data-chk-inst]').forEach(cb=>{
     cb.addEventListener('change', e=>{
@@ -2468,7 +1989,7 @@ function renderMaster() {
   const groups = Object.keys(cat).sort((a,b)=>a.localeCompare(b,'de'));
   let html = '';
 
-  window.currentEditBadgeIndex = null; // Reset edit state when re-rendering
+  window.currentEditBadgeIndex = null; 
 
   if (groups.length) {
     groups.forEach(grp => {
@@ -2520,7 +2041,6 @@ function renderMaster() {
       </div>
     </div></div>`;
 
-  // NEU: Set Badges Regeln Karte
   html += `<div class="card" style="margin-bottom:var(--sp4);">
         <div class="card-head"><h3 class="card-title">🏆 Set Badges (Regeln)</h3></div>
         <div class="card-body">
@@ -2571,7 +2091,6 @@ function render() {
   if (state.page==='master') renderMaster();
   if(state.page !== 'open') { const sc=document.querySelector('.scroll-container'); if(sc) sc.scrollTop=0; }
   
-  // Wichtig für den Bugfix: Modal Bilder nur aktualisieren wenn das Element auch existiert
   if(document.getElementById('imgDropdown')) buildImgDropdown();
 }
 
@@ -2724,13 +2243,15 @@ g('createSetBtn').addEventListener('click', () => {
   });
   
   state.sel.clear();
-  g('setName').value=''; g('salePrice').value=''; if(g('manualPsShare')) g('manualPsShare').value='50'; setPsShare && [10,20,30,40].forEach(p=>{const b=g('psbtn'+p);if(b){b.style.background='var(--surfoff)';b.style.color='';b.style.borderColor='var(--border)';}});
+  g('setName').value=''; g('salePrice').value=''; if(g('manualPsShare')) g('manualPsShare').value='50'; setPsShare && resetPsButtons();
   setSetImgVal(''); g('clearSetImg').style.display='none';
   save(); toast('Set verkauft ✓');
   state.page='sold'; render();
 });
 
 g('clearSelBtn').addEventListener('click', ()=>{ state.sel.clear(); renderOpen(); });
+
+g('openSearch').addEventListener('input', e=>{ state.openFilter=e.target.value; if(state.page==='open') renderOpen(); });
 g('soldSearch').addEventListener('input', e=>{ state.soldFilter=e.target.value; if(state.page==='sold') renderSold(); });
 g('statsYear').addEventListener('change', e=>{ state.year=e.target.value; renderStats(); });
 g('themeToggle').addEventListener('click', ()=>{
@@ -2746,6 +2267,7 @@ document.addEventListener('click', e => {
     if(e.target.checked) state.sel.add(key); else state.sel.delete(key);
     g('setBuilder').classList.toggle('show', state.sel.size>0);
     g('selSummary').textContent=`${state.sel.size} Artikel gewählt.`;
+    updatePsPreview();
     return;
   }
   if (e.target.matches('[data-tog]')) {
@@ -2925,7 +2447,6 @@ function showAddInput(id) {
   inp.placeholder = labels[id] + ' eingeben…';
   inp.style.cssText = 'width:100%;height:48px;padding:0 12px;border-radius:8px;border:2px solid #01696f;background:#fbfbf9;color:#28251d;font-size:16px;font-family:inherit;box-sizing:border-box;margin-top:6px;display:block;';
   
-  // Fix: Flexbox hat das Input-Feld gequetscht. Wir hängen es direkt UNTER die Zeile.
   sel.parentNode.insertAdjacentElement('afterend', inp);
   
   inp.focus();
