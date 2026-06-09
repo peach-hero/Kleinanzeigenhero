@@ -704,6 +704,7 @@ function initApp() {
     render();
 }
 
+// 100% KUGELSICHERE MIGRATION FÜR ALTE DATEIEN
 function applyState(d) {
   try {
     state.open   = Array.isArray(d.open) ? d.open.filter(Boolean) : [];
@@ -778,6 +779,13 @@ function applyState(d) {
     state.sold.forEach(s => {
        if(!s.items || !Array.isArray(s.items)) s.items = [];
        if(!s.id) s.id = uid();
+       if(!s.saleDate) s.saleDate = today();
+       if(!s.setName) s.setName = 'Unbenanntes Set';
+       s.items.forEach(i => {
+           let qty = (i.menge !== undefined) ? i.menge : (i.quantity !== undefined ? i.quantity : 1);
+           i.menge = qty;
+           i.quantity = qty;
+       });
     });
     
     state.sellCart = [];
@@ -799,6 +807,7 @@ const stackKey = i => `${i.group}||${i.productType||''}||${i.article}||${i.size}
 const purchase = i => (+i.purchasePrice||0);
 const g = id => document.getElementById(id);
 
+// Kugelsicherer UUID Generator für alte/beschränkte WebViews
 const uid = () => {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
         return crypto.randomUUID();
@@ -818,83 +827,6 @@ function toast(msg) {
 
 function fillSel(el, vals, ph) {
   el.innerHTML = `<option value="">${ph}</option>` + vals.map(v=>`<option value="${v}">${v}</option>`).join('');
-}
-
-// ==========================================
-// BILDER & MODALS (FIXED)
-// ==========================================
-
-function buildImgDropdown() {
-  const dd = g('imgDropdown'); if (!dd) return;
-  const grp = g('group')?.value || '';
-  const typ = g('productType')?.value || '';
-  const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
-  
-  const allImgs = [...new Set([...catImgs, ...(state.master.images||[]), ...(state.master.setImages||[])])];
-  const opts = [{ url:'', label:'Kein Bild' }, ...allImgs.map(u=>({
-    url:u, label: u.startsWith('data:') ? (catImgs.includes(u) ? `📌 ${typ}` : 'Upload-Bild') : (u.split('id=')[1]?.slice(0,22)||u.slice(-22))
-  }))];
-  dd.innerHTML = opts.map(o=>`
-    <div class="iso" data-val="${o.url}">
-      <div class="iso-thumb">${o.url?`<img src="${o.url}" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">` :'📷'}</div>
-      <span>${o.label}</span>
-    </div>`).join('');
-}
-
-function setImgVal(url) {
-  g('imgValue').value = url;
-  const lbl = url ? (url.startsWith('data:') ? 'Upload-Bild' : (url.split('id=')[1]?.slice(0,22)||url.slice(-22))) : 'Kein Bild';
-  if(g('imgLabel')) g('imgLabel').textContent = lbl;
-  const p = g('imgPreview');
-  if(p) p.innerHTML = url ? `<img src="${url}" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">` : '📷';
-  if(g('imgDropdown')) g('imgDropdown').querySelectorAll('.iso').forEach(o=>o.classList.toggle('active', o.dataset.val===url));
-}
-
-let imagePickCallback = null;
-
-function syncNewImageLabel(url) {
-  const lbl = g('imgLabel');
-  const prev = g('imgPreview');
-  if(lbl) lbl.textContent = url ? 'Aus Stammdaten gewählt' : 'Aus Stammdaten wählen…';
-  if(prev) prev.textContent = url ? '🖼' : '📷';
-}
-
-function openNewImgPicker() {
-  imagePickCallback = (url) => {
-    g('imgValue').value = url;
-    const prev = g('imgPreview');
-    const lbl = g('imgLabel');
-    if(prev) prev.innerHTML = url ? `<img src="${url}" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">` : '🖼';
-    if(lbl) lbl.textContent = url ? 'Bild gewählt ✓' : 'Aus Stammdaten wählen…';
-  };
-  openImagePicker(g('imgValue')?.value || '');
-}
-
-function openImagePicker(currentUrl='') {
-  const modal = g('imagePickerModal');
-  const list = g('imagePickerList');
-  if(!modal || !list) return;
-  const grp = g('group')?.value || '';
-  const typ = g('productType')?.value || '';
-  const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
-  const allImgs = [...new Set([...catImgs, ...(state.master.images||[]), ...(state.master.setImages||[])])];
-  list.innerHTML = allImgs.length ? allImgs.map(u => `
-    <button type="button" class="img-pick" data-url="${u.replace(/"/g,'&quot;')}" style="border:2px solid ${u===currentUrl?'#4caf50':'transparent'}">
-      <img src="${u}" loading="lazy" style="width:100%;height:100px;object-fit:cover;border-radius:8px;">
-      <div style="font-size:var(--text-xs);margin-top:4px;word-break:break-all;">${catImgs.includes(u) ? 'Stammdaten' : (state.master.setImages||[]).includes(u) ? 'Set-Bild' : 'Upload'}</div>
-    </button>`).join('') : '<div class="empty">Keine Bilder vorhanden.</div>';
-  modal.style.display='flex'; modal.classList.add('show'); document.documentElement.style.overflow='hidden';
-  modal.onclick = e => {
-    const b = e.target.closest('[data-url]');
-    if(!b) return;
-    imagePickCallback && imagePickCallback(b.dataset.url);
-    closeImagePicker();
-  };
-}
-
-function closeImagePicker() {
-  const modal = g('imagePickerModal');
-  if(modal){ modal.classList.remove('show'); modal.style.display='none'; } document.documentElement.style.overflow='';
 }
 
 // ==========================================
@@ -1352,7 +1284,9 @@ function updateSellPreview() {
                 keys.forEach(k => {
                     if (!histLookup.has(k)) histLookup.set(k, { rev: 0, qty: 0 });
                     const e = histLookup.get(k);
-                    e.rev += shareRev; e.qty += (i.menge || 1);
+                    e.rev += shareRev; 
+                    let qty = (i.menge !== undefined ? i.menge : (i.quantity !== undefined ? i.quantity : 1));
+                    e.qty += qty;
                 });
             });
         }
@@ -1419,17 +1353,30 @@ function executeSale() {
 
   const purchaseTotal = state.sellCart.reduce((s,{inst})=>s+(+inst.purchasePrice||0),0);
   const rawProfit = sp - purchaseTotal;
-  const psPct = +(g('sellPsInput')?.value || 0);
+  const psPct = +(g('sellPsInput') ? g('sellPsInput').value : 0);
   const netProfit = rawProfit * (1 - psPct/100);
   const psSome = psPct > 0;
   
   const previewImage = g('sellSetImgData').value || ((state.sellCart.find(c => c.inst.image) || {inst:{}}).inst.image || '');
 
   state.sold.unshift({
-    id:uid(), setName: setName.trim() || 'Unbenanntes Set', salePrice:sp, purchaseTotal, netProfit,
-    saleDate:today(), hasProfitshare:psSome,
+    id:uid(), 
+    setName: setName.trim() || 'Unbenanntes Set', 
+    salePrice:sp, 
+    purchaseTotal, 
+    netProfit,
+    saleDate:today(), 
+    hasProfitshare:psSome,
     previewImage: previewImage,
-    items:[...byArticle.values()].map(e=>({article:e.item.article,productType:e.item.productType||'',group:e.item.group,size:e.item.size,color:e.item.color,menge:e.insts.length}))
+    items:[...byArticle.values()].map(e=>({
+        article:e.item.article,
+        productType:e.item.productType||'',
+        group:e.item.group,
+        size:e.item.size,
+        color:e.item.color,
+        menge:e.insts.length,
+        quantity:e.insts.length
+    }))
   });
   
   byArticle.forEach(({item,insts})=>{
@@ -1438,13 +1385,13 @@ function executeSale() {
   });
   
   state.sellCart = [];
-  g('sellBaseName').value=''; 
-  g('sellPrice').value=''; 
-  g('sellPsInput').value='0';
-  g('sellSetImgData').value='';
-  g('sellSetImgLabel').textContent = 'Aus Stammdaten wählen…';
-  g('sellSetImgPreview').innerHTML = '📷';
-  g('sellClearSetImg').style.display='none';
+  if(g('sellBaseName')) g('sellBaseName').value=''; 
+  if(g('sellPrice')) g('sellPrice').value=''; 
+  if(g('sellPsInput')) g('sellPsInput').value='0';
+  if(g('sellSetImgData')) g('sellSetImgData').value='';
+  if(g('sellSetImgLabel')) g('sellSetImgLabel').textContent = 'Aus Stammdaten wählen…';
+  if(g('sellSetImgPreview')) g('sellSetImgPreview').innerHTML = '📷';
+  if(g('sellClearSetImg')) g('sellClearSetImg').style.display='none';
   state.psManualOverride = false;
   
   save(); 
@@ -1539,7 +1486,7 @@ function renderOpen() {
             if (!histLookup.has(k)) histLookup.set(k, { rev: 0, qty: 0 });
             const e = histLookup.get(k);
             e.rev += shareRev;
-            e.qty += (i.menge || 1);
+            e.qty += (i.menge !== undefined ? i.menge : (i.quantity !== undefined ? i.quantity : 1));
           });
         });
     }
@@ -1753,287 +1700,240 @@ function renderOpen() {
 }
 
 // ==========================================
-// ITEM ACTIONS
+// STATS & SOLD TAB LOGIC
 // ==========================================
-function editItem(itemId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if (!item) return;
-  const newArticle = prompt('Artikelname:', item.article||'');
-  if(newArticle === null) return;
-  const newSize = prompt('Groesse:', item.size||'');
-  if(newSize === null) return;
-  const newColor = prompt('Farbe:', item.color||'');
-  if(newColor === null) return;
-  item.article = newArticle;
-  item.size = newSize;
-  item.color = newColor;
-  save(); renderOpen();
-}
+function renderStats() {
+  const years = [...new Set(state.sold.map(s=>(s.saleDate||today()).slice(0,4)))].sort((a,b)=>b-a);
+  if (!years.length) years.push(state.year);
+  if (!years.includes(state.year)) state.year = years[0];
+  g('statsYear').innerHTML = years.map(y=>`<option value="${y}" ${y===state.year?'selected':''}>${y}</option>`).join('');
 
-function deleteItem(itemId) {
-  if (!confirm('Artikel löschen?')) return;
-  state.open = state.open.filter(i=>i.id!==itemId);
-  state.sellCart = state.sellCart.filter(c => c.item.id !== itemId);
-  save(); 
-  if (state.page === 'sell') renderSellFilters();
-  renderOpen();
-}
+  const ys = state.sold.filter(s=>(s.saleDate||today()).startsWith(state.year));
 
-function deleteInst(itemId, instId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if (!item) return;
-  if (!confirm('Exemplar löschen?')) return;
-  
-  item.instances = item.instances.filter(x=>x.id!==instId);
-  if (item.instances.length===0) state.open = state.open.filter(i=>i.id!==itemId);
-  
-  state.sellCart = state.sellCart.filter(c => c.inst.id !== instId);
+  const totalSets    = ys.length; 
+  const totalProfit  = ys.reduce((s,set)=>s+(set.netProfit||0),0);
+  const totalRevenue = ys.reduce((s,set)=>s+(set.salePrice||0),0);
+  const totalArtSold = ys.reduce((s,set)=>s+(set.items||[]).reduce((a,i)=>a+((i.menge !== undefined ? i.menge : i.quantity)||1),0),0);
 
-  save(); 
-  if (state.page === 'sell') { renderSellCart(); renderSellFilters(); }
-  renderOpen();
-}
+  const topSet = ys.slice().sort((a,b)=>(b.netProfit||0)-(a.netProfit||0))[0];
 
-function changeQty(itemId, delta) {
-  const item = state.open.find(i=>i.id===itemId) || state.open.find(i=>stackKey(i)===itemId);
-  if(!item) return;
-  const current = item.instances.length;
-  if(delta > 0) {
-    const inheritImg = item.instances[0]?.image || item.image || '';
-    item.instances.push({
-      id: uid(),
-      purchasePrice: item.instances[0]?.purchasePrice || item.purchasePrice || 0,
-      profitshare: item.profitshare || false,
-      image: inheritImg,
-      entryDate: today(),
-      comment: '',
-      defect: ''
-    });
-  } else if(delta < 0 && current > 0) {
-    const removedInst = item.instances.pop();
-    state.sellCart = state.sellCart.filter(c => c.inst.id !== removedInst.id);
-    if(item.instances.length === 0 && removedInst.image) { item._savedImage = removedInst.image; }
-  }
-  save(); 
-  if (state.page === 'sell') renderSellFilters();
-  renderOpen();
-}
-
-function editItemImage(itemId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if(!item) return;
-  imagePickCallback = (url) => {
-    item._savedImage = url;
-    if(item.instances[0] && !item.instances[0].image) item.instances[0].image = url;
-    syncNewImageLabel(url);
-    save(); renderOpen();
-  };
-  openImagePicker(item._savedImage || item.instances[0]?.image || '');
-}
-
-function toggleItemProfitshare(itemId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if(!item) return;
-  const newVal = !item.instances.some(x=>x.profitshare);
-  item.instances.forEach(x=>x.profitshare = newVal);
-  save(); renderOpen();
-}
-
-function editInstImage(itemId, instId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if(!item) return;
-  const inst = item.instances.find(i=>i.id===instId);
-  if(!inst) return;
-  imagePickCallback = (url) => { inst.image = url; syncNewImageLabel(url); save(); renderOpen(); };
-  openImagePicker(inst.image || item._savedImage || '');
-}
-
-function toggleInstProfitshare(itemId, instId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if(!item) return;
-  const inst = item.instances.find(i=>i.id===instId);
-  if(!inst) return;
-  inst.profitshare = !inst.profitshare;
-  save(); renderOpen();
-}
-
-function editEK(itemId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if(!item) return;
-  const val = prompt('EK Preis eingeben (€):', item.purchasePrice||0);
-  if(val === null) return;
-  const price = parseFloat(val.replace(',','.')) || 0;
-  item.purchasePrice = price;
-  item.instances.forEach(inst => inst.purchasePrice = price);
-  save(); renderOpen();
-}
-
-function toggleGrp(el) {
-  const key = el.dataset.key;
-  const current = state.openCollapse[key] !== undefined ? state.openCollapse[key] : globalExpandState;
-  state.openCollapse[key] = !current;
-  renderOpen();
-}
-
-function editInstEK(itemId, instId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if(!item) return;
-  const inst = item.instances.find(i=>i.id===instId);
-  if(!inst) return;
-  const val = prompt('EK Preis (EUR):', inst.purchasePrice||0);
-  if(val === null) return;
-  inst.purchasePrice = parseFloat(val.replace(',','.')) || 0;
-  save(); renderOpen();
-}
-
-// DOM Events continued
-document.addEventListener('click', e => {
-  if (e.target.matches('[data-tog]')) {
-    const d=document.getElementById('sd-'+e.target.dataset.tog);
-    if(d) d.classList.toggle('open'); return;
-  }
-  if (e.target.matches('[data-del]') && !e.target.matches('[data-del-inst]')) {
-    if(!confirm('Ganzen Stapel löschen?')) return;
-    const id=e.target.dataset.del;
-    state.open=state.open.filter(i=>i.id!==id); 
-    state.sellCart = state.sellCart.filter(c => c.item.id !== id);
-    save(); renderOpen(); return;
-  }
-  if (e.target.matches('[data-del-inst]')) {
-    const itemId=e.target.dataset.delInst, instId=e.target.dataset.instId;
-    const item=state.open.find(i=>i.id===itemId); if(!item) return;
-    item.instances=item.instances.filter(x=>x.id!==instId);
-    if(!item.instances.length) state.open=state.open.filter(i=>i.id!==itemId);
-    state.sellCart = state.sellCart.filter(c => c.inst.id !== instId);
-    save(); renderOpen(); return;
-  }
-  if (e.target.matches('[data-del-sold]')) {
-    if(!confirm('Eintrag löschen?')) return;
-    state.sold=state.sold.filter(s=>s.id!==e.target.dataset.delSold);
-    save(); renderSold(); return;
-  }
-  if (e.target.matches('[data-rm]')) {
-    const {rm:key, grp, typ, idx} = e.target.dataset;
-    if (key==='group')       { delete state.master.catalog[grp]; }
-    else if (key==='prodtype') { delete state.master.catalog[grp]?.[typ]; }
-    else if (key==='images') { state.master.images.splice(+idx,1); }
-    else { state.master.catalog[grp]?.[typ]?.[key]?.splice(+idx,1); }
-    fillMasterDropdowns(); save(); renderMaster(); return;
-  }
-});
-
-</script>
-
-<div id="imagePickerModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--surface);color:var(--text);max-width:600px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.25);">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
-      <h3 style="margin:0;font-weight:700;font-size:var(--text-lg);">Bild wählen</h3>
-      <button type="button" class="btn btn-ghost" onclick="closeImagePicker()">Schließen</button>
-    </div>
-    <div id="imagePickerList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;"></div>
-  </div>
-</div>
-
-<div id="setBadgesModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--surface);color:var(--text);max-width:600px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.25);">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
-      <h3 style="margin:0;font-weight:700;font-size:var(--text-lg);">Mögliche Sets</h3>
-      <button type="button" class="btn btn-ghost" onclick="closeSetBadgesModal()">Schließen</button>
-    </div>
-    <div id="setBadgesContent"></div>
-  </div>
-</div>
-
-<input type="file" id="instImgInput" accept="image/*" style="display:none">
-<script>
-let _instImgItemId = null, _instImgInstId = null;
-
-function triggerInstImgUpload(itemId, instId) {
-  _instImgItemId = itemId;
-  _instImgInstId = instId;
-  document.getElementById('instImgInput').click();
-}
-
-document.getElementById('instImgInput').addEventListener('change', function() {
-  const file = this.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const url = e.target.result;
-    const item = state.open.find(i => i.id === _instImgItemId);
-    if (!item) return;
-    const inst = item.instances.find(x => x.id === _instImgInstId);
-    if (!inst) return;
-    inst.image = url;
-    save();
-    renderOpen();
-    toast('Bild gespeichert ✓');
-  };
-  reader.readAsDataURL(file);
-  this.value = '';
-});
-
-function resetItemForm() {
-  g('itemForm').reset();
-  if (g('purchasePrice')) g('purchasePrice').value = '';
-  if (g('quantity')) g('quantity').value = '1';
-  if (g('productType')) g('productType').innerHTML = '<option value="">Gruppe wählen</option>';
-  if (g('article')) g('article').innerHTML = '<option value="">Produkttyp wählen</option>';
-  if (g('size')) g('size').innerHTML = '<option value=""></option>';
-  if (g('color')) g('color').innerHTML = '<option value=""></option>';
-  if (g('imgValue')) g('imgValue').value = '';
-  if (g('imgLabel')) g('imgLabel').textContent = 'Aus Stammdaten wählen';
-  if (g('imgPreview')) g('imgPreview').innerHTML = '';
-  if (g('uploadPreview')) g('uploadPreview').classList.remove('show');
-}
-
-function showAddInput(id) {
-  if (document.getElementById('addinp_'+id)) return;
-  var sel = document.getElementById(id);
-  var labels = {group:'Gruppe',productType:'Produkttyp',article:'Artikelname',size:'Größe',color:'Farbe'};
-  var inp = document.createElement('input');
-  inp.id = 'addinp_'+id;
-  inp.type = 'text';
-  inp.placeholder = labels[id] + ' eingeben…';
-  inp.style.cssText = 'width:100%;height:48px;padding:0 12px;border-radius:8px;border:2px solid #01696f;background:#fbfbf9;color:#28251d;font-size:16px;font-family:inherit;box-sizing:border-box;margin-top:6px;display:block;';
-  
-  sel.parentNode.insertAdjacentElement('afterend', inp);
-  
-  inp.focus();
-
-  function save_input() {
-    var val = inp.value.trim();
-    inp.remove();
-    if (!val) return;
-    var cat = state.master.catalog;
-    var grp = document.getElementById('group').value;
-    var pt  = document.getElementById('productType').value;
-    if (id==='group') {
-      if (!cat[val]) { cat[val]={}; save_state(); toast('Gruppe "'+val+'" ✓'); }
-      fillMasterDropdowns(); document.getElementById('group').value=val; onGroupChange();
-    } else if (id==='productType') {
-      if (grp && !cat[grp][val]) { cat[grp][val]={articles:[],sizes:[],colors:[]}; save_state(); toast('Produkttyp "'+val+'" ✓'); }
-      onGroupChange(); document.getElementById('productType').value=val; onProductTypeChange();
-    } else if (id==='article') {
-      if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.articles.includes(val)){d.articles.push(val);save_state();toast('Artikel "'+val+'" ✓');} }
-      document.getElementById('article').value=val; onProductTypeChange(); document.getElementById('article').value=val;
-    } else if (id==='size') {
-      if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.sizes.includes(val)){d.sizes.push(val);save_state();toast('Größe "'+val+'" ✓');} }
-      document.getElementById('size').value=val; onProductTypeChange(); document.getElementById('size').value=val;
-    } else if (id==='color') {
-      if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.colors.includes(val)){d.colors.push(val);save_state();toast('Farbe "'+val+'" ✓');} }
-      document.getElementById('color').value=val; onProductTypeChange(); document.getElementById('color').value=val;
+  const monthMap = new Map();
+  ys.forEach(set=>{
+    const sDate = set.saleDate || today();
+    const m = fmtMonth(sDate);
+    if(!monthMap.has(m)) monthMap.set(m,{profit:0,revenue:0,sets:0,artUnits:0,items:[],key:sDate.slice(0,7)});
+    const e=monthMap.get(m);
+    e.profit  += (set.netProfit||0);
+    e.revenue += (set.salePrice||0);
+    e.sets    += 1;
+    if(set.items) {
+        e.artUnits+= set.items.reduce((a,i)=>a+((i.menge !== undefined ? i.menge : i.quantity)||1),0);
+        set.items.forEach(item=>{
+          e.items.push({
+              article:item.article,
+              productType:item.productType||'',
+              group:item.group||'',
+              size:item.size||'',
+              color:item.color||'',
+              quantity:(item.menge !== undefined ? item.menge : item.quantity)||1,
+              setName:set.setName||'Set',
+              saleDate:sDate
+          });
+        });
     }
-  }
-
-  function save_state() { if(window.save) window.save(); }
-
-  inp.addEventListener('keydown', function(e) {
-    if (e.key==='Enter') { e.preventDefault(); save_input(); }
-    if (e.key==='Escape') { inp.remove(); }
   });
-  inp.addEventListener('blur', function() { setTimeout(save_input, 150); });
+  const months = [...monthMap.entries()].sort((a,b)=>b[1].key.localeCompare(a[1].key));
+
+  g('statsCards').innerHTML = [
+    {k:'Verkaufte Artikel',  v:totalSets},
+    {k:'Jahresgewinn',    v:euro(totalProfit)},
+    {k:'Umsatz',          v:euro(totalRevenue)},
+    {k:'Top Artikel',     v:topSet ? `<span style="font-size:var(--text-sm);">${topSet.setName||'–'}</span><div style="font-size:var(--text-xs);color:var(--muted);margin-top:2px;">${(topSet.items||[]).map(i=>[i.productType,i.article].filter(Boolean).join(' · ')).join(', ')}</div>` : '-'},
+  ].map(c=>`<div class="stat-card"><div class="k">${c.k}</div><div class="v">${c.v}</div></div>`).join('');
+
+  const monthPsProfit = new Map();
+  const monthPsSets   = new Map();
+  ys.filter(s=>s.hasProfitshare).forEach(set=>{
+    const sDate = set.saleDate || today();
+    const m=fmtMonth(sDate);
+    monthPsProfit.set(m,(monthPsProfit.get(m)||0)+(set.netProfit||0));
+    monthPsSets.set(m,(monthPsSets.get(m)||0)+1);
+  });
+  g('monthTable').innerHTML = months.length
+    ? `<thead><tr><th>Monat</th><th>Jahr</th><th>Sets</th><th>Art.</th><th>Gewinn</th><th>Umsatz</th><th>PS-Anteil</th></tr></thead>
+       <tbody>${months.map(([m,d])=>{
+         const [mon,yr] = m.split(' ');
+         const psSets = monthPsSets.get(m)||0;
+         const psProfit = monthPsProfit.get(m)||0;
+         const psPct = d.sets ? Math.round(psSets/d.sets*100) : 0;
+         return '<tr><td>'+mon+'</td><td>'+yr+'</td><td>'+d.sets+'</td><td>'+d.artUnits+'</td><td>'+euro(d.profit)+'</td><td>'+euro(d.revenue)+'</td><td>'+(psSets?euro(psProfit)+' ('+psPct+'%)':'-')+'</td></tr>';
+       }).join('')}</tbody>`
+    : '<tbody><tr><td colspan="7">Keine Verkäufe.</td></tr></tbody>';
+
+  const avgUnit = totalSets ? totalProfit/totalSets : 0;
+  const psCount = ys.filter(s=>s.hasProfitshare).length;
+  const mkTop5 = (title, entries, fmt) =>
+    `<div style="margin-bottom:var(--sp4);">
+      <div style="font-size:var(--text-xs);font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:var(--sp2);">${title}</div>
+      <table class="mini-table"><tbody>
+        ${entries.map(([name,val],i)=>`<tr><td style="color:var(--muted);width:20px;">${i+1}</td><td>${name}</td><td style="text-align:right;font-weight:700;">${fmt(val)}</td></tr>`).join('')}
+      </tbody></table>
+    </div>`;
+
+  const setByName = new Map();
+  ys.forEach(set => {
+    const name = set.setName || '(kein Name)';
+    if (!setByName.has(name)) setByName.set(name, {profit:0, revenue:0, count:0});
+    const e = setByName.get(name);
+    e.profit  += (set.salePrice||0) - (set.purchaseTotal||0);
+    e.revenue += (set.salePrice||0);
+    e.count   += 1;
+  });
+  const top10SetProfit  = [...setByName.entries()].map(([k,v])=>[k,v.profit/v.count]).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const top10SetRevenue = [...setByName.entries()].map(([k,v])=>[k,v.revenue/v.count]).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+  g('top5Cards').innerHTML =
+    '<div class="top5-grid">' +
+    mkTop5('🎯 Top 10 Artikel', top10SetProfit, euro) +
+    mkTop5('💵 Top 10 Umsatz', top10SetRevenue, euro) +
+    '</div>';
+
+  const ptMap = new Map();
+  const artMap = new Map();
+  const artRevMap = new Map();
+
+  ys.forEach(s => {
+    const shareRev = (s.items && s.items.length) ? (s.salePrice||0) / s.items.length : (s.salePrice||0);
+    if(s.items) {
+        s.items.forEach(i => {
+          const pt = i.productType || '–';
+          let qty = (i.menge !== undefined ? i.menge : i.quantity) || 1;
+          ptMap.set(pt, (ptMap.get(pt)||0) + qty);
+
+          const art = i.article || '–';
+          artMap.set(art, (artMap.get(art)||0) + qty);
+          artRevMap.set(art, (artRevMap.get(art)||0) + shareRev);
+        });
+    }
+  });
+
+  const topPt = [...ptMap.entries()].sort((a,b)=>b[1]-a[1])[0];
+  const topArt = [...artMap.entries()].sort((a,b)=>b[1]-a[1])[0];
+  const topArtRev = [...artRevMap.entries()].sort((a,b)=>b[1]-a[1])[0];
+
+  const avgEkPerItem = totalArtSold ? ys.reduce((s,x)=>s+(x.items||[]).reduce((a,i)=>a+(i.purchasePrice||0),0),0) / totalArtSold : 0;
+  const avgVkPerEinheit = totalSets ? totalRevenue / totalSets : 0;
+
+  g('kpiCards').innerHTML = `<div class="kpi-grid">
+      <div class="kpi-card"><div class="k">Ø Gewinn / Set</div><div class="v">${euro(avgUnit)}</div><div class="d">Je verkauftem Vorgang</div></div>
+      <div class="kpi-card"><div class="k">Profitshare-Anteil</div><div class="v">${ys.length?Math.round(psCount/ys.length*100):0} %</div><div class="d">Vorgänge mit PS</div></div>
+      <div class="kpi-card"><div class="k">Ø Marge</div><div class="v">${totalRevenue?Math.round(totalProfit/totalRevenue*100):0} %</div><div class="d">Gewinn ÷ Umsatz</div></div>
+      <div class="kpi-card"><div class="k">Ø EK / Exemplare</div><div class="v">${euro(avgEkPerItem)}</div><div class="d">Durchschnitt pro Stück</div></div>
+      <div class="kpi-card"><div class="k">Ø VK / Einheit</div><div class="v">${euro(avgVkPerEinheit)}</div><div class="d">Durchschnittlicher Verkauf</div></div>
+      <div class="kpi-card"><div class="k">Bester Monat</div><div class="v">${months.length ? months.slice().sort((a,b)=>b[1].profit-a[1].profit)[0][0] : '–'}</div><div class="d">Höchster Monatsgewinn</div></div>
+      <div class="kpi-card"><div class="k">Umsatzstärkster Monat</div><div class="v">${months.length ? months.slice().sort((a,b)=>b[1].revenue-a[1].revenue)[0][0] : '–'}</div><div class="d">Höchster Monatsumsatz</div></div>
+      <div class="kpi-card"><div class="k">Aktivste Gruppe</div><div class="v">${(()=>{const m=new Map();ys.forEach(s=>(s.items||[]).forEach(i=>{const g=i.group||'–';m.set(g,(m.get(g)||0)+1);}));const t=[...m.entries()].sort((a,b)=>b[1]-a[1])[0];return t?t[0]:'–';})()}</div><div class="d">Meist verkaufte Gruppe</div></div>
+      <div class="kpi-card"><div class="k">Aktivster Produkttyp</div><div class="v">${topPt ? topPt[0] : '–'}</div><div class="d">${topPt ? topPt[1] + 'x verkauft' : ''}</div></div>
+      <div class="kpi-card"><div class="k">Aktivste Artikelnamen</div><div class="v">${topArt ? topArt[0] : '–'}</div><div class="d">Oft verkauft</div></div>
+      <div class="kpi-card"><div class="k">Meiste verkaufte Exemplare</div><div class="v">${topArt ? topArt[0] : '–'}</div><div class="d">${topArt ? topArt[1] + ' Stück · Ø VK ' + euro(topArtRev ? topArtRev[1]/topArt[1] : 0) : ''}</div></div>
+      <div class="kpi-card"><div class="k">Top Umsatz Artikel</div><div class="v">${topArtRev ? topArtRev[0] : '–'}</div><div class="d">${topArtRev ? euro(topArtRev[1]) : ''}</div></div>
+    </div>`;
+
+  const curMonthKey = new Date().toISOString().slice(0,7);
+  g('monthCards').innerHTML = months.filter(([,d])=>d.items.length).map(([m,d])=>{
+    const isCurrent = d.key === curMonthKey;
+    return `<div class="month-card${isCurrent?' current-month':''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--sp2);">
+        <b>${m}${isCurrent?' <span style=\"font-size:var(--text-xs);color:var(--accent);\">● aktuell</span>':''}</b>
+        <div class="chips">
+          <span class="chip">${d.sets} Set${d.sets!==1?'s':''}</span>
+          <span class="chip">${d.artUnits} Artikel</span>
+          <span class="chip profit">${euro(d.profit)}</span>
+        </div>
+      </div>
+      <ul class="month-items">${d.items.map(i=>{
+        const artLabel = [i.productType, i.article].filter(Boolean).join(' · ') || '–';
+        const details = [i.size, i.color].filter(Boolean).join(' · ');
+        const label = i.setName ? `<b>${i.setName}</b> <span style="color:var(--muted);font-size:var(--text-xs);">${artLabel}${details?' · '+details:''}</span>` : artLabel+(details?' · '+details:'');
+        const qty = i.quantity && i.quantity > 1 ? ` <span style="color:var(--accent);font-size:var(--text-xs);">×${i.quantity}</span>` : '';
+        return `<li>${label}${qty} · ${fmtDate(i.saleDate)}</li>`;
+      }).join('')}</ul>
+    </div>`;
+  }).join('') || '<div class="empty">Keine Verkäufe im gewählten Jahr.</div>';
 }
+
+function editSoldName(id) {
+  const set = state.sold.find(s=>s.id===id);
+  if(!set) return;
+  const val = prompt('Name:', set.setName||'');
+  if(val===null) return;
+  set.setName = val.trim();
+  save(); renderSold();
+}
+
+function editSoldPrice(id) {
+  const set = state.sold.find(s=>s.id===id);
+  if(!set) return;
+  const val = prompt('Verkaufspreis (EUR):', set.salePrice||0);
+  if(val===null) return;
+  const price = parseFloat(val.replace(',','.'));
+  if(isNaN(price)) return alert('Ungültiger Preis');
+  set.salePrice = price;
+  set.netProfit = price - (set.purchaseTotal||0);
+  save(); renderSold();
+}
+
+function editSoldImage(id) {
+  const set = state.sold.find(s=>s.id===id);
+  if(!set) return;
+  imagePickCallback = (url) => {
+    set.previewImage = url;
+    save(); renderSold();
+  };
+  openImagePicker(set.previewImage||'');
+}
+
+function renderSold() {
+  const needle = state.soldFilter.trim().toLowerCase();
+  const sets = needle ? state.sold.filter(s=>(s.setName||'').toLowerCase().includes(needle)) : state.sold;
+  if (!sets.length) { g('soldContent').innerHTML='<div class="empty">Keine Einträge.</div>'; return; }
+  
+  let totalArtUnits = 0;
+  sets.forEach(s => {
+      if(s.items) s.items.forEach(i => totalArtUnits += ((i.menge !== undefined ? i.menge : i.quantity) || 1));
+  });
+  
+  const sub = g('soldSubtitle'); if(sub) sub.textContent = sets.length+' Sets · '+totalArtUnits+' Artikel';
+  g('soldContent').innerHTML = sets.map(set=>`
+    <div class="sold-card">
+      <div class="sold-card-main">
+        <div class="sold-thumb">${set.previewImage?`<img src="${set.previewImage}" loading="lazy" onerror="this.parentElement.innerHTML='📦'">` :'📦'}</div>
+        <div>
+          <div class="item-title">${set.setName||'Unbenanntes Set'}</div>
+          <div class="chips" style="margin-top:var(--sp1);">
+            <span class="chip">${(set.items||[]).reduce((s,i)=>s+((i.menge !== undefined ? i.menge : i.quantity)||1),0)} Artikel</span>
+            <span class="chip">${fmtDate(set.saleDate)}</span>
+            ${set.hasProfitshare?'<span class="chip ps">PS</span>':''}
+          </div>
+          <div class="muted" style="font-size:var(--text-xs);margin-top:var(--sp2);">${(set.items||[]).map(i=>{ 
+              const label=(set.setName?[i.productType,i.article]:[i.group,i.productType,i.article,i.size,i.color]).filter(Boolean).join(' · '); 
+              let qty = (i.menge !== undefined ? i.menge : i.quantity) || 1;
+              return label+(qty>1?' ×'+qty:''); 
+          }).join(', ')}</div>
+        </div>
+      </div>
+      <div class="item-footer">
+        <div class="item-price-row">VK ${euro(set.salePrice)} · EK ${euro(set.purchaseTotal)} · <b class="profit">+${euro(set.netProfit)}</b></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <button class="btn btn-ghost" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-xs);" onclick="editSoldName('${set.id}')">✎ Name</button>
+          <button class="btn btn-ghost" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-xs);" onclick="editSoldPrice('${set.id}')">✎ VK</button>
+          <button class="btn btn-ghost" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-xs);" onclick="editSoldImage('${set.id}')">🖼 Bild</button>
+          <button class="btn btn-danger" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-xs);" data-del-sold="${set.id}">🗑</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
 </script>
 </body>
 </html>
