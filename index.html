@@ -185,7 +185,7 @@ img{max-width:100%;display:block;}
 .section-title{font-size:var(--text-sm);font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 var(--sp3);}
 .group-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp3);}
 .group-title{font-size:var(--text-base);font-weight:700;margin:0;}
-.success-toast{position:fixed;top:var(--sp4);left:50%;transform:translateX(-50%);background:var(--primary);color:var(--inv);padding:var(--sp3) var(--sp5);border-radius:999px;font-size:var(--text-sm);font-weight:600;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;}
+.success-toast{position:fixed;top:var(--sp4);left:50%;transform:translateX(-50%);background:var(--primary);color:var(--inv);padding:var(--sp3) var(--sp5);border-radius:999px;font-size:var(--text-sm);font-weight:600;z-index:99999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:var(--shadow-md);}
 .success-toast.show{opacity:1;}
 
 * { touch-action: manipulation; }
@@ -231,7 +231,7 @@ input, textarea, select { -webkit-user-select: text; user-select: text; }
     <button class="icon-btn" data-page="termin" title="Termine Kalender">📅</button>
     <button class="icon-btn" id="exportBtn" title="Daten exportieren" onclick="exportData()">📤</button>
     <label class="icon-btn" for="importFile" title="Daten importieren" style="cursor:pointer; display:flex; align-items:center; justify-content:center;">📥</label>
-    <input type="file" id="importFile" accept=".json" style="display:none">
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this.files[0]); this.value='';">
     <button class="icon-btn" id="themeToggle">◐</button>
   </div>
 </header>
@@ -432,7 +432,7 @@ input, textarea, select { -webkit-user-select: text; user-select: text; }
       <button class="btn btn-ghost" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-sm);background:var(--surface2);" onclick="openSetBadgesModal()">🏆 Set Badges</button>
       <button class="btn btn-ghost" id="toggleAllBtn" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-sm);background:var(--surface2);" onclick="toggleAllGroups()">↕ Alle aufklappen</button>
     </div>
-    <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;user-select:none">
+    <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;user-select:none;">
       <span id="zeroFilterLabel" style="color:var(--muted); font-weight:600;">Nullbestand</span>
       <span onclick="toggleZeroFilter()" id="zeroFilterBtn" style="
         display:inline-block;width:44px;height:24px;border-radius:12px;
@@ -571,7 +571,7 @@ input, textarea, select { -webkit-user-select: text; user-select: text; }
       <div class="export-row">
         <button class="btn btn-primary" id="exportBtn2" onclick="exportData()">📤 Exportieren</button>
         <label class="btn btn-ghost" for="importFile2" style="cursor:pointer; display:flex; align-items:center; justify-content:center;">📥 Importieren</label>
-        <input type="file" id="importFile2" accept=".json" style="display:none">
+        <input type="file" id="importFile2" accept=".json" style="display:none" onchange="importData(this.files[0]); this.value='';">
       </div>
     </div>
   </div>
@@ -705,74 +705,87 @@ function initApp() {
 }
 
 function applyState(d) {
-  state.open   = Array.isArray(d.open) ? d.open : [];
-  state.sold   = Array.isArray(d.sold) ? d.sold : [];
-  state.termine = Array.isArray(d.termine) ? d.termine : [];
-  state.master = { images:[], catalog:{}, badgeRules:[], ...(d.master||{}) };
-  if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
-  if (!Array.isArray(state.master.badgeRules)) state.master.badgeRules = [];
-  state.year   = d.year   || String(new Date().getFullYear());
-  
-  if (state.master.badgeRules.length === 0) {
-      state.master.badgeRules = [
-          { name: 'Highboard 4', group: 'Besta', productType: 'Tür', reqs: [{size: '64', qty: 4}] },
-          { name: 'Sideboard 180', group: 'Besta', productType: 'Tür', reqs: [{size: '64', qty: 3}] },
-          { name: 'Sideboard 120', group: 'Besta', productType: 'Tür', reqs: [{size: '64', qty: 2}] },
-          { name: 'Highboard 4S', group: 'Besta', productType: 'Tür', reqs: [{size: '64', qty: 2}, {size: '38', qty: 2}] },
-          { name: 'Sideboard 180S', group: 'Besta', productType: 'Tür', reqs: [{size: '64', qty: 2}, {size: '38', qty: 1}, {size: '26', qty: 1}] },
-          { name: 'TV 180', group: 'Besta', productType: 'Tür', reqs: [{size: '38', qty: 3}] },
-          { name: 'TV 120', group: 'Besta', productType: 'Tür', reqs: [{size: '38', qty: 2}] }
-      ];
-  }
-
-  const migrateProductType = (article, group) => {
-    const cat = state.master.catalog || {};
-    let found = '';
-    Object.entries(cat).forEach(([pt, data]) => {
-      if (data && Array.isArray(data.articles) && data.articles.includes(article)) found = pt;
-    });
-    return found;
-  };
-
-  let newOpen = [];
-  for (let i=0; i < state.open.length; i++) {
-    let item = state.open[i];
-    if (!item) continue;
+  try {
+    state.open   = Array.isArray(d.open) ? d.open.filter(Boolean) : [];
+    state.sold   = Array.isArray(d.sold) ? d.sold.filter(Boolean) : [];
+    state.termine = Array.isArray(d.termine) ? d.termine.filter(Boolean) : [];
     
-    if (!item.productType && item.article) {
-        item.productType = migrateProductType(item.article, item.group)||'';
-    }
+    state.master = d.master || {};
+    state.master.images = Array.isArray(state.master.images) ? state.master.images : [];
+    state.master.catalog = state.master.catalog || {};
     
-    if (!item.instances || !Array.isArray(item.instances)) {
-        item.instances = [];
-        let qty = item.menge || item.quantity || 1;
-        for (let j=0; j < qty; j++) {
-            item.instances.push({ 
-                id: uid(), 
-                purchasePrice: item.purchasePrice || 0, 
-                entryDate: item.entryDate || today(), 
-                sold: false,
-                profitshare: item.profitshare || false,
-                image: item.image || '',
-                comment: item.comment || '',
-                defect: item.defect || ''
-            });
+    state.master.badgeRules = Array.isArray(state.master.badgeRules) ? state.master.badgeRules : [
+        { name: 'Highboard 4', group: 'Besta', productType: 'Tür', reqs: [{size: '64', qty: 4}] },
+        { name: 'Sideboard 180', group: 'Besta', productType: 'Tür', reqs: [{size: '64', qty: 3}] },
+        { name: 'Sideboard 120', group: 'Besta', productType: 'Tür', reqs: [{size: '64', qty: 2}] },
+        { name: 'Highboard 4S', group: 'Besta', productType: 'Tür', reqs: [{size: '64', qty: 2}, {size: '38', qty: 2}] },
+        { name: 'Sideboard 180S', group: 'Besta', productType: 'Tür', reqs: [{size: '64', qty: 2}, {size: '38', qty: 1}, {size: '26', qty: 1}] },
+        { name: 'TV 180', group: 'Besta', productType: 'Tür', reqs: [{size: '38', qty: 3}] },
+        { name: 'TV 120', group: 'Besta', productType: 'Tür', reqs: [{size: '38', qty: 2}] }
+    ];
+    
+    state.year = d.year || String(new Date().getFullYear());
+
+    const cat = state.master.catalog;
+    const migrateProductType = (article) => {
+      for (let grp in cat) {
+        for (let pt in cat[grp]) {
+          if (cat[grp][pt] && Array.isArray(cat[grp][pt].articles) && cat[grp][pt].articles.includes(article)) {
+            return pt;
+          }
         }
-    } else {
-        item.instances.forEach(inst => { if(inst && !inst.id) inst.id = uid(); });
+      }
+      return '';
+    };
+    
+    let newOpen = [];
+    for (let i=0; i < state.open.length; i++) {
+      let item = state.open[i];
+      if (!item) continue;
+      
+      if (!item.productType && item.article) {
+          item.productType = migrateProductType(item.article)||'';
+      }
+      
+      if (!item.instances || !Array.isArray(item.instances)) {
+          item.instances = [];
+          let qty = item.menge || item.quantity || 1;
+          for (let j=0; j < qty; j++) {
+              let p = parseFloat(String(item.purchasePrice).replace(',','.'));
+              item.instances.push({ 
+                  id: uid(), 
+                  purchasePrice: isNaN(p) ? 0 : p, 
+                  entryDate: item.entryDate || today(), 
+                  sold: false,
+                  profitshare: !!item.profitshare,
+                  image: item.image || '',
+                  comment: item.comment || '',
+                  defect: item.defect || ''
+              });
+          }
+      } else {
+          item.instances.forEach(inst => { 
+              if(!inst.id) inst.id = uid(); 
+              let p = parseFloat(String(inst.purchasePrice).replace(',','.'));
+              inst.purchasePrice = isNaN(p) ? 0 : p;
+          });
+      }
+      if(!item.id) item.id = uid();
+      newOpen.push(item);
     }
-    if(!item.id) item.id = uid();
-    newOpen.push(item);
-  }
-  state.open = newOpen;
+    state.open = newOpen;
 
-  state.sold.forEach(s => {
-     if(!s.items) s.items = [];
-     if(!s.id) s.id = uid();
-  });
-  
-  state.sellCart = [];
-  state.psManualOverride = false;
+    state.sold.forEach(s => {
+       if(!s.items || !Array.isArray(s.items)) s.items = [];
+       if(!s.id) s.id = uid();
+    });
+    
+    state.sellCart = [];
+    state.psManualOverride = false;
+  } catch(e) {
+      console.error("Migration Error:", e);
+      toast("Ein Fehler ist bei der Daten-Reparatur aufgetreten.");
+  }
 }
 
 // ==========================================
@@ -785,7 +798,16 @@ const fmtMonth = d => d ? new Intl.DateTimeFormat('de-DE',{month:'long',year:'nu
 const stackKey = i => `${i.group}||${i.productType||''}||${i.article}||${i.size}||${i.color}`;
 const purchase = i => (+i.purchasePrice||0);
 const g = id => document.getElementById(id);
-const uid = () => crypto.randomUUID();
+
+const uid = () => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    return 'xxxx-xxxx-4xxx-yxxx-xxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+};
 
 function toast(msg) {
   const t = g('toast');
@@ -796,6 +818,83 @@ function toast(msg) {
 
 function fillSel(el, vals, ph) {
   el.innerHTML = `<option value="">${ph}</option>` + vals.map(v=>`<option value="${v}">${v}</option>`).join('');
+}
+
+// ==========================================
+// BILDER & MODALS (FIXED)
+// ==========================================
+
+function buildImgDropdown() {
+  const dd = g('imgDropdown'); if (!dd) return;
+  const grp = g('group')?.value || '';
+  const typ = g('productType')?.value || '';
+  const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
+  
+  const allImgs = [...new Set([...catImgs, ...(state.master.images||[]), ...(state.master.setImages||[])])];
+  const opts = [{ url:'', label:'Kein Bild' }, ...allImgs.map(u=>({
+    url:u, label: u.startsWith('data:') ? (catImgs.includes(u) ? `📌 ${typ}` : 'Upload-Bild') : (u.split('id=')[1]?.slice(0,22)||u.slice(-22))
+  }))];
+  dd.innerHTML = opts.map(o=>`
+    <div class="iso" data-val="${o.url}">
+      <div class="iso-thumb">${o.url?`<img src="${o.url}" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">` :'📷'}</div>
+      <span>${o.label}</span>
+    </div>`).join('');
+}
+
+function setImgVal(url) {
+  g('imgValue').value = url;
+  const lbl = url ? (url.startsWith('data:') ? 'Upload-Bild' : (url.split('id=')[1]?.slice(0,22)||url.slice(-22))) : 'Kein Bild';
+  if(g('imgLabel')) g('imgLabel').textContent = lbl;
+  const p = g('imgPreview');
+  if(p) p.innerHTML = url ? `<img src="${url}" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">` : '📷';
+  if(g('imgDropdown')) g('imgDropdown').querySelectorAll('.iso').forEach(o=>o.classList.toggle('active', o.dataset.val===url));
+}
+
+let imagePickCallback = null;
+
+function syncNewImageLabel(url) {
+  const lbl = g('imgLabel');
+  const prev = g('imgPreview');
+  if(lbl) lbl.textContent = url ? 'Aus Stammdaten gewählt' : 'Aus Stammdaten wählen…';
+  if(prev) prev.textContent = url ? '🖼' : '📷';
+}
+
+function openNewImgPicker() {
+  imagePickCallback = (url) => {
+    g('imgValue').value = url;
+    const prev = g('imgPreview');
+    const lbl = g('imgLabel');
+    if(prev) prev.innerHTML = url ? `<img src="${url}" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">` : '🖼';
+    if(lbl) lbl.textContent = url ? 'Bild gewählt ✓' : 'Aus Stammdaten wählen…';
+  };
+  openImagePicker(g('imgValue')?.value || '');
+}
+
+function openImagePicker(currentUrl='') {
+  const modal = g('imagePickerModal');
+  const list = g('imagePickerList');
+  if(!modal || !list) return;
+  const grp = g('group')?.value || '';
+  const typ = g('productType')?.value || '';
+  const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
+  const allImgs = [...new Set([...catImgs, ...(state.master.images||[]), ...(state.master.setImages||[])])];
+  list.innerHTML = allImgs.length ? allImgs.map(u => `
+    <button type="button" class="img-pick" data-url="${u.replace(/"/g,'&quot;')}" style="border:2px solid ${u===currentUrl?'#4caf50':'transparent'}">
+      <img src="${u}" loading="lazy" style="width:100%;height:100px;object-fit:cover;border-radius:8px;">
+      <div style="font-size:var(--text-xs);margin-top:4px;word-break:break-all;">${catImgs.includes(u) ? 'Stammdaten' : (state.master.setImages||[]).includes(u) ? 'Set-Bild' : 'Upload'}</div>
+    </button>`).join('') : '<div class="empty">Keine Bilder vorhanden.</div>';
+  modal.style.display='flex'; modal.classList.add('show'); document.documentElement.style.overflow='hidden';
+  modal.onclick = e => {
+    const b = e.target.closest('[data-url]');
+    if(!b) return;
+    imagePickCallback && imagePickCallback(b.dataset.url);
+    closeImagePicker();
+  };
+}
+
+function closeImagePicker() {
+  const modal = g('imagePickerModal');
+  if(modal){ modal.classList.remove('show'); modal.style.display='none'; } document.documentElement.style.overflow='';
 }
 
 // ==========================================
@@ -959,6 +1058,7 @@ function fallbackExport(json, filename) {
 
 function importData(file) {
   if (!file) return;
+  toast('Lese Datei...');
   const reader = new FileReader();
   reader.onload = e => {
     try {
@@ -967,10 +1067,11 @@ function importData(file) {
       applyState(d); 
       save();
       fillMasterDropdowns();
+      state.page = 'open'; 
       render();
       toast('Daten importiert ✓');
     } catch(err) { 
-      alert('Fehler beim Importieren: ' + err.name + ' - ' + err.message + '\n\nDie Datei konnte nicht gelesen werden.'); 
+      toast('Import-Fehler: ' + err.message);
     }
   };
   reader.readAsText(file);
@@ -994,10 +1095,10 @@ function initDemoCatalog() {
 function fillMasterDropdowns() {
   const groups = Object.keys(state.master.catalog||{}).sort((a,b)=>a.localeCompare(b,'de'));
   fillSel(g('group'), groups, 'Gruppe wählen');
-  g('productType').innerHTML = '<option value="">– Gruppe wählen –</option>';
-  g('article').innerHTML     = '<option value="">– Produkttyp wählen –</option>';
-  g('size').innerHTML        = '<option value="">–</option>';
-  g('color').innerHTML       = '<option value="">–</option>';
+  if(g('productType')) g('productType').innerHTML = '<option value="">– Gruppe wählen –</option>';
+  if(g('article')) g('article').innerHTML     = '<option value="">– Produkttyp wählen –</option>';
+  if(g('size')) g('size').innerHTML        = '<option value="">–</option>';
+  if(g('color')) g('color').innerHTML       = '<option value="">–</option>';
   buildImgDropdown();
 }
 
@@ -1033,37 +1134,39 @@ function onProductTypeChange() {
   }
 }
 
-g('itemForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const totalPrice = +g('purchasePrice').value||0;
-  if (!g('group').value || !g('productType').value) return alert('Bitte Gruppe und Produkttyp wählen.');
-  const qty = +(g('quantity')||{value:'1'}).value||1;
-  const pricePerUnit = totalPrice / qty;
-  for(let q=0;q<qty;q++) {
-    const item = {
-      group:g('group').value, productType:g('productType').value,
-      article:g('article').value,
-      size:g('size').value, color:g('color').value,
-      purchasePrice:pricePerUnit,
-      profitshare:g('profitshare').checked,
-      image:g('imgValue').value,
-      comment:g('comment')?g('comment').value:'',
-      defect:g('defect')?g('defect').value:'',
-      entryDate:today()
-    };
-    addOrStack(item);
-  }
-  save();
-  toast(qty>1?qty+' Artikel hinzugefügt ✓':'Artikel hinzugefügt ✓');
-  state.page='open'; render();
-});
+if(g('itemForm')) {
+    g('itemForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const totalPrice = +g('purchasePrice').value||0;
+      if (!g('group').value || !g('productType').value) return alert('Bitte Gruppe und Produkttyp wählen.');
+      const qty = +(g('quantity')||{value:'1'}).value||1;
+      const pricePerUnit = totalPrice / qty;
+      for(let q=0;q<qty;q++) {
+        const item = {
+          group:g('group').value, productType:g('productType').value,
+          article:g('article').value,
+          size:g('size').value, color:g('color').value,
+          purchasePrice:pricePerUnit,
+          profitshare:g('profitshare').checked,
+          image:g('imgValue').value,
+          comment:g('comment')?g('comment').value:'',
+          defect:g('defect')?g('defect').value:'',
+          entryDate:today()
+        };
+        addOrStack(item);
+      }
+      save();
+      toast(qty>1?qty+' Artikel hinzugefügt ✓':'Artikel hinzugefügt ✓');
+      state.page='open'; render();
+    });
+}
 
 function addOrStack(item) {
   const key = stackKey(item);
   const ex = state.open.find(i=>stackKey(i)===key);
-  const inst = { id:crypto.randomUUID(), image:item.image, comment:item.comment, defect:item.defect, entryDate:item.entryDate, profitshare:item.profitshare, purchasePrice:item.purchasePrice };
+  const inst = { id:uid(), image:item.image, comment:item.comment, defect:item.defect, entryDate:item.entryDate, profitshare:item.profitshare, purchasePrice:item.purchasePrice };
   if (ex) { ex.instances.push(inst); }
-  else { state.open.unshift({ id:crypto.randomUUID(), group:item.group, productType:item.productType, article:item.article, size:item.size, color:item.color, purchasePrice:item.purchasePrice, profitshare:item.profitshare, instances:[inst] }); }
+  else { state.open.unshift({ id:uid(), group:item.group, productType:item.productType, article:item.article, size:item.size, color:item.color, purchasePrice:item.purchasePrice, profitshare:item.profitshare, instances:[inst] }); }
 }
 
 
@@ -1076,7 +1179,7 @@ function renderSellFilters() {
 
     const availableGroups = new Set();
     state.open.forEach(item => {
-        if(item.instances.length > 0 && item.group) availableGroups.add(item.group);
+        if(item.instances && item.instances.length > 0 && item.group) availableGroups.add(item.group);
     });
 
     const currentGrp = grpSel.value;
@@ -1094,7 +1197,7 @@ function updateSellFilters(trigger) {
     const arSel = g('sellFilterArticle');
     const inSel = g('sellFilterInstance');
 
-    let items = state.open.filter(i => i.instances.length > 0);
+    let items = state.open.filter(i => i.instances && i.instances.length > 0);
     if (grp) items = items.filter(i => i.group === grp);
 
     if (trigger === 'group') {
@@ -1131,11 +1234,13 @@ function updateSellFilters(trigger) {
     let options = '<option value="" disabled selected>– Exemplar wählen –</option>';
     
     items.forEach(item => {
-        item.instances.forEach(inst => {
-            if (cartInstIds.includes(inst.id)) return;
-            const label = `${item.article||'Unbenannt'} ${item.color||''} ${item.size||''} | EK: ${euro(inst.purchasePrice)}`;
-            options += `<option value="${item.id}::${inst.id}">${label}</option>`;
-        });
+        if(item.instances) {
+            item.instances.forEach(inst => {
+                if (cartInstIds.includes(inst.id)) return;
+                const label = `${item.article||'Unbenannt'} ${item.color||''} ${item.size||''} | EK: ${euro(inst.purchasePrice)}`;
+                options += `<option value="${item.id}::${inst.id}">${label}</option>`;
+            });
+        }
     });
     
     if(options === '<option value="" disabled selected>– Exemplar wählen –</option>') {
@@ -1149,7 +1254,7 @@ function addSellPosition() {
     if(!val) return;
     const [itemId, instId] = val.split('::');
     const item = state.open.find(i=>i.id===itemId);
-    const inst = item?.instances.find(x=>x.id===instId);
+    const inst = item ? item.instances.find(x=>x.id===instId) : null;
     
     if (item && inst) {
         state.sellCart.push({item, inst});
@@ -1189,7 +1294,6 @@ function renderSellCart() {
         </div>`;
     });
     container.innerHTML = html;
-    
     updateSellPreview();
 }
 
@@ -1226,7 +1330,7 @@ function updateSellPreview() {
     netEl.textContent = euro(rohertrag);
     netEl.style.color = rohertrag < 0 ? 'var(--err)' : 'var(--primary)';
 
-    const psVal = +psInput.value || 0;
+    const psVal = +(psInput ? psInput.value : 0);
     const finalProfit = rohertrag * (1 - psVal/100);
     
     if (salePrice > 0) {
@@ -1237,19 +1341,21 @@ function updateSellPreview() {
 
     const histLookup = new Map();
     state.sold.forEach(set => {
-        const shareRev = set.items.length ? set.salePrice / set.items.length : set.salePrice;
-        set.items.forEach(i => {
-            const hGrp = i.group || '–';
-            const hPt  = i.productType || '–';
-            const hArt = i.article || '';
-            const hCol = i.color || '–';
-            const keys = [`g_${hGrp}`, `p_${hGrp}_${hPt}`, `a_${hGrp}_${hPt}_${hArt}`, `c_${hGrp}_${hPt}_${hArt}_${hCol}`];
-            keys.forEach(k => {
-                if (!histLookup.has(k)) histLookup.set(k, { rev: 0, qty: 0 });
-                const e = histLookup.get(k);
-                e.rev += shareRev; e.qty += (i.menge || 1);
+        const shareRev = (set.items && set.items.length) ? set.salePrice / set.items.length : set.salePrice;
+        if(set.items) {
+            set.items.forEach(i => {
+                const hGrp = i.group || '–';
+                const hPt  = i.productType || '–';
+                const hArt = i.article || '';
+                const hCol = i.color || '–';
+                const keys = [`g_${hGrp}`, `p_${hGrp}_${hPt}`, `a_${hGrp}_${hPt}_${hArt}`, `c_${hGrp}_${hPt}_${hArt}_${hCol}`];
+                keys.forEach(k => {
+                    if (!histLookup.has(k)) histLookup.set(k, { rev: 0, qty: 0 });
+                    const e = histLookup.get(k);
+                    e.rev += shareRev; e.qty += (i.menge || 1);
+                });
             });
-        });
+        }
     });
 
     let totalHistAvg = 0;
@@ -1316,17 +1422,19 @@ function executeSale() {
   const psPct = +(g('sellPsInput')?.value || 0);
   const netProfit = rawProfit * (1 - psPct/100);
   const psSome = psPct > 0;
+  
+  const previewImage = g('sellSetImgData').value || ((state.sellCart.find(c => c.inst.image) || {inst:{}}).inst.image || '');
 
   state.sold.unshift({
-    id:crypto.randomUUID(), setName: setName.trim() || 'Unbenanntes Set', salePrice:sp, purchaseTotal, netProfit,
+    id:uid(), setName: setName.trim() || 'Unbenanntes Set', salePrice:sp, purchaseTotal, netProfit,
     saleDate:today(), hasProfitshare:psSome,
-    previewImage: g('sellSetImgData').value || state.sellCart.find(({inst})=>inst.image)?.inst.image||'',
+    previewImage: previewImage,
     items:[...byArticle.values()].map(e=>({article:e.item.article,productType:e.item.productType||'',group:e.item.group,size:e.item.size,color:e.item.color,menge:e.insts.length}))
   });
   
   byArticle.forEach(({item,insts})=>{
     const rmIds = new Set(insts.map(x=>x.id));
-    item.instances = item.instances.filter(x=>!rmIds.has(x.id));
+    if(item.instances) item.instances = item.instances.filter(x=>!rmIds.has(x.id));
   });
   
   state.sellCart = [];
@@ -1367,9 +1475,9 @@ function buildSellSetImgDropdown() {
   });
 }
 
-// ═══════════════════════════════════════════════════
+// ==========================================
 // OFFEN TAB LOGIC
-// ═══════════════════════════════════════════════════
+// ==========================================
 function toggleStack(id) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -1411,28 +1519,30 @@ function renderOpen() {
     toggleAllBtn.innerHTML = globalExpandState ? '↕ Alle einklappen' : '↕ Alle aufklappen';
   }
 
-  if (!state.open.length) { g('openContent').innerHTML='<div class="empty">Keine offenen Artikel.<br>Über „Neu" Artikel hinzufügen.</div>'; return; }
+  if (!state.open || !state.open.length) { g('openContent').innerHTML='<div class="empty">Keine offenen Artikel.<br>Über „Neu" Artikel hinzufügen.</div>'; return; }
 
-  const countPcs = (arr) => arr.reduce((s, i) => s + i.instances.length, 0);
+  const countPcs = (arr) => arr.reduce((s, i) => s + (i.instances ? i.instances.length : 0), 0);
   const isOpen = (key) => state.openCollapse[key] !== undefined ? state.openCollapse[key] : globalExpandState;
   const hashStr = s => Math.abs(s.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36);
 
   const histLookup = new Map();
   state.sold.forEach(set => {
-    const shareRev = set.items.length ? set.salePrice / set.items.length : set.salePrice;
-    set.items.forEach(i => {
-      const hGrp = i.group || '–';
-      const hPt  = i.productType || '–';
-      const hArt = i.article || '';
-      const hCol = i.color || '–';
-      const keys = [`g_${hGrp}`, `p_${hGrp}_${hPt}`, `a_${hGrp}_${hPt}_${hArt}`, `c_${hGrp}_${hPt}_${hArt}_${hCol}`];
-      keys.forEach(k => {
-        if (!histLookup.has(k)) histLookup.set(k, { rev: 0, qty: 0 });
-        const e = histLookup.get(k);
-        e.rev += shareRev;
-        e.qty += (i.menge || 1);
-      });
-    });
+    const shareRev = (set.items && set.items.length) ? set.salePrice / set.items.length : set.salePrice;
+    if(set.items) {
+        set.items.forEach(i => {
+          const hGrp = i.group || '–';
+          const hPt  = i.productType || '–';
+          const hArt = i.article || '';
+          const hCol = i.color || '–';
+          const keys = [`g_${hGrp}`, `p_${hGrp}_${hPt}`, `a_${hGrp}_${hPt}_${hArt}`, `c_${hGrp}_${hPt}_${hArt}_${hCol}`];
+          keys.forEach(k => {
+            if (!histLookup.has(k)) histLookup.set(k, { rev: 0, qty: 0 });
+            const e = histLookup.get(k);
+            e.rev += shareRev;
+            e.qty += (i.menge || 1);
+          });
+        });
+    }
   });
 
   const getAvgVkChip = (k) => {
@@ -1446,7 +1556,7 @@ function renderOpen() {
   const searchTerms = needle.split(' ').filter(Boolean);
 
   state.open.forEach(item => {
-    if (state.hideZero && item.instances.length === 0) return;
+    if (state.hideZero && (!item.instances || item.instances.length === 0)) return;
     
     if (searchTerms.length > 0) {
         const searchStr = `${item.group || ''} ${item.productType || ''} ${item.article || ''} ${item.size || ''} ${item.color || ''}`.toLowerCase();
@@ -1496,10 +1606,10 @@ function renderOpen() {
 
           let cardsHtml = '';
           Object.values(sizeMap).forEach(sizeItems => {
-            const allInst = sizeItems.flatMap(item=>item.instances.map(inst=>({...inst,_itemId:item.id})));
+            const allInst = sizeItems.flatMap(item => (item.instances||[]).map(inst=>({...inst,_itemId:item.id})));
             if(allInst.length === 0) return;
             const firstItem = sizeItems[0];
-            const img = allInst.find(x=>x.image)?.image || firstItem._savedImage || '';
+            const img = allInst.find(x=>x.image) ? allInst.find(x=>x.image).image : (firstItem._savedImage || '');
             const sdId = 'sdA_' + hashStr(grp+pt+art+col+(firstItem.size||'–'));
             const ekSumme = allInst.reduce((s,i)=>s+(+i.purchasePrice||0),0);
             const menge = allInst.length;
@@ -1642,6 +1752,288 @@ function renderOpen() {
   g('openContent').innerHTML = html || (needle ? '<div class="empty">Keine Artikel für diese Suche gefunden.</div>' : '<div class="empty">Keine offenen Artikel.<br>Über „Neu" Artikel hinzufügen.</div>');
 }
 
+// ==========================================
+// ITEM ACTIONS
+// ==========================================
+function editItem(itemId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if (!item) return;
+  const newArticle = prompt('Artikelname:', item.article||'');
+  if(newArticle === null) return;
+  const newSize = prompt('Groesse:', item.size||'');
+  if(newSize === null) return;
+  const newColor = prompt('Farbe:', item.color||'');
+  if(newColor === null) return;
+  item.article = newArticle;
+  item.size = newSize;
+  item.color = newColor;
+  save(); renderOpen();
+}
+
+function deleteItem(itemId) {
+  if (!confirm('Artikel löschen?')) return;
+  state.open = state.open.filter(i=>i.id!==itemId);
+  state.sellCart = state.sellCart.filter(c => c.item.id !== itemId);
+  save(); 
+  if (state.page === 'sell') renderSellFilters();
+  renderOpen();
+}
+
+function deleteInst(itemId, instId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if (!item) return;
+  if (!confirm('Exemplar löschen?')) return;
+  
+  item.instances = item.instances.filter(x=>x.id!==instId);
+  if (item.instances.length===0) state.open = state.open.filter(i=>i.id!==itemId);
+  
+  state.sellCart = state.sellCart.filter(c => c.inst.id !== instId);
+
+  save(); 
+  if (state.page === 'sell') { renderSellCart(); renderSellFilters(); }
+  renderOpen();
+}
+
+function changeQty(itemId, delta) {
+  const item = state.open.find(i=>i.id===itemId) || state.open.find(i=>stackKey(i)===itemId);
+  if(!item) return;
+  const current = item.instances.length;
+  if(delta > 0) {
+    const inheritImg = item.instances[0]?.image || item.image || '';
+    item.instances.push({
+      id: uid(),
+      purchasePrice: item.instances[0]?.purchasePrice || item.purchasePrice || 0,
+      profitshare: item.profitshare || false,
+      image: inheritImg,
+      entryDate: today(),
+      comment: '',
+      defect: ''
+    });
+  } else if(delta < 0 && current > 0) {
+    const removedInst = item.instances.pop();
+    state.sellCart = state.sellCart.filter(c => c.inst.id !== removedInst.id);
+    if(item.instances.length === 0 && removedInst.image) { item._savedImage = removedInst.image; }
+  }
+  save(); 
+  if (state.page === 'sell') renderSellFilters();
+  renderOpen();
+}
+
+function editItemImage(itemId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  imagePickCallback = (url) => {
+    item._savedImage = url;
+    if(item.instances[0] && !item.instances[0].image) item.instances[0].image = url;
+    syncNewImageLabel(url);
+    save(); renderOpen();
+  };
+  openImagePicker(item._savedImage || item.instances[0]?.image || '');
+}
+
+function toggleItemProfitshare(itemId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  const newVal = !item.instances.some(x=>x.profitshare);
+  item.instances.forEach(x=>x.profitshare = newVal);
+  save(); renderOpen();
+}
+
+function editInstImage(itemId, instId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  const inst = item.instances.find(i=>i.id===instId);
+  if(!inst) return;
+  imagePickCallback = (url) => { inst.image = url; syncNewImageLabel(url); save(); renderOpen(); };
+  openImagePicker(inst.image || item._savedImage || '');
+}
+
+function toggleInstProfitshare(itemId, instId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  const inst = item.instances.find(i=>i.id===instId);
+  if(!inst) return;
+  inst.profitshare = !inst.profitshare;
+  save(); renderOpen();
+}
+
+function editEK(itemId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  const val = prompt('EK Preis eingeben (€):', item.purchasePrice||0);
+  if(val === null) return;
+  const price = parseFloat(val.replace(',','.')) || 0;
+  item.purchasePrice = price;
+  item.instances.forEach(inst => inst.purchasePrice = price);
+  save(); renderOpen();
+}
+
+function toggleGrp(el) {
+  const key = el.dataset.key;
+  const current = state.openCollapse[key] !== undefined ? state.openCollapse[key] : globalExpandState;
+  state.openCollapse[key] = !current;
+  renderOpen();
+}
+
+function editInstEK(itemId, instId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  const inst = item.instances.find(i=>i.id===instId);
+  if(!inst) return;
+  const val = prompt('EK Preis (EUR):', inst.purchasePrice||0);
+  if(val === null) return;
+  inst.purchasePrice = parseFloat(val.replace(',','.')) || 0;
+  save(); renderOpen();
+}
+
+// DOM Events continued
+document.addEventListener('click', e => {
+  if (e.target.matches('[data-tog]')) {
+    const d=document.getElementById('sd-'+e.target.dataset.tog);
+    if(d) d.classList.toggle('open'); return;
+  }
+  if (e.target.matches('[data-del]') && !e.target.matches('[data-del-inst]')) {
+    if(!confirm('Ganzen Stapel löschen?')) return;
+    const id=e.target.dataset.del;
+    state.open=state.open.filter(i=>i.id!==id); 
+    state.sellCart = state.sellCart.filter(c => c.item.id !== id);
+    save(); renderOpen(); return;
+  }
+  if (e.target.matches('[data-del-inst]')) {
+    const itemId=e.target.dataset.delInst, instId=e.target.dataset.instId;
+    const item=state.open.find(i=>i.id===itemId); if(!item) return;
+    item.instances=item.instances.filter(x=>x.id!==instId);
+    if(!item.instances.length) state.open=state.open.filter(i=>i.id!==itemId);
+    state.sellCart = state.sellCart.filter(c => c.inst.id !== instId);
+    save(); renderOpen(); return;
+  }
+  if (e.target.matches('[data-del-sold]')) {
+    if(!confirm('Eintrag löschen?')) return;
+    state.sold=state.sold.filter(s=>s.id!==e.target.dataset.delSold);
+    save(); renderSold(); return;
+  }
+  if (e.target.matches('[data-rm]')) {
+    const {rm:key, grp, typ, idx} = e.target.dataset;
+    if (key==='group')       { delete state.master.catalog[grp]; }
+    else if (key==='prodtype') { delete state.master.catalog[grp]?.[typ]; }
+    else if (key==='images') { state.master.images.splice(+idx,1); }
+    else { state.master.catalog[grp]?.[typ]?.[key]?.splice(+idx,1); }
+    fillMasterDropdowns(); save(); renderMaster(); return;
+  }
+});
+
+</script>
+
+<div id="imagePickerModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--surface);color:var(--text);max-width:600px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.25);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
+      <h3 style="margin:0;font-weight:700;font-size:var(--text-lg);">Bild wählen</h3>
+      <button type="button" class="btn btn-ghost" onclick="closeImagePicker()">Schließen</button>
+    </div>
+    <div id="imagePickerList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;"></div>
+  </div>
+</div>
+
+<div id="setBadgesModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--surface);color:var(--text);max-width:600px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.25);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
+      <h3 style="margin:0;font-weight:700;font-size:var(--text-lg);">Mögliche Sets</h3>
+      <button type="button" class="btn btn-ghost" onclick="closeSetBadgesModal()">Schließen</button>
+    </div>
+    <div id="setBadgesContent"></div>
+  </div>
+</div>
+
+<input type="file" id="instImgInput" accept="image/*" style="display:none">
+<script>
+let _instImgItemId = null, _instImgInstId = null;
+
+function triggerInstImgUpload(itemId, instId) {
+  _instImgItemId = itemId;
+  _instImgInstId = instId;
+  document.getElementById('instImgInput').click();
+}
+
+document.getElementById('instImgInput').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const url = e.target.result;
+    const item = state.open.find(i => i.id === _instImgItemId);
+    if (!item) return;
+    const inst = item.instances.find(x => x.id === _instImgInstId);
+    if (!inst) return;
+    inst.image = url;
+    save();
+    renderOpen();
+    toast('Bild gespeichert ✓');
+  };
+  reader.readAsDataURL(file);
+  this.value = '';
+});
+
+function resetItemForm() {
+  g('itemForm').reset();
+  if (g('purchasePrice')) g('purchasePrice').value = '';
+  if (g('quantity')) g('quantity').value = '1';
+  if (g('productType')) g('productType').innerHTML = '<option value="">Gruppe wählen</option>';
+  if (g('article')) g('article').innerHTML = '<option value="">Produkttyp wählen</option>';
+  if (g('size')) g('size').innerHTML = '<option value=""></option>';
+  if (g('color')) g('color').innerHTML = '<option value=""></option>';
+  if (g('imgValue')) g('imgValue').value = '';
+  if (g('imgLabel')) g('imgLabel').textContent = 'Aus Stammdaten wählen';
+  if (g('imgPreview')) g('imgPreview').innerHTML = '';
+  if (g('uploadPreview')) g('uploadPreview').classList.remove('show');
+}
+
+function showAddInput(id) {
+  if (document.getElementById('addinp_'+id)) return;
+  var sel = document.getElementById(id);
+  var labels = {group:'Gruppe',productType:'Produkttyp',article:'Artikelname',size:'Größe',color:'Farbe'};
+  var inp = document.createElement('input');
+  inp.id = 'addinp_'+id;
+  inp.type = 'text';
+  inp.placeholder = labels[id] + ' eingeben…';
+  inp.style.cssText = 'width:100%;height:48px;padding:0 12px;border-radius:8px;border:2px solid #01696f;background:#fbfbf9;color:#28251d;font-size:16px;font-family:inherit;box-sizing:border-box;margin-top:6px;display:block;';
+  
+  sel.parentNode.insertAdjacentElement('afterend', inp);
+  
+  inp.focus();
+
+  function save_input() {
+    var val = inp.value.trim();
+    inp.remove();
+    if (!val) return;
+    var cat = state.master.catalog;
+    var grp = document.getElementById('group').value;
+    var pt  = document.getElementById('productType').value;
+    if (id==='group') {
+      if (!cat[val]) { cat[val]={}; save_state(); toast('Gruppe "'+val+'" ✓'); }
+      fillMasterDropdowns(); document.getElementById('group').value=val; onGroupChange();
+    } else if (id==='productType') {
+      if (grp && !cat[grp][val]) { cat[grp][val]={articles:[],sizes:[],colors:[]}; save_state(); toast('Produkttyp "'+val+'" ✓'); }
+      onGroupChange(); document.getElementById('productType').value=val; onProductTypeChange();
+    } else if (id==='article') {
+      if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.articles.includes(val)){d.articles.push(val);save_state();toast('Artikel "'+val+'" ✓');} }
+      document.getElementById('article').value=val; onProductTypeChange(); document.getElementById('article').value=val;
+    } else if (id==='size') {
+      if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.sizes.includes(val)){d.sizes.push(val);save_state();toast('Größe "'+val+'" ✓');} }
+      document.getElementById('size').value=val; onProductTypeChange(); document.getElementById('size').value=val;
+    } else if (id==='color') {
+      if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.colors.includes(val)){d.colors.push(val);save_state();toast('Farbe "'+val+'" ✓');} }
+      document.getElementById('color').value=val; onProductTypeChange(); document.getElementById('color').value=val;
+    }
+  }
+
+  function save_state() { if(window.save) window.save(); }
+
+  inp.addEventListener('keydown', function(e) {
+    if (e.key==='Enter') { e.preventDefault(); save_input(); }
+    if (e.key==='Escape') { inp.remove(); }
+  });
+  inp.addEventListener('blur', function() { setTimeout(save_input, 150); });
+}
 </script>
 </body>
 </html>
