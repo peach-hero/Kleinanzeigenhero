@@ -134,7 +134,7 @@ img{max-width:100%;display:block;}
 /* ── ITEM CARDS ──────────────────────────── */
 .item-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad-lg);overflow:hidden;margin-bottom:var(--sp3);}
 .item-card-main{display:grid;grid-template-columns:24px 72px 1fr;gap:var(--sp3);padding:var(--sp3) var(--sp4);align-items:center;}
-.item-chk{width:22px;height:22px;accent-color:var(--primary);cursor:pointer;flex-shrink:0;display:none;}
+.item-chk{width:22px;height:22px;accent-color:var(--primary);cursor:pointer;flex-shrink:0;display:none;} /* Hidden check inside lists */
 .thumb{width:72px;height:72px;border-radius:var(--rad-md);background:var(--surfoff);display:grid;place-items:center;overflow:hidden;border:1px solid var(--border);font-size:1.5rem;flex-shrink:0;}
 .thumb img{width:100%;height:100%;object-fit:cover;}
 .item-info .item-title{font-weight:700;font-size:var(--text-base);}
@@ -786,9 +786,11 @@ function applyState(d) {
     state.sold.forEach(s => {
        if(!s.items || !Array.isArray(s.items)) s.items = [];
        if(!s.id) s.id = uid();
-       // FIX: Fehlendes Verkaufsdatum in alten Versionen auffüllen
+       
+       // FEHLENDES DATUM BEI ALTEN DATEIEN (27.05.) AUFFÜLLEN
        if(!s.saleDate) s.saleDate = s.datum || today();
        if(!s.setName) s.setName = s.name || 'Unbenanntes Set';
+       
        s.items.forEach(i => {
            let qty = (i.menge !== undefined) ? i.menge : (i.quantity !== undefined ? i.quantity : 1);
            i.menge = qty;
@@ -1597,7 +1599,6 @@ function renderOpen() {
           let cardsHtml = '';
           Object.values(sizeMap).forEach(sizeItems => {
             const allInst = sizeItems.flatMap(item => (item.instances||[]).map(inst=>({...inst,_itemId:item.id})));
-            if(allInst.length === 0) return;
             const firstItem = sizeItems[0];
             const img = allInst.find(x=>x.image) ? allInst.find(x=>x.image).image : (firstItem._savedImage || '');
             const sdId = 'sdA_' + hashStr(grp+pt+art+col+(firstItem.size||'–'));
@@ -1775,7 +1776,6 @@ function deleteInst(itemId, instId) {
   if (!confirm('Exemplar löschen?')) return;
   
   item.instances = item.instances.filter(x=>x.id!==instId);
-  if (item.instances.length===0) state.open = state.open.filter(i=>i.id!==itemId);
   
   state.sellCart = state.sellCart.filter(c => c.inst.id !== instId);
 
@@ -1856,3 +1856,107 @@ function editEK(itemId) {
   item.purchasePrice = price;
   item.instances.forEach(inst => inst.purchasePrice = price);
   save(); renderOpen();
+}
+
+function toggleGrp(el) {
+  const key = el.dataset.key;
+  const current = state.openCollapse[key] !== undefined ? state.openCollapse[key] : globalExpandState;
+  state.openCollapse[key] = !current;
+  renderOpen();
+}
+
+function editInstEK(itemId, instId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  const inst = item.instances.find(i=>i.id===instId);
+  if(!inst) return;
+  const val = prompt('EK Preis (EUR):', inst.purchasePrice||0);
+  if(val === null) return;
+  inst.purchasePrice = parseFloat(val.replace(',','.')) || 0;
+  save(); renderOpen();
+}
+
+// DOM Events continued
+document.addEventListener('click', e => {
+  if (e.target.matches('[data-tog]')) {
+    const d=document.getElementById('sd-'+e.target.dataset.tog);
+    if(d) d.classList.toggle('open'); return;
+  }
+  if (e.target.matches('[data-del]') && !e.target.matches('[data-del-inst]')) {
+    if(!confirm('Ganzen Stapel löschen?')) return;
+    const id=e.target.dataset.del;
+    state.open=state.open.filter(i=>i.id!==id); 
+    state.sellCart = state.sellCart.filter(c => c.item.id !== id);
+    save(); renderOpen(); return;
+  }
+  if (e.target.matches('[data-del-inst]')) {
+    const itemId=e.target.dataset.delInst, instId=e.target.dataset.instId;
+    const item=state.open.find(i=>i.id===itemId); if(!item) return;
+    item.instances=item.instances.filter(x=>x.id!==instId);
+    state.sellCart = state.sellCart.filter(c => c.inst.id !== instId);
+    save(); renderOpen(); return;
+  }
+  if (e.target.matches('[data-del-sold]')) {
+    if(!confirm('Eintrag löschen?')) return;
+    state.sold=state.sold.filter(s=>s.id!==e.target.dataset.delSold);
+    save(); renderSold(); return;
+  }
+  if (e.target.matches('[data-rm]')) {
+    const {rm:key, grp, typ, idx} = e.target.dataset;
+    if (key==='group')       { delete state.master.catalog[grp]; }
+    else if (key==='prodtype') { delete state.master.catalog[grp]?.[typ]; }
+    else if (key==='images') { state.master.images.splice(+idx,1); }
+    else { state.master.catalog[grp]?.[typ]?.[key]?.splice(+idx,1); }
+    fillMasterDropdowns(); save(); renderMaster(); return;
+  }
+});
+
+g('statsYear')?.addEventListener('change', e=>{ state.year=e.target.value; renderStats(); });
+g('themeToggle')?.addEventListener('click', ()=>{
+  document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+});
+
+[g('exportBtn'), g('exportBtn2')].forEach(btn => btn?.addEventListener('click', exportData));
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+let deferredPrompt = null;
+const installBtn = document.getElementById('installBtn');
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (installBtn) installBtn.style.display = 'flex';
+});
+
+window.addEventListener('appinstalled', () => {
+  if (installBtn) installBtn.style.display = 'none';
+  deferredPrompt = null;
+  toast('App installiert ✓');
+});
+
+if (installBtn) {
+  installBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') toast('App wird installiert…');
+      deferredPrompt = null;
+      installBtn.style.display = 'none';
+    } else {
+      alert('Auf iPhone/iPad:\nSafari → Teilen-Symbol → "Zum Home-Bildschirm"\n\nAuf Android:\nChrome → Menü (⋮) → "App installieren"');
+    }
+  });
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') save();
+});
+window.addEventListener('pagehide', save);
+window.addEventListener('beforeunload', save);
+
+(function(){
+  const ekBtns = [0,3,5,10,15,20];
+  const style = 'padding:5px 11px;border-radius:99
