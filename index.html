@@ -704,6 +704,7 @@ function initApp() {
     render();
 }
 
+// 100% KUGELSICHERE MIGRATION FÜR ALTE DATEIEN
 function applyState(d) {
   try {
     state.open   = Array.isArray(d.open) ? d.open.filter(Boolean) : [];
@@ -749,17 +750,24 @@ function applyState(d) {
       
       if (!item.instances || !Array.isArray(item.instances)) {
           item.instances = [];
-          let qty = item.menge || item.quantity || 1;
+          let qty = 1;
+          if (item.quantity !== undefined) qty = item.quantity;
+          else if (item.menge !== undefined) qty = item.menge;
+          
+          qty = parseInt(qty, 10);
+          if (isNaN(qty)) qty = 1;
+          if (qty < 0) qty = 0;
+          
           for (let j=0; j < qty; j++) {
-              let p = parseFloat(String(item.purchasePrice).replace(',','.'));
+              let p = parseFloat(String(item.purchasePrice || item.preis || 0).replace(',','.'));
               item.instances.push({ 
                   id: uid(), 
                   purchasePrice: isNaN(p) ? 0 : p, 
-                  entryDate: item.entryDate || today(), 
+                  entryDate: item.entryDate || item.datum || today(), 
                   sold: false,
                   profitshare: !!item.profitshare,
                   image: item.image || '',
-                  comment: item.comment || '',
+                  comment: item.comment || item.info || '',
                   defect: item.defect || ''
               });
           }
@@ -778,8 +786,9 @@ function applyState(d) {
     state.sold.forEach(s => {
        if(!s.items || !Array.isArray(s.items)) s.items = [];
        if(!s.id) s.id = uid();
-       if(!s.saleDate) s.saleDate = today();
-       if(!s.setName) s.setName = 'Unbenanntes Set';
+       // FIX: Fehlendes Verkaufsdatum in alten Versionen auffüllen
+       if(!s.saleDate) s.saleDate = s.datum || today();
+       if(!s.setName) s.setName = s.name || 'Unbenanntes Set';
        s.items.forEach(i => {
            let qty = (i.menge !== undefined) ? i.menge : (i.quantity !== undefined ? i.quantity : 1);
            i.menge = qty;
@@ -994,7 +1003,12 @@ function importData(file) {
   reader.onload = e => {
     try {
       const result = e.target.result;
-      const d = JSON.parse(result);
+      let d = JSON.parse(result);
+
+      // Wrapper auflösen, falls die alte JSON komisch formatiert ist
+      if (Array.isArray(d)) d = { open: d };
+      else if (d.state) d = d.state;
+      else if (d.data) d = d.data;
 
       // BILDER ENTFERNEN (um Speicherprobleme zu vermeiden)
       if (Array.isArray(d.open)) {
@@ -1024,6 +1038,7 @@ function importData(file) {
       }
 
       applyState(d); 
+      state.hideZero = false; // Filter ausschalten, damit alle alten Daten sichtbar sind!
       save();
       fillMasterDropdowns();
       state.page = 'open'; 
@@ -1031,6 +1046,7 @@ function importData(file) {
       toast('Daten importiert ✓ (Bilder ignoriert)');
     } catch(err) { 
       toast('Import-Fehler: ' + err.message);
+      console.error(err);
     }
   };
   reader.readAsText(file);
@@ -1300,7 +1316,7 @@ function updateSellPreview() {
 
     const histLookup = new Map();
     state.sold.forEach(set => {
-        const shareRev = (set.items && set.items.length) ? set.salePrice / set.items.length : set.salePrice;
+        const shareRev = (set.items && set.items.length) ? (set.salePrice||0) / set.items.length : (set.salePrice||0);
         if(set.items) {
             set.items.forEach(i => {
                 const hGrp = i.group || '–';
@@ -1501,7 +1517,7 @@ function renderOpen() {
 
   const histLookup = new Map();
   state.sold.forEach(set => {
-    const shareRev = (set.items && set.items.length) ? set.salePrice / set.items.length : set.salePrice;
+    const shareRev = (set.items && set.items.length) ? (set.salePrice||0) / set.items.length : (set.salePrice||0);
     if(set.items) {
         set.items.forEach(i => {
           const hGrp = i.group || '–';
@@ -1513,7 +1529,7 @@ function renderOpen() {
             if (!histLookup.has(k)) histLookup.set(k, { rev: 0, qty: 0 });
             const e = histLookup.get(k);
             e.rev += shareRev;
-            e.qty += (i.menge || 1);
+            e.qty += (i.menge !== undefined ? i.menge : (i.quantity !== undefined ? i.quantity : 1));
           });
         });
     }
@@ -1840,487 +1856,3 @@ function editEK(itemId) {
   item.purchasePrice = price;
   item.instances.forEach(inst => inst.purchasePrice = price);
   save(); renderOpen();
-}
-
-function toggleGrp(el) {
-  const key = el.dataset.key;
-  const current = state.openCollapse[key] !== undefined ? state.openCollapse[key] : globalExpandState;
-  state.openCollapse[key] = !current;
-  renderOpen();
-}
-
-function editInstEK(itemId, instId) {
-  const item = state.open.find(i=>i.id===itemId);
-  if(!item) return;
-  const inst = item.instances.find(i=>i.id===instId);
-  if(!inst) return;
-  const val = prompt('EK Preis (EUR):', inst.purchasePrice||0);
-  if(val === null) return;
-  inst.purchasePrice = parseFloat(val.replace(',','.')) || 0;
-  save(); renderOpen();
-}
-
-// ==========================================
-// BILDER & MODALS
-// ==========================================
-let imagePickCallback = null;
-
-function syncNewImageLabel(url) {
-  const lbl = g('imgLabel');
-  const prev = g('imgPreview');
-  if(lbl) lbl.textContent = url ? 'Aus Stammdaten gewählt' : 'Aus Stammdaten wählen…';
-  if(prev) prev.textContent = url ? '🖼' : '📷';
-}
-
-function openNewImgPicker() {
-  imagePickCallback = (url) => {
-    g('imgValue').value = url;
-    const prev = g('imgPreview');
-    const lbl = g('imgLabel');
-    if(prev) prev.innerHTML = url ? `<img src="${url}" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">` : '🖼';
-    if(lbl) lbl.textContent = url ? 'Bild gewählt ✓' : 'Aus Stammdaten wählen…';
-  };
-  openImagePicker(g('imgValue')?.value || '');
-}
-
-function openImagePicker(currentUrl='') {
-  const modal = g('imagePickerModal');
-  const list = g('imagePickerList');
-  if(!modal || !list) return;
-  const grp = g('group')?.value || '';
-  const typ = g('productType')?.value || '';
-  const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
-  const allImgs = [...new Set([...catImgs, ...(state.master.images||[]), ...(state.master.setImages||[])])];
-  list.innerHTML = allImgs.length ? allImgs.map(u => `
-    <button type="button" class="img-pick" data-url="${u.replace(/"/g,'&quot;')}" style="border:2px solid ${u===currentUrl?'#4caf50':'transparent'}">
-      <img src="${u}" loading="lazy" style="width:100%;height:100px;object-fit:cover;border-radius:8px;">
-      <div style="font-size:var(--text-xs);margin-top:4px;word-break:break-all;">${catImgs.includes(u) ? 'Stammdaten' : (state.master.setImages||[]).includes(u) ? 'Set-Bild' : 'Upload'}</div>
-    </button>`).join('') : '<div class="empty">Keine Bilder vorhanden.</div>';
-  modal.style.display='flex'; modal.classList.add('show'); document.documentElement.style.overflow='hidden';
-  modal.onclick = e => {
-    const b = e.target.closest('[data-url]');
-    if(!b) return;
-    imagePickCallback && imagePickCallback(b.dataset.url);
-    closeImagePicker();
-  };
-}
-
-function closeImagePicker() {
-  const modal = g('imagePickerModal');
-  if(modal){ modal.classList.remove('show'); modal.style.display='none'; } document.documentElement.style.overflow='';
-}
-
-function buildImgDropdown() {
-  const dd = g('imgDropdown'); if (!dd) return;
-  const grp = g('group')?.value || '';
-  const typ = g('productType')?.value || '';
-  const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
-  
-  const allImgs = [...new Set([...catImgs, ...(state.master.images||[]), ...(state.master.setImages||[])])];
-  const opts = [{ url:'', label:'Kein Bild' }, ...allImgs.map(u=>({
-    url:u, label: u.startsWith('data:') ? (catImgs.includes(u) ? `📌 ${typ}` : 'Upload-Bild') : (u.split('id=')[1]?.slice(0,22)||u.slice(-22))
-  }))];
-  dd.innerHTML = opts.map(o=>`
-    <div class="iso" data-val="${o.url}">
-      <div class="iso-thumb">${o.url?`<img src="${o.url}" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">` :'📷'}</div>
-      <span>${o.label}</span>
-    </div>`).join('');
-}
-
-function setImgVal(url) {
-  g('imgValue').value = url;
-  const lbl = url ? (url.startsWith('data:') ? 'Upload-Bild' : (url.split('id=')[1]?.slice(0,22)||url.slice(-22))) : 'Kein Bild';
-  if(g('imgLabel')) g('imgLabel').textContent = lbl;
-  const p = g('imgPreview');
-  if(p) p.innerHTML = url ? `<img src="${url}" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">` : '📷';
-  if(g('imgDropdown')) g('imgDropdown').querySelectorAll('.iso').forEach(o=>o.classList.toggle('active', o.dataset.val===url));
-}
-
-// ==========================================
-// BADGE REGELN FUNKTIONEN 
-// ==========================================
-window.currentEditBadgeIndex = null;
-
-window.updateBadgeProdType = function() {
-    const grp = document.getElementById('newBadgeGroup').value;
-    const ptSel = document.getElementById('newBadgeProdType');
-    if(!grp || !state.master.catalog[grp]) {
-        ptSel.innerHTML = '<option value="">– Produkttyp –</option>';
-        return;
-    }
-    const typs = Object.keys(state.master.catalog[grp]);
-    const currentVal = ptSel.value;
-    ptSel.innerHTML = '<option value="">– Produkttyp –</option>' + typs.map(t => `<option value="${t}">${t}</option>`).join('');
-    if (typs.includes(currentVal)) ptSel.value = currentVal;
-};
-
-window.addBadgeRule = function() {
-    const name = document.getElementById('newBadgeName').value.trim();
-    const grp = document.getElementById('newBadgeGroup').value;
-    const pt = document.getElementById('newBadgeProdType').value;
-    const reqsStr = document.getElementById('newBadgeReqs').value.trim();
-
-    if(!name || !grp || !pt || !reqsStr) return alert('Bitte alle Felder ausfüllen.');
-
-    const reqs = reqsStr.split(',').map(s => {
-        const parts = s.toLowerCase().split('x');
-        if(parts.length !== 2) return null;
-        const size = parts[0].trim();
-        const qty = parseInt(parts[1].trim());
-        if(!size || isNaN(qty)) return null;
-        return {size, qty};
-    }).filter(Boolean);
-
-    if(reqs.length === 0) return alert('Ungültiges Bedarfs-Format. Bitte z.B. 64x2 eingeben.');
-
-    if(!state.master.badgeRules) state.master.badgeRules = [];
-
-    if (window.currentEditBadgeIndex !== null && window.currentEditBadgeIndex >= 0) {
-        state.master.badgeRules[window.currentEditBadgeIndex] = { name, group: grp, productType: pt, reqs };
-        window.currentEditBadgeIndex = null;
-        toast('Regel aktualisiert ✓');
-    } else {
-        state.master.badgeRules.push({ name, group: grp, productType: pt, reqs });
-        toast('Regel hinzugefügt ✓');
-    }
-    save();
-    renderMaster();
-};
-
-window.editBadgeRule = function(idx) {
-    const rule = state.master.badgeRules[idx];
-    document.getElementById('newBadgeName').value = rule.name;
-    document.getElementById('newBadgeGroup').value = rule.group;
-    window.updateBadgeProdType();
-    document.getElementById('newBadgeProdType').value = rule.productType;
-    document.getElementById('newBadgeReqs').value = rule.reqs.map(r => `${r.size}x${r.qty}`).join(', ');
-
-    window.currentEditBadgeIndex = idx;
-    
-    document.getElementById('badgeFormTitle').textContent = 'Regel bearbeiten';
-    document.getElementById('saveBadgeBtn').innerHTML = '✓ Aktualisieren';
-    document.getElementById('cancelBadgeBtn').style.display = 'inline-flex';
-    document.getElementById('saveBadgeBtn').scrollIntoView({ behavior: 'smooth', block: 'center' });
-};
-
-window.cancelEditBadgeRule = function() {
-    window.currentEditBadgeIndex = null;
-    document.getElementById('newBadgeName').value = '';
-    document.getElementById('newBadgeGroup').value = '';
-    document.getElementById('newBadgeProdType').innerHTML = '<option value="">– Produkttyp –</option>';
-    document.getElementById('newBadgeReqs').value = '';
-
-    document.getElementById('badgeFormTitle').textContent = 'Neue Regel erstellen';
-    document.getElementById('saveBadgeBtn').innerHTML = '✚ Regel speichern';
-    document.getElementById('cancelBadgeBtn').style.display = 'none';
-};
-
-window.deleteBadgeRule = function(idx) {
-    if(!confirm('Regel löschen?')) return;
-    state.master.badgeRules.splice(idx, 1);
-    if (window.currentEditBadgeIndex === idx) window.cancelEditBadgeRule();
-    save();
-    renderMaster();
-};
-
-function openSetBadgesModal() {
-  const content = g('setBadgesContent');
-  const rules = state.master.badgeRules || [];
-
-  const badgeResults = {};
-  const displayOrder = [];
-  rules.forEach(r => {
-     if(!badgeResults[r.name]) {
-         badgeResults[r.name] = [];
-         displayOrder.push(r.name);
-     }
-  });
-
-  const inventory = {};
-  state.open.forEach(item => {
-    if (item.instances.length === 0) return; 
-
-    const grp = item.group || '–';
-    const pt = item.productType || '–';
-    const art = item.article || '–';
-    const col = item.color || '–';
-    const key = grp + '::' + pt + '::' + art + '::' + col;
-
-    if (!inventory[key]) inventory[key] = { grp, pt, art, col, counts: {} };
-
-    const size = item.size || '–';
-    if (!inventory[key].counts[size]) inventory[key].counts[size] = 0;
-    inventory[key].counts[size] += item.instances.length;
-  });
-
-  Object.values(inventory).forEach(inv => {
-     const label = `${inv.art} ${inv.col}`;
-     
-     rules.forEach(rule => {
-        if (inv.grp !== rule.group || inv.pt !== rule.productType) return;
-        
-        let pass = true;
-        for (let req of rule.reqs) {
-            if ((inv.counts[req.size] || 0) < req.qty) {
-                pass = false; break;
-            }
-        }
-        
-        if (pass && rule.reqs.length > 0) {
-            if(!badgeResults[rule.name].includes(label)) {
-                badgeResults[rule.name].push(label);
-            }
-        }
-     });
-  });
-
-  let html = '';
-  let hasAny = false;
-
-  displayOrder.forEach(badgeName => {
-    const items = badgeResults[badgeName];
-    if (items && items.length > 0) {
-      hasAny = true;
-      html += `<div style="padding:var(--sp2) 0; border-bottom:1px solid var(--divider); line-height:1.4;">
-        <strong style="display:inline-block; min-width:130px; color:var(--primary);">${badgeName} :</strong> 
-        <span style="color:var(--text);">${items.join(' <span style="color:var(--muted); margin:0 4px;">|</span> ')}</span>
-      </div>`;
-    }
-  });
-
-  if (!hasAny) {
-     html = '<div class="empty">Aktuell können keine Sets aus den offenen Artikeln gebildet werden.</div>';
-  }
-  
-  content.innerHTML = html;
-  g('setBadgesModal').style.display = 'flex';
-  g('setBadgesModal').classList.add('show');
-}
-
-function closeSetBadgesModal() {
-  g('setBadgesModal').classList.remove('show');
-  g('setBadgesModal').style.display = 'none';
-}
-
-// DOM Events continued
-document.addEventListener('click', e => {
-  const wrap = g('imgWrap');
-  if(wrap && wrap.contains(e.target)) {
-    const opt = e.target.closest('.iso');
-    if(opt) { setImgVal(opt.dataset.val); g('imgDropdown').classList.remove('open'); }
-    else if(e.target.closest('#imgTrigger')) g('imgDropdown').classList.toggle('open');
-  } else if(g('imgDropdown')) { g('imgDropdown').classList.remove('open'); }
-
-  const sellSetWrap = g('sellSetImgWrap');
-  if (sellSetWrap) {
-    if (e.target.closest('#sellSetImgTrigger')) { g('sellSetImgDropdown').classList.toggle('open'); }
-    else if (!sellSetWrap.contains(e.target)) { g('sellSetImgDropdown')?.classList.remove('open'); }
-  }
-
-  if (e.target.matches('[data-tog]')) {
-    const d=document.getElementById('sd-'+e.target.dataset.tog);
-    if(d) d.classList.toggle('open'); return;
-  }
-  if (e.target.matches('[data-del]') && !e.target.matches('[data-del-inst]')) {
-    if(!confirm('Ganzen Stapel löschen?')) return;
-    const id=e.target.dataset.del;
-    state.open=state.open.filter(i=>i.id!==id); 
-    state.sellCart = state.sellCart.filter(c => c.item.id !== id);
-    save(); renderOpen(); return;
-  }
-  if (e.target.matches('[data-del-inst]')) {
-    const itemId=e.target.dataset.delInst, instId=e.target.dataset.instId;
-    const item=state.open.find(i=>i.id===itemId); if(!item) return;
-    item.instances=item.instances.filter(x=>x.id!==instId);
-    if(!item.instances.length) state.open=state.open.filter(i=>i.id!==itemId);
-    state.sellCart = state.sellCart.filter(c => c.inst.id !== instId);
-    save(); renderOpen(); return;
-  }
-  if (e.target.matches('[data-del-sold]')) {
-    if(!confirm('Eintrag löschen?')) return;
-    state.sold=state.sold.filter(s=>s.id!==e.target.dataset.delSold);
-    save(); renderSold(); return;
-  }
-  if (e.target.matches('[data-rm]')) {
-    const {rm:key, grp, typ, idx} = e.target.dataset;
-    if (key==='group')       { delete state.master.catalog[grp]; }
-    else if (key==='prodtype') { delete state.master.catalog[grp]?.[typ]; }
-    else if (key==='images') { state.master.images.splice(+idx,1); }
-    else { state.master.catalog[grp]?.[typ]?.[key]?.splice(+idx,1); }
-    fillMasterDropdowns(); save(); renderMaster(); return;
-  }
-});
-
-g('statsYear')?.addEventListener('change', e=>{ state.year=e.target.value; renderStats(); });
-g('themeToggle')?.addEventListener('click', ()=>{
-  document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
-});
-
-[g('exportBtn'), g('exportBtn2')].forEach(btn => btn?.addEventListener('click', exportData));
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(()=>{});
-}
-
-let deferredPrompt = null;
-const installBtn = document.getElementById('installBtn');
-
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  if (installBtn) installBtn.style.display = 'flex';
-});
-
-window.addEventListener('appinstalled', () => {
-  if (installBtn) installBtn.style.display = 'none';
-  deferredPrompt = null;
-  toast('App installiert ✓');
-});
-
-if (installBtn) {
-  installBtn.addEventListener('click', async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') toast('App wird installiert…');
-      deferredPrompt = null;
-      installBtn.style.display = 'none';
-    } else {
-      alert('Auf iPhone/iPad:\nSafari → Teilen-Symbol → "Zum Home-Bildschirm"\n\nAuf Android:\nChrome → Menü (⋮) → "App installieren"');
-    }
-  });
-}
-
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') save();
-});
-window.addEventListener('pagehide', save);
-window.addEventListener('beforeunload', save);
-
-(function(){
-  const ekBtns = [0,3,5,10,15,20];
-  const style = 'padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surfoff);font-size:var(--text-xs);cursor:pointer;font-weight:600;min-height:32px;touch-action:manipulation;';
-  const ekq = g('ekQuick');
-  if(ekq) ekq.innerHTML = ekBtns.map(v=>`<button type="button" style="${style}" onclick="g('purchasePrice').value='${v}'">${v}€</button>`).join('');
-})();
-
-// START
-load();
-
-</script>
-
-<div id="imagePickerModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--surface);color:var(--text);max-width:600px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.25);">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
-      <h3 style="margin:0;font-weight:700;font-size:var(--text-lg);">Bild wählen</h3>
-      <button type="button" class="btn btn-ghost" onclick="closeImagePicker()">Schließen</button>
-    </div>
-    <div id="imagePickerList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;"></div>
-  </div>
-</div>
-
-<div id="setBadgesModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--surface);color:var(--text);max-width:600px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.25);">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
-      <h3 style="margin:0;font-weight:700;font-size:var(--text-lg);">Mögliche Sets</h3>
-      <button type="button" class="btn btn-ghost" onclick="closeSetBadgesModal()">Schließen</button>
-    </div>
-    <div id="setBadgesContent"></div>
-  </div>
-</div>
-
-<input type="file" id="instImgInput" accept="image/*" style="display:none">
-<script>
-let _instImgItemId = null, _instImgInstId = null;
-
-function triggerInstImgUpload(itemId, instId) {
-  _instImgItemId = itemId;
-  _instImgInstId = instId;
-  document.getElementById('instImgInput').click();
-}
-
-document.getElementById('instImgInput').addEventListener('change', function() {
-  const file = this.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const url = e.target.result;
-    const item = state.open.find(i => i.id === _instImgItemId);
-    if (!item) return;
-    const inst = item.instances.find(x => x.id === _instImgInstId);
-    if (!inst) return;
-    inst.image = url;
-    save();
-    renderOpen();
-    toast('Bild gespeichert ✓');
-  };
-  reader.readAsDataURL(file);
-  this.value = '';
-});
-
-function resetItemForm() {
-  g('itemForm').reset();
-  if (g('purchasePrice')) g('purchasePrice').value = '';
-  if (g('quantity')) g('quantity').value = '1';
-  if (g('productType')) g('productType').innerHTML = '<option value="">Gruppe wählen</option>';
-  if (g('article')) g('article').innerHTML = '<option value="">Produkttyp wählen</option>';
-  if (g('size')) g('size').innerHTML = '<option value=""></option>';
-  if (g('color')) g('color').innerHTML = '<option value=""></option>';
-  if (g('imgValue')) g('imgValue').value = '';
-  if (g('imgLabel')) g('imgLabel').textContent = 'Aus Stammdaten wählen';
-  if (g('imgPreview')) g('imgPreview').innerHTML = '';
-  if (g('uploadPreview')) g('uploadPreview').classList.remove('show');
-}
-</script>
-
-<script>
-function showAddInput(id) {
-  if (document.getElementById('addinp_'+id)) return;
-  var sel = document.getElementById(id);
-  var labels = {group:'Gruppe',productType:'Produkttyp',article:'Artikelname',size:'Größe',color:'Farbe'};
-  var inp = document.createElement('input');
-  inp.id = 'addinp_'+id;
-  inp.type = 'text';
-  inp.placeholder = labels[id] + ' eingeben…';
-  inp.style.cssText = 'width:100%;height:48px;padding:0 12px;border-radius:8px;border:2px solid #01696f;background:#fbfbf9;color:#28251d;font-size:16px;font-family:inherit;box-sizing:border-box;margin-top:6px;display:block;';
-  
-  sel.parentNode.insertAdjacentElement('afterend', inp);
-  
-  inp.focus();
-
-  function save_input() {
-    var val = inp.value.trim();
-    inp.remove();
-    if (!val) return;
-    var cat = state.master.catalog;
-    var grp = document.getElementById('group').value;
-    var pt  = document.getElementById('productType').value;
-    if (id==='group') {
-      if (!cat[val]) { cat[val]={}; save_state(); toast('Gruppe "'+val+'" ✓'); }
-      fillMasterDropdowns(); document.getElementById('group').value=val; onGroupChange();
-    } else if (id==='productType') {
-      if (grp && !cat[grp][val]) { cat[grp][val]={articles:[],sizes:[],colors:[]}; save_state(); toast('Produkttyp "'+val+'" ✓'); }
-      onGroupChange(); document.getElementById('productType').value=val; onProductTypeChange();
-    } else if (id==='article') {
-      if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.articles.includes(val)){d.articles.push(val);save_state();toast('Artikel "'+val+'" ✓');} }
-      document.getElementById('article').value=val; onProductTypeChange(); document.getElementById('article').value=val;
-    } else if (id==='size') {
-      if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.sizes.includes(val)){d.sizes.push(val);save_state();toast('Größe "'+val+'" ✓');} }
-      document.getElementById('size').value=val; onProductTypeChange(); document.getElementById('size').value=val;
-    } else if (id==='color') {
-      if (grp&&pt) { var d=cat[grp]&&cat[grp][pt]; if(d&&!d.colors.includes(val)){d.colors.push(val);save_state();toast('Farbe "'+val+'" ✓');} }
-      document.getElementById('color').value=val; onProductTypeChange(); document.getElementById('color').value=val;
-    }
-  }
-
-  function save_state() { if(window.save) window.save(); }
-
-  inp.addEventListener('keydown', function(e) {
-    if (e.key==='Enter') { e.preventDefault(); save_input(); }
-    if (e.key==='Escape') { inp.remove(); }
-  });
-  inp.addEventListener('blur', function() { setTimeout(save_input, 150); });
-}
-</script>
-</body>
-</html>
