@@ -1,24 +1,49 @@
-const CACHE = 'klhero-v1';
-const ASSETS = ['./index.html', './manifest.json'];
+const CACHE_NAME = 'hero-app-offline-v1';
 
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS))
+// Diese Dateien werden auf dem Handy gespeichert
+const FILES_TO_CACHE = [
+  './',
+  './index.html',
+  './manifest.json',
+  'https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap'
+];
+
+// Installation: App in den Speicher laden
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('App offline gespeichert');
+      return cache.addAll(FILES_TO_CACHE);
+    })
   );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
+// Aufräumen: Alte Versionen löschen, falls du ein Update auf GitHub machst
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
   self.clients.claim();
 });
 
-self.addEventListener('fetch', e => {
-  e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('./index.html')))
+// Lade-Logik: Immer aus dem Speicher laden (für Offline-Nutzung)
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      // Wenn im Speicher gefunden -> sofort laden. Ansonsten aus dem Internet holen.
+      return response || fetch(event.request).catch(() => {
+        // Fallback: Wenn offline und nicht gefunden, starte die Startseite
+        return caches.match('./index.html');
+      });
+    })
   );
 });
