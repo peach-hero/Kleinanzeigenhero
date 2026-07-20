@@ -174,9 +174,6 @@ img{max-width:100%;display:block;}
 .img-card .img-lbl{font-size:10px;padding:2px 5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .img-card .img-del{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.65);color:#fff;border:0;border-radius:999px;width:22px;height:22px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;}
 
-/* ── EXPORT/IMPORT ───────────────────────── */
-.export-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp3);}
-
 /* ── MISC ────────────────────────────────── */
 .empty{padding:var(--sp8) var(--sp4);text-align:center;color:var(--muted);background:var(--surface2);border:1px dashed var(--border);border-radius:var(--rad-lg);}
 .divider{border:0;border-top:1px solid var(--divider);margin:var(--sp4) 0;}
@@ -187,7 +184,7 @@ img{max-width:100%;display:block;}
 .success-toast.show{opacity:1;}
 
 * { touch-action: manipulation; }
-.quick-btns{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;justify-content:flex-start;}
+.quick-btns{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
 button, label, .nav-btn, .iso, .img-select-trigger, .stack-toggle, .upload-zone { cursor: pointer; -webkit-user-select: none; user-select: none; }
 input, textarea, select { -webkit-user-select: text; user-select: text; }
 
@@ -195,12 +192,67 @@ input, textarea, select { -webkit-user-select: text; user-select: text; }
 .grp-content.collapsed { display:none; }
 .group-head { cursor:pointer; }
 .upload-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border);border-radius:16px;padding:18px;cursor:pointer}.upload-zone.drag{border-color:var(--accent);background:rgba(76,175,80,.06)}.img-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}.img-tile{border:1px solid var(--border);border-radius:12px;padding:6px;background:var(--card)}.img-tile img{width:100%;height:90px;object-fit:cover;border-radius:8px}.img-tile button{width:100%;margin-top:6px}
-.modal.show{display:flex !important;}
 
-#imagePickerModal > div, #setBadgesModal > div {box-shadow:0 16px 40px rgba(0,0,0,.25);}
+/* ── FIXED MODAL POPUP SYSTEM ──────────────── */
+.modal {
+  display: none !important;
+  position: fixed !important;
+  inset: 0 !important;
+  background-color: rgba(0, 0, 0, 0.55) !important;
+  z-index: 99999 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+}
+.modal.show {
+  display: flex !important;
+}
+.modal-content {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  max-width: 600px;
+  width: 100%;
+  max-height: 85vh;
+  overflow: auto;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.25);
+}
 #imagePickerList{max-height:calc(85vh - 90px);overflow:auto;}
 #imagePickerList .img-pick{padding:8px;border-radius:14px;background:var(--surface2);border:2px solid transparent;cursor:pointer;display:flex;flex-direction:column;gap:8px;min-height:180px;}
 #imagePickerList .img-pick img{height:110px !important;}
+
+/* ── NEUE SCHNELLAUSWAHL CHIPS ──────────────── */
+.qb-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 999px;
+    font-size: var(--text-xs); min-height: 32px;
+    background: var(--surface2); border: 1px solid var(--border);
+    cursor: pointer; font-weight: 600; color: var(--text);
+    user-select: none; -webkit-user-select: none;
+    transition: all 0.15s;
+}
+.qb-chip.active {
+    background: var(--primary);
+    color: var(--inv);
+    border-color: var(--primary);
+}
+.qb-chip:active { transform: scale(0.95); }
+.qb-rm {
+    color: var(--err); font-size: 16px; line-height: 0.8;
+    padding-left: 6px; border-left: 1px solid var(--divider);
+    cursor: pointer;
+}
+.qb-chip.active .qb-rm {
+    color: rgba(255,255,255,0.7);
+    border-left-color: rgba(255,255,255,0.3);
+}
+.qb-rm:hover { color: red; }
+.qb-chip.active .qb-rm:hover { color: white; }
+.qb-add {
+    background: transparent; border: 1px dashed var(--primary);
+    color: var(--primary);
+}
 </style>
 </head>
 <body>
@@ -271,62 +323,46 @@ input, textarea, select { -webkit-user-select: text; user-select: text; }
           <label for="profitshare">Profitshare</label>
           <button type="button" class="btn btn-ghost" onclick="resetItemForm()" style="margin-left:auto;min-height:40px;padding:.5rem .9rem;">Reset</button>
         </div>
-        <div class="field">
-          <label>Einkaufspreis (€)</label>
-          <input class="input" id="purchasePrice" type="number" min="0" step="0.01" value="0" placeholder="z.B. 25">
+        
+        <div class="grid2">
+            <div class="field">
+              <label>Einkaufspreis (€)</label>
+              <input class="input" id="purchasePrice" type="number" min="0" step="0.01" value="0" placeholder="z.B. 25">
+            </div>
+            <div class="field">
+              <label for="quantity">Anzahl</label>
+              <input class="input" id="quantity" type="number" min="1" step="1" value="1" required placeholder="z.B. 5">
+            </div>
         </div>
         
         <div class="field">
             <label>Gruppe</label>
-            <div style="display:flex;gap:6px;align-items:center;">
-                <select class="select" id="group" required onchange="onGroupChange()" style="flex:1;"></select>
-                <button type="button" onclick="showAddInput('group')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button>
-            </div>
-            <div id="quickGroupBtns" class="quick-btns"></div>
+            <select class="select" id="group" required onchange="onGroupChange(); renderAllQuick();" style="display:none;"></select>
+            <div class="quick-btns" id="qb-group"></div>
         </div>
-        <div class="field"><label>Produkttyp</label><div style="display:flex;gap:6px;align-items:center;"><select class="select" id="productType" required onchange="onProductTypeChange()" style="flex:1;"><option value="">– Gruppe wählen –</option></select><button type="button" onclick="showAddInput('productType')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button></div></div>
         
-        <div class="field">
+        <div class="field" id="field-productType" style="display:none;">
+            <label>Produkttyp</label>
+            <select class="select" id="productType" onchange="onProductTypeChange(); renderAllQuick();" style="display:none;"></select>
+            <div class="quick-btns" id="qb-productType"></div>
+        </div>
+        
+        <div class="field" id="field-article" style="display:none;">
             <label>Artikelname <span style="color:var(--faint);font-weight:400;">(optional)</span></label>
-            <div style="display:flex;gap:6px;align-items:center;">
-                <select class="select" id="article" style="flex:1;"><option value="">– optional –</option></select>
-                <button type="button" onclick="showAddInput('article')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button>
-            </div>
-            <div class="quick-btns">
-              <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('article','Selsviken')">Selsviken</button>
-              <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('article','Lappviken')">Lappviken</button>
-              <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('article','Stressless')">Stressless</button>
-            </div>
+            <select class="select" id="article" onchange="renderAllQuick();" style="display:none;"></select>
+            <div class="quick-btns" id="qb-article"></div>
         </div>
         
-        <div class="grid2">
+        <div class="grid2" id="field-size-color" style="display:none;">
           <div class="field">
               <label>Größe</label>
-              <div style="display:flex;gap:6px;align-items:center;"><select class="select" id="size" style="flex:1;"></select><button type="button" onclick="showAddInput('size')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button></div>
-              <div class="quick-btns">
-                <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('size','64')">64</button>
-                <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('size','38')">38</button>
-                <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('size','26')">26</button>
-                <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('size','Sideboard')">Sideboard</button>
-                <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('size','Longboard')">Longboard</button>
-                <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('size','TV 180')">TV 180</button>
-                <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('size','TV 120')">TV 120</button>
-                <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('size','193')">193</button>
-                <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('size','128')">128</button>
-              </div>
+              <select class="select" id="size" onchange="renderAllQuick();" style="display:none;"></select>
+              <div class="quick-btns" id="qb-size"></div>
           </div>
           <div class="field">
               <label>Farbe</label>
-              <div style="display:flex;gap:6px;align-items:center;"><select class="select" id="color" style="flex:1;"></select><button type="button" onclick="showAddInput('color')" style="width:48px;height:48px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surfoff);cursor:pointer;font-size:1.2rem;font-weight:700;flex-shrink:0;">＋</button></div>
-              <div class="quick-btns">
-                <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('color','Schwarz')">Schwarz</button>
-                <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('color','Weiß')">Weiß</button>
-                <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('color','Dunkel')">Dunkel</button>
-                <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('color','Hell')">Hell</button>
-                <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('color','Grau')">Grau</button>
-                <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('color','Beige')">Beige</button>
-                <button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('color','Holz')">Holz</button>
-              </div>
+              <select class="select" id="color" onchange="renderAllQuick();" style="display:none;"></select>
+              <div class="quick-btns" id="qb-color"></div>
           </div>
         </div>
         
@@ -349,10 +385,6 @@ input, textarea, select { -webkit-user-select: text; user-select: text; }
           </div>
         </div>
         
-        <div class="field">
-          <label for="quantity">Anzahl</label>
-          <input class="input" id="quantity" type="number" min="1" step="1" value="1" required placeholder="z.B. 5">
-        </div>
         <button type="submit" class="btn btn-primary btn-full">✚ Eintrag hinzufügen</button>
       </form>
     </div>
@@ -646,8 +678,8 @@ input, textarea, select { -webkit-user-select: text; user-select: text; }
 </nav>
 
 <!-- MODALS -->
-<div id="imagePickerModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this) closeImagePicker()">
-  <div style="background:var(--surface);color:var(--text);max-width:600px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.25);">
+<div id="imagePickerModal" class="modal" onclick="if(event.target===this) closeImagePicker()">
+  <div class="modal-content">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
       <h3 style="margin:0;font-weight:700;font-size:var(--text-lg);">Bild wählen</h3>
       <button type="button" class="btn btn-ghost" onclick="closeImagePicker()">Schließen</button>
@@ -656,8 +688,8 @@ input, textarea, select { -webkit-user-select: text; user-select: text; }
   </div>
 </div>
 
-<div id="setBadgesModal" class="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this) closeSetBadgesModal()">
-  <div style="background:var(--surface);color:var(--text);max-width:600px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.25);">
+<div id="setBadgesModal" class="modal" onclick="if(event.target===this) closeSetBadgesModal()">
+  <div class="modal-content">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
       <h3 style="margin:0;font-weight:700;font-size:var(--text-lg);">Mögliche Sets</h3>
       <button type="button" class="btn btn-ghost" onclick="closeSetBadgesModal()">Schließen</button>
@@ -684,6 +716,7 @@ const state = {
   termine: [],
   year: String(new Date().getFullYear()),
   master: { groups:[], articles:[], sizes:[], colors:[], images:[], badgeRules: [] },
+  quick: { group: [], productType: [], article: [], size: [], color: [] },
   openCollapse: {},
   openScrollPos: 0,
   hideZero: true,
@@ -705,7 +738,7 @@ function openDB() {
 }
 
 function save() {
-  const payload = { open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year };
+  const payload = { open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year, quick:state.quick };
   try { localStorage.setItem('amp3', JSON.stringify(payload)); } catch(e) {}
   openDB().then(database => {
     const tx  = database.transaction(STORE, 'readwrite');
@@ -747,12 +780,12 @@ function initApp() {
     fillMasterDropdowns(); 
     updateMasterForm(); 
     populateUhrzeit();
+    renderAllQuick();
     if(g('binId')) g('binId').value = localStorage.getItem('jsonBinId') || '';
     if(g('apiKey')) g('apiKey').value = localStorage.getItem('jsonBinKey') || '';
     render();
 }
 
-// 100% KUGELSICHERE MIGRATION FÜR ALTE DATEIEN
 function applyState(d) {
   try {
     state.open   = Array.isArray(d.open) ? d.open.filter(Boolean) : [];
@@ -773,6 +806,19 @@ function applyState(d) {
         { name: 'TV 180', group: 'Besta', productType: 'Tür', reqs: [{size: '38', qty: 3}] },
         { name: 'TV 120', group: 'Besta', productType: 'Tür', reqs: [{size: '38', qty: 2}] }
     ];
+    
+    if (d.quick) {
+        state.quick = d.quick;
+        if (!state.quick.group) state.quick.group = ['Besta', 'Malm', 'Alex', 'Pax', 'Hemnes', 'Sonstiges'];
+    } else {
+        state.quick = {
+            group: ['Besta', 'Malm', 'Alex', 'Pax', 'Hemnes', 'Sonstiges'],
+            productType: ['Korpus', 'Tür', 'Schublade', 'Einlegeboden', 'Tisch'],
+            article: ['Selsviken', 'Lappviken', 'Stressless'],
+            size: ['64', '38', '26', 'Sideboard', 'Longboard', 'TV 180', 'TV 120', '193', '128'],
+            color: ['Schwarz', 'Weiß', 'Dunkel', 'Hell', 'Grau', 'Beige', 'Holz']
+        };
+    }
     
     state.year = d.year || String(new Date().getFullYear());
 
@@ -910,31 +956,96 @@ function fillSel(el, vals, ph) {
   el.innerHTML = `<option value="">${ph}</option>` + vals.map(v=>`<option value="${v}">${v}</option>`).join('');
 }
 
-function setSelVal(id, val) {
-  const sel = g(id);
-  if (!sel) return;
-  let exists = Array.from(sel.options).some(o => o.value === val);
-  if (!exists) {
-      let opt = document.createElement('option');
-      opt.value = val;
-      opt.text = val;
-      sel.add(opt);
-      
-      const grp = g('group').value;
-      const pt = g('productType').value;
-      if (grp && pt && state.master.catalog[grp] && state.master.catalog[grp][pt]) {
-          const arrMap = { article: 'articles', size: 'sizes', color: 'colors' };
-          const arrName = arrMap[id];
-          if(arrName && !state.master.catalog[grp][pt][arrName].includes(val)) {
-              state.master.catalog[grp][pt][arrName].push(val);
-              save();
-          }
-      }
-  }
-  sel.value = val;
-  if (id === 'group') onGroupChange();
-  if (id === 'productType') onProductTypeChange();
+// ==========================================
+// SCHNELLAUSWAHL (QUICK BUTTONS) LOGIK
+// ==========================================
+window.handleQuickSelect = function(selId, val) {
+    const sel = g(selId);
+    if (!sel) return;
+
+    if (sel.value === val) {
+        sel.value = ''; 
+    } else {
+        let exists = Array.from(sel.options).some(o => o.value === val);
+        if (!exists) sel.add(new Option(val, val));
+        sel.value = val;
+    }
+
+    if (selId === 'group') onGroupChange();
+    if (selId === 'productType') onProductTypeChange();
+
+    renderAllQuick();
+};
+
+function renderAllQuick() {
+    const grpVal = g('group').value;
+    const ptVal = g('productType').value;
+
+    const fPt = g('field-productType');
+    const fArt = g('field-article');
+    const fSzCol = g('field-size-color');
+
+    if(fPt) fPt.style.display = grpVal ? 'grid' : 'none';
+    if(fArt) fArt.style.display = (grpVal && ptVal) ? 'grid' : 'none';
+    if(fSzCol) fSzCol.style.display = (grpVal && ptVal) ? 'grid' : 'none';
+
+    const renderQ = (cat, selId) => {
+        const c = g('qb-' + cat);
+        if(!c) return;
+        const currentVal = g(selId).value;
+        let h = (state.quick[cat] || []).map((val, i) => {
+            const isActive = (val === currentVal);
+            return `
+            <div class="qb-chip ${isActive ? 'active' : ''}" onclick="handleQuickSelect('${selId}', '${val.replace(/'/g,"\\'").replace(/"/g,"&quot;")}')">
+                <span>${val}</span>
+                <span class="qb-rm" onclick="event.stopPropagation(); window.removeQuick('${cat}', ${i})">×</span>
+            </div>`;
+        }).join('');
+        h += `<button type="button" class="qb-chip qb-add" onclick="window.addQuick('${cat}', '${selId}')">✚</button>`;
+        c.innerHTML = h;
+    };
+    
+    renderQ('group', 'group');
+    renderQ('productType', 'productType');
+    renderQ('article', 'article');
+    renderQ('size', 'size');
+    renderQ('color', 'color');
 }
+
+window.removeQuick = function(cat, i) {
+    if(!confirm('Diesen Wert wirklich entfernen?')) return;
+    state.quick[cat].splice(i, 1);
+    save(); 
+    renderAllQuick();
+};
+
+window.addQuick = function(cat, selId) {
+    const v = prompt('Neuer Wert:');
+    if(v && v.trim() !== '') {
+        const val = v.trim();
+        if(!state.quick[cat]) state.quick[cat] = [];
+        if(!state.quick[cat].includes(val)) {
+            state.quick[cat].push(val);
+        }
+        
+        const grp = g('group').value;
+        const pt = g('productType').value;
+        if (cat === 'group') {
+            if(!state.master.catalog[val]) state.master.catalog[val] = { 'Korpus':{articles:[],sizes:[],colors:[]} }; 
+        } else if (cat === 'productType' && grp) {
+            if(!state.master.catalog[grp][val]) state.master.catalog[grp][val] = {articles:[],sizes:[],colors:[]};
+        } else if (grp && pt && state.master.catalog[grp] && state.master.catalog[grp][pt]) {
+            const arrMap = { article: 'articles', size: 'sizes', color: 'colors' };
+            const arrName = arrMap[cat];
+            if(arrName && !state.master.catalog[grp][pt][arrName].includes(val)) {
+                state.master.catalog[grp][pt][arrName].push(val);
+            }
+        }
+
+        save(); 
+        handleQuickSelect(selId, val);
+    }
+};
 
 // ==========================================
 // RENDER ROUTER & NAV
@@ -978,10 +1089,13 @@ async function saveToJsonBin() {
   localStorage.setItem('jsonBinId', binId);
   localStorage.setItem('jsonBinKey', apiKey);
 
-  const cloudPayload = JSON.parse(JSON.stringify({ open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year }));
+  const cloudPayload = JSON.parse(JSON.stringify({ open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year, quick:state.quick }));
 
   cloudPayload.master.images = [];
   cloudPayload.master.setImages = [];
+  if (cloudPayload.master.badgeRules) {
+      cloudPayload.master.badgeRules.forEach(r => { r.image = ''; });
+  }
   if(cloudPayload.master.catalog) {
     Object.keys(cloudPayload.master.catalog).forEach(grp => {
       Object.keys(cloudPayload.master.catalog[grp]).forEach(typ => {
@@ -1026,12 +1140,21 @@ async function loadFromJsonBin() {
         const localSold = JSON.parse(JSON.stringify(state.sold));
         const localMasterImgs = state.master.images || [];
         const localMasterSetImgs = state.master.setImages || [];
+        const localBadgeRules = JSON.parse(JSON.stringify(state.master.badgeRules || []));
         const localCatalog = JSON.parse(JSON.stringify(state.master.catalog || {}));
 
         applyState(d);
 
         state.master.images = localMasterImgs;
         state.master.setImages = localMasterSetImgs;
+        
+        if (state.master.badgeRules) {
+            state.master.badgeRules.forEach(r => {
+                const oldRule = localBadgeRules.find(old => old.name === r.name && old.group === r.group);
+                if (oldRule && oldRule.image) r.image = oldRule.image;
+            });
+        }
+
         if(state.master.catalog) {
           Object.keys(state.master.catalog).forEach(grp => {
             Object.keys(state.master.catalog[grp]).forEach(typ => {
@@ -1062,6 +1185,7 @@ async function loadFromJsonBin() {
 
         save();
         fillMasterDropdowns();
+        renderAllQuick();
         render();
         toast('Cloud Download + lokaler Bild-Merge erfolgreich ✓');
       }
@@ -1070,7 +1194,7 @@ async function loadFromJsonBin() {
 }
 
 function exportData() {
-  const data = { open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year };
+  const data = { open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year, quick:state.quick };
   const json = JSON.stringify(data, null, 2);
   const filename = `kleinanzeigen-hero-${today()}.json`;
 
@@ -1126,6 +1250,9 @@ function importData(file) {
       if (d.master) {
         d.master.images = [];
         d.master.setImages = [];
+        if (Array.isArray(d.master.badgeRules)) {
+            d.master.badgeRules.forEach(r => { r.image = ''; });
+        }
         if (d.master.catalog) {
           Object.keys(d.master.catalog).forEach(grp => {
             Object.keys(d.master.catalog[grp]).forEach(typ => {
@@ -1141,6 +1268,7 @@ function importData(file) {
       state.hideZero = false; 
       save();
       fillMasterDropdowns();
+      renderAllQuick();
       state.page = 'open'; 
       render();
       toast('Daten importiert ✓ (Bilder ignoriert)');
@@ -1150,164 +1278,6 @@ function importData(file) {
     }
   };
   reader.readAsText(file);
-}
-
-// ==========================================
-// BILDER & MODALS (FIXED)
-// ==========================================
-
-function buildImgDropdown() {
-  const dd = g('imgDropdown'); if (!dd) return;
-  const grp = g('group')?.value || '';
-  const typ = g('productType')?.value || '';
-  const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
-  
-  const allImgs = [...new Set([...catImgs, ...(state.master.images||[]), ...(state.master.setImages||[])])];
-  const opts = [{ url:'', label:'Kein Bild' }, ...allImgs.map(u=>({
-    url:u, label: u.startsWith('data:') ? (catImgs.includes(u) ? `📌 ${typ}` : 'Upload-Bild') : (u.split('id=')[1]?.slice(0,22)||u.slice(-22))
-  }))];
-  dd.innerHTML = opts.map(o=>`
-    <div class="iso" data-val="${o.url}">
-      <div class="iso-thumb">${o.url?`<img src="${o.url}" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">` :'📷'}</div>
-      <span>${o.label}</span>
-    </div>`).join('');
-}
-
-function setImgVal(url) {
-  g('imgValue').value = url;
-  const lbl = url ? (url.startsWith('data:') ? 'Upload-Bild' : (url.split('id=')[1]?.slice(0,22)||url.slice(-22))) : 'Kein Bild';
-  if(g('imgLabel')) g('imgLabel').textContent = lbl;
-  const p = g('imgPreview');
-  if(p) p.innerHTML = url ? `<img src="${url}" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">` : '📷';
-  if(g('imgDropdown')) g('imgDropdown').querySelectorAll('.iso').forEach(o=>o.classList.toggle('active', o.dataset.val===url));
-}
-
-let imagePickCallback = null;
-
-function syncNewImageLabel(url) {
-  const lbl = g('imgLabel');
-  const prev = g('imgPreview');
-  if(lbl) lbl.textContent = url ? 'Aus Stammdaten gewählt' : 'Aus Stammdaten wählen…';
-  if(prev) prev.textContent = url ? '🖼' : '📷';
-}
-
-function openNewImgPicker() {
-  imagePickCallback = (url) => {
-    g('imgValue').value = url;
-    const prev = g('imgPreview');
-    const lbl = g('imgLabel');
-    if(prev) prev.innerHTML = url ? `<img src="${url}" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">` : '🖼';
-    if(lbl) lbl.textContent = url ? 'Bild gewählt ✓' : 'Aus Stammdaten wählen…';
-  };
-  openImagePicker(g('imgValue')?.value || '');
-}
-
-function openImagePicker(currentUrl='') {
-  const modal = g('imagePickerModal');
-  const list = g('imagePickerList');
-  if(!modal || !list) return;
-  const grp = g('group')?.value || '';
-  const typ = g('productType')?.value || '';
-  const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
-  const allImgs = [...new Set([...catImgs, ...(state.master.images||[]), ...(state.master.setImages||[])])];
-  list.innerHTML = allImgs.length ? allImgs.map(u => `
-    <button type="button" class="img-pick" data-url="${u.replace(/"/g,'&quot;')}" style="border:2px solid ${u===currentUrl?'#4caf50':'transparent'}">
-      <img src="${u}" loading="lazy" style="width:100%;height:100px;object-fit:cover;border-radius:8px;">
-      <div style="font-size:var(--text-xs);margin-top:4px;word-break:break-all;">${catImgs.includes(u) ? 'Stammdaten' : (state.master.setImages||[]).includes(u) ? 'Set-Bild' : 'Upload'}</div>
-    </button>`).join('') : '<div class="empty">Keine Bilder vorhanden.</div>';
-  modal.style.display='flex'; modal.classList.add('show'); document.documentElement.style.overflow='hidden';
-  modal.onclick = e => {
-    if(e.target === modal) return closeImagePicker();
-    const b = e.target.closest('[data-url]');
-    if(!b) return;
-    imagePickCallback && imagePickCallback(b.dataset.url);
-    closeImagePicker();
-  };
-}
-
-function closeImagePicker() {
-  const modal = g('imagePickerModal');
-  if(modal){ modal.classList.remove('show'); modal.style.display='none'; } document.documentElement.style.overflow='';
-}
-
-function openSetBadgesModal() {
-  const content = g('setBadgesContent');
-  if(!content) return;
-  const rules = state.master.badgeRules || [];
-
-  const badgeResults = {};
-  const displayOrder = [];
-  rules.forEach(r => {
-     if(!badgeResults[r.name]) {
-         badgeResults[r.name] = [];
-         displayOrder.push(r.name);
-     }
-  });
-
-  const inventory = {};
-  state.open.forEach(item => {
-    if (!item.instances || item.instances.length === 0) return; 
-
-    const grp = item.group || '–';
-    const pt = item.productType || '–';
-    const art = item.article || '–';
-    const col = item.color || '–';
-    const key = grp + '::' + pt + '::' + art + '::' + col;
-
-    if (!inventory[key]) inventory[key] = { grp, pt, art, col, counts: {} };
-
-    const size = item.size || '–';
-    if (!inventory[key].counts[size]) inventory[key].counts[size] = 0;
-    inventory[key].counts[size] += item.instances.length;
-  });
-
-  Object.values(inventory).forEach(inv => {
-     const label = `${inv.art} ${inv.col}`;
-     
-     rules.forEach(rule => {
-        if (inv.grp !== rule.group || inv.pt !== rule.productType) return;
-        
-        let pass = true;
-        for (let req of rule.reqs) {
-            if ((inv.counts[req.size] || 0) < req.qty) {
-                pass = false; break;
-            }
-        }
-        
-        if (pass && rule.reqs.length > 0) {
-            if(!badgeResults[rule.name].includes(label)) {
-                badgeResults[rule.name].push(label);
-            }
-        }
-     });
-  });
-
-  let html = '';
-  let hasAny = false;
-
-  displayOrder.forEach(badgeName => {
-    const items = badgeResults[badgeName];
-    if (items && items.length > 0) {
-      hasAny = true;
-      html += `<div style="padding:var(--sp2) 0; border-bottom:1px solid var(--divider); line-height:1.4;">
-        <strong style="display:inline-block; min-width:130px; color:var(--primary);">${badgeName} :</strong> 
-        <span style="color:var(--text);">${items.join(' <span style="color:var(--muted); margin:0 4px;">|</span> ')}</span>
-      </div>`;
-    }
-  });
-
-  if (!hasAny) {
-     html = '<div class="empty">Aktuell können keine Sets aus den offenen Artikeln gebildet werden.</div>';
-  }
-  
-  content.innerHTML = html;
-  g('setBadgesModal').style.display = 'flex';
-  g('setBadgesModal').classList.add('show');
-}
-
-function closeSetBadgesModal() {
-  g('setBadgesModal').classList.remove('show');
-  g('setBadgesModal').style.display = 'none';
 }
 
 
@@ -1332,13 +1302,6 @@ function fillMasterDropdowns() {
   if(g('article')) g('article').innerHTML     = '<option value="">– Produkttyp wählen –</option>';
   if(g('size')) g('size').innerHTML        = '<option value="">–</option>';
   if(g('color')) g('color').innerHTML       = '<option value="">–</option>';
-  
-  // DYNAMISCHE GRUPPEN-SCHNELLAUSWAHL
-  const qgb = g('quickGroupBtns');
-  if (qgb) {
-      qgb.innerHTML = groups.map(grp => `<button type="button" class="btn btn-ghost" style="padding:4px 10px;border-radius:999px;font-size:var(--text-xs);min-height:32px;" onclick="setSelVal('group','${grp}')">${grp}</button>`).join('');
-  }
-  
   buildImgDropdown();
 }
 
@@ -1347,15 +1310,19 @@ function onGroupChange() {
   const grp  = g('group')?.value || '';
   const cat  = state.master.catalog[grp] || {};
   const typs = Object.keys(cat).sort((a,b)=>a.localeCompare(b,'de'));
-  if(g('productType')) fillSel(g('productType'), typs, 'Produkttyp wählen');
-  if(g('article')) g('article').innerHTML = '<option value="">– Produkttyp wählen –</option>';
-  if(g('size'))    g('size').innerHTML    = '<option value="">–</option>';
-  if(g('color'))   g('color').innerHTML   = '<option value="">–</option>';
+  if(g('productType')) {
+      fillSel(g('productType'), typs, 'Produkttyp wählen');
+      g('productType').value = '';
+  }
+  if(g('article')) g('article').value = '';
+  if(g('size')) g('size').value = '';
+  if(g('color')) g('color').value = '';
   
   buildImgDropdown();
   if(g('imgValue')) g('imgValue').value = '';
   const prev = g('imgPreview');
-  if(prev) { prev.src=''; prev.style.display='none'; }
+  if(prev) { prev.innerHTML='🖼'; }
+  renderAllQuick();
 }
 
 function onProductTypeChange() {
@@ -1365,17 +1332,18 @@ function onProductTypeChange() {
   const data = (grp&&typ) ? (state.master.catalog[grp]?.[typ]||{}) : {};
   const arts = data.articles || [];
   
-  if(g('article')) fillSel(g('article'), arts, 'Artikelname wählen');
-  if(g('size'))    fillSel(g('size'),    data.sizes||[],    'Größe wählen');
-  if(g('color'))   fillSel(g('color'),   data.colors||[],   'Farbe wählen');
+  if(g('article')) { fillSel(g('article'), arts, 'Artikelname wählen'); g('article').value = ''; }
+  if(g('size'))    { fillSel(g('size'),    data.sizes||[],    'Größe wählen'); g('size').value = ''; }
+  if(g('color'))   { fillSel(g('color'),   data.colors||[],   'Farbe wählen'); g('color').value = ''; }
   
   buildImgDropdown();
   const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
   if (catImgs.length > 0 && g('imgValue') && !g('imgValue').value) {
     g('imgValue').value = catImgs[0];
     const prev = g('imgPreview');
-    if (prev) { prev.src = catImgs[0]; prev.style.display = 'block'; }
+    if (prev) { prev.innerHTML = `<img src="${catImgs[0]}" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">`; }
   }
+  renderAllQuick();
 }
 
 if(g('itemForm')) {
@@ -1811,6 +1779,23 @@ function updateOpenFilters() {
   renderOpen();
 }
 
+function toggleGrp(el) {
+  const key = el.dataset.key;
+  const body = document.querySelector(`div[data-body="${key}"]`);
+  if (!body) return;
+  
+  const isCurrentlyOpen = state.openCollapse[key] !== undefined ? state.openCollapse[key] : globalExpandState;
+  const willBeOpen = !isCurrentlyOpen;
+  
+  state.openCollapse[key] = willBeOpen;
+  body.style.display = willBeOpen ? 'block' : 'none';
+  
+  const title = el.querySelector('.group-title');
+  if (title) {
+      title.innerHTML = title.innerHTML.replace(willBeOpen ? '▶' : '▼', willBeOpen ? '▼' : '▶');
+  }
+}
+
 function renderOpen() {
   updateZeroToggleUI();
   const toggleAllBtn = g('toggleAllBtn');
@@ -2056,6 +2041,133 @@ function renderOpen() {
   });
 
   g('openContent').innerHTML = html || (f.text || f.group || f.type || f.size || f.color ? '<div class="empty">Keine Artikel für diese Filterung gefunden.</div>' : '<div class="empty">Keine offenen Artikel.<br>Über „Neu" Artikel hinzufügen.</div>');
+}
+
+// ==========================================
+// ITEM ACTIONS
+// ==========================================
+function editItem(itemId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if (!item) return;
+  const newArticle = prompt('Artikelname:', item.article||'');
+  if(newArticle === null) return;
+  const newSize = prompt('Groesse:', item.size||'');
+  if(newSize === null) return;
+  const newColor = prompt('Farbe:', item.color||'');
+  if(newColor === null) return;
+  item.article = newArticle;
+  item.size = newSize;
+  item.color = newColor;
+  save(); renderOpen();
+}
+
+function deleteItem(itemId) {
+  if (!confirm('Artikel löschen?')) return;
+  state.open = state.open.filter(i=>i.id!==itemId);
+  state.sellCart = state.sellCart.filter(c => c.item.id !== itemId);
+  save(); 
+  if (state.page === 'sell') renderSellFilters();
+  renderOpen();
+}
+
+function deleteInst(itemId, instId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if (!item) return;
+  if (!confirm('Exemplar löschen?')) return;
+  
+  item.instances = item.instances.filter(x=>x.id!==instId);
+  if (item.instances.length===0) state.open = state.open.filter(i=>i.id!==itemId);
+  
+  state.sellCart = state.sellCart.filter(c => c.inst.id !== instId);
+
+  save(); 
+  if (state.page === 'sell') { renderSellCart(); renderSellFilters(); }
+  renderOpen();
+}
+
+function changeQty(itemId, delta) {
+  const item = state.open.find(i=>i.id===itemId) || state.open.find(i=>stackKey(i)===itemId);
+  if(!item) return;
+  const current = item.instances.length;
+  if(delta > 0) {
+    const inheritImg = item.instances[0]?.image || item.image || '';
+    item.instances.push({
+      id: uid(),
+      purchasePrice: item.instances[0]?.purchasePrice || item.purchasePrice || 0,
+      profitshare: item.profitshare || false,
+      image: inheritImg,
+      entryDate: today(),
+      comment: '',
+      defect: ''
+    });
+  } else if(delta < 0 && current > 0) {
+    const removedInst = item.instances.pop();
+    state.sellCart = state.sellCart.filter(c => c.inst.id !== removedInst.id);
+    if(item.instances.length === 0 && removedInst.image) { item._savedImage = removedInst.image; }
+  }
+  save(); 
+  if (state.page === 'sell') renderSellFilters();
+  renderOpen();
+}
+
+function editItemImage(itemId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  imagePickCallback = (url) => {
+    item._savedImage = url;
+    if(item.instances[0] && !item.instances[0].image) item.instances[0].image = url;
+    syncNewImageLabel(url);
+    save(); renderOpen();
+  };
+  openImagePicker(item._savedImage || item.instances[0]?.image || '');
+}
+
+function toggleItemProfitshare(itemId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  const newVal = !item.instances.some(x=>x.profitshare);
+  item.instances.forEach(x=>x.profitshare = newVal);
+  save(); renderOpen();
+}
+
+function editInstImage(itemId, instId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  const inst = item.instances.find(i=>i.id===instId);
+  if(!inst) return;
+  imagePickCallback = (url) => { inst.image = url; syncNewImageLabel(url); save(); renderOpen(); };
+  openImagePicker(inst.image || item._savedImage || '');
+}
+
+function toggleInstProfitshare(itemId, instId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  const inst = item.instances.find(i=>i.id===instId);
+  if(!inst) return;
+  inst.profitshare = !inst.profitshare;
+  save(); renderOpen();
+}
+
+function editEK(itemId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  const val = prompt('EK Preis eingeben (€):', item.purchasePrice||0);
+  if(val === null) return;
+  const price = parseFloat(val.replace(',','.')) || 0;
+  item.purchasePrice = price;
+  item.instances.forEach(inst => inst.purchasePrice = price);
+  save(); renderOpen();
+}
+
+function editInstEK(itemId, instId) {
+  const item = state.open.find(i=>i.id===itemId);
+  if(!item) return;
+  const inst = item.instances.find(i=>i.id===instId);
+  if(!inst) return;
+  const val = prompt('EK Preis (EUR):', inst.purchasePrice||0);
+  if(val === null) return;
+  inst.purchasePrice = parseFloat(val.replace(',','.')) || 0;
+  save(); renderOpen();
 }
 
 // ==========================================
@@ -2416,8 +2528,266 @@ function renderSold() {
 }
 
 // ==========================================
-// STAMMDATEN LOGIC
+// BILDER & MODALS
 // ==========================================
+let imagePickCallback = null;
+
+function syncNewImageLabel(url) {
+  const lbl = g('imgLabel');
+  const prev = g('imgPreview');
+  if(lbl) lbl.textContent = url ? 'Aus Stammdaten gewählt' : 'Aus Stammdaten wählen…';
+  if(prev) prev.textContent = url ? '🖼' : '📷';
+}
+
+function openNewImgPicker() {
+  imagePickCallback = (url) => {
+    g('imgValue').value = url;
+    const prev = g('imgPreview');
+    const lbl = g('imgLabel');
+    if(prev) prev.innerHTML = url ? `<img src="${url}" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">` : '🖼';
+    if(lbl) lbl.textContent = url ? 'Bild gewählt ✓' : 'Aus Stammdaten wählen…';
+  };
+  openImagePicker(g('imgValue')?.value || '');
+}
+
+function openImagePicker(currentUrl='') {
+  const modal = g('imagePickerModal');
+  const list = g('imagePickerList');
+  if(!modal || !list) return;
+  const grp = g('group')?.value || '';
+  const typ = g('productType')?.value || '';
+  const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
+  const allImgs = [...new Set([...catImgs, ...(state.master.images||[]), ...(state.master.setImages||[])])];
+  list.innerHTML = allImgs.length ? allImgs.map(u => `
+    <button type="button" class="img-pick" data-url="${u.replace(/"/g,'&quot;')}" style="border:2px solid ${u===currentUrl?'#4caf50':'transparent'}">
+      <img src="${u}" loading="lazy" style="width:100%;height:100px;object-fit:cover;border-radius:8px;">
+      <div style="font-size:var(--text-xs);margin-top:4px;word-break:break-all;">${catImgs.includes(u) ? 'Stammdaten' : (state.master.setImages||[]).includes(u) ? 'Set-Bild' : 'Upload'}</div>
+    </button>`).join('') : '<div class="empty">Keine Bilder vorhanden.</div>';
+  modal.style.display='flex'; modal.classList.add('show'); document.documentElement.style.overflow='hidden';
+}
+
+function closeImagePicker() {
+  const modal = g('imagePickerModal');
+  if(modal){ modal.classList.remove('show'); modal.style.display='none'; } document.documentElement.style.overflow='';
+}
+
+function buildImgDropdown() {
+  const dd = g('imgDropdown'); if (!dd) return;
+  const grp = g('group')?.value || '';
+  const typ = g('productType')?.value || '';
+  const catImgs = (grp && typ && state.master.catalog[grp]?.[typ]?.images) || [];
+  
+  const allImgs = [...new Set([...catImgs, ...(state.master.images||[]), ...(state.master.setImages||[])])];
+  const opts = [{ url:'', label:'Kein Bild' }, ...allImgs.map(u=>({
+    url:u, label: u.startsWith('data:') ? (catImgs.includes(u) ? `📌 ${typ}` : 'Upload-Bild') : (u.split('id=')[1]?.slice(0,22)||u.slice(-22))
+  }))];
+  dd.innerHTML = opts.map(o=>`
+    <div class="iso" data-val="${o.url}">
+      <div class="iso-thumb">${o.url?`<img src="${o.url}" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">` :'📷'}</div>
+      <span>${o.label}</span>
+    </div>`).join('');
+}
+
+function setImgVal(url) {
+  g('imgValue').value = url;
+  const lbl = url ? (url.startsWith('data:') ? 'Upload-Bild' : (url.split('id=')[1]?.slice(0,22)||url.slice(-22))) : 'Kein Bild';
+  if(g('imgLabel')) g('imgLabel').textContent = lbl;
+  const p = g('imgPreview');
+  if(p) p.innerHTML = url ? `<img src="${url}" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">` : '📷';
+  if(g('imgDropdown')) g('imgDropdown').querySelectorAll('.iso').forEach(o=>o.classList.toggle('active', o.dataset.val===url));
+}
+
+// ==========================================
+// STAMMDATEN & BADGE REGELN 
+// ==========================================
+window.currentEditBadgeIndex = null;
+
+window.updateBadgeProdType = function() {
+    const grp = document.getElementById('newBadgeGroup').value;
+    const ptSel = document.getElementById('newBadgeProdType');
+    if(!grp || !state.master.catalog[grp]) {
+        ptSel.innerHTML = '<option value="">– Produkttyp –</option>';
+        return;
+    }
+    const typs = Object.keys(state.master.catalog[grp]);
+    const currentVal = ptSel.value;
+    ptSel.innerHTML = '<option value="">– Produkttyp –</option>' + typs.map(t => `<option value="${t}">${t}</option>`).join('');
+    if (typs.includes(currentVal)) ptSel.value = currentVal;
+};
+
+window.openBadgeImgPicker = function() {
+    imagePickCallback = (url) => {
+        g('newBadgeImg').value = url;
+        g('badgeImgPreview').innerHTML = url ? `<img src="${url}" style="width:16px;height:16px;object-fit:cover;border-radius:4px;vertical-align:middle;">` : '📷';
+    };
+    openImagePicker(g('newBadgeImg')?.value || '');
+};
+
+window.addBadgeRule = function() {
+    const name = document.getElementById('newBadgeName').value.trim();
+    const grp = document.getElementById('newBadgeGroup').value;
+    const pt = document.getElementById('newBadgeProdType').value;
+    const reqsStr = document.getElementById('newBadgeReqs').value.trim();
+    const image = document.getElementById('newBadgeImg').value || '';
+
+    if(!name || !grp || !pt || !reqsStr) return alert('Bitte alle Pflichtfelder ausfüllen.');
+
+    const reqs = reqsStr.split(',').map(s => {
+        const parts = s.toLowerCase().split('x');
+        if(parts.length !== 2) return null;
+        const size = parts[0].trim();
+        const qty = parseInt(parts[1].trim());
+        if(!size || isNaN(qty)) return null;
+        return {size, qty};
+    }).filter(Boolean);
+
+    if(reqs.length === 0) return alert('Ungültiges Bedarfs-Format. Bitte z.B. 64x2 eingeben.');
+
+    if(!state.master.badgeRules) state.master.badgeRules = [];
+
+    if (window.currentEditBadgeIndex !== null && window.currentEditBadgeIndex >= 0) {
+        state.master.badgeRules[window.currentEditBadgeIndex] = { name, group: grp, productType: pt, reqs, image };
+        window.currentEditBadgeIndex = null;
+        toast('Regel aktualisiert ✓');
+    } else {
+        state.master.badgeRules.push({ name, group: grp, productType: pt, reqs, image });
+        toast('Regel hinzugefügt ✓');
+    }
+    
+    document.getElementById('newBadgeImg').value = '';
+    document.getElementById('badgeImgPreview').innerHTML = '📷';
+    
+    save();
+    renderMaster();
+};
+
+window.editBadgeRule = function(idx) {
+    const rule = state.master.badgeRules[idx];
+    document.getElementById('newBadgeName').value = rule.name;
+    document.getElementById('newBadgeGroup').value = rule.group;
+    window.updateBadgeProdType();
+    document.getElementById('newBadgeProdType').value = rule.productType;
+    document.getElementById('newBadgeReqs').value = rule.reqs.map(r => `${r.size}x${r.qty}`).join(', ');
+    
+    document.getElementById('newBadgeImg').value = rule.image || '';
+    document.getElementById('badgeImgPreview').innerHTML = rule.image ? `<img src="${rule.image}" style="width:16px;height:16px;object-fit:cover;border-radius:4px;vertical-align:middle;">` : '📷';
+
+    window.currentEditBadgeIndex = idx;
+    
+    document.getElementById('badgeFormTitle').textContent = 'Regel bearbeiten';
+    document.getElementById('saveBadgeBtn').innerHTML = '✓ Aktualisieren';
+    document.getElementById('cancelBadgeBtn').style.display = 'inline-flex';
+    document.getElementById('saveBadgeBtn').scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
+window.cancelEditBadgeRule = function() {
+    window.currentEditBadgeIndex = null;
+    document.getElementById('newBadgeName').value = '';
+    document.getElementById('newBadgeGroup').value = '';
+    document.getElementById('newBadgeProdType').innerHTML = '<option value="">– Produkttyp –</option>';
+    document.getElementById('newBadgeReqs').value = '';
+    document.getElementById('newBadgeImg').value = '';
+    document.getElementById('badgeImgPreview').innerHTML = '📷';
+
+    document.getElementById('badgeFormTitle').textContent = 'Neue Regel erstellen';
+    document.getElementById('saveBadgeBtn').innerHTML = '✚ Regel speichern';
+    document.getElementById('cancelBadgeBtn').style.display = 'none';
+};
+
+window.deleteBadgeRule = function(idx) {
+    if(!confirm('Regel löschen?')) return;
+    state.master.badgeRules.splice(idx, 1);
+    if (window.currentEditBadgeIndex === idx) window.cancelEditBadgeRule();
+    save();
+    renderMaster();
+};
+
+function openSetBadgesModal() {
+  const content = g('setBadgesContent');
+  if(!content) return;
+  const rules = state.master.badgeRules || [];
+
+  const badgeResults = {};
+  const displayOrder = [];
+  rules.forEach(r => {
+     if(!badgeResults[r.name]) {
+         badgeResults[r.name] = {items: [], image: r.image || ''};
+         displayOrder.push(r.name);
+     }
+  });
+
+  const inventory = {};
+  state.open.forEach(item => {
+    if (!item.instances || item.instances.length === 0) return; 
+
+    const grp = item.group || '–';
+    const pt = item.productType || '–';
+    const art = item.article || '–';
+    const col = item.color || '–';
+    const key = grp + '::' + pt + '::' + art + '::' + col;
+
+    if (!inventory[key]) inventory[key] = { grp, pt, art, col, counts: {} };
+
+    const size = item.size || '–';
+    if (!inventory[key].counts[size]) inventory[key].counts[size] = 0;
+    inventory[key].counts[size] += item.instances.length;
+  });
+
+  Object.values(inventory).forEach(inv => {
+     const label = `${inv.art} ${inv.col}`;
+     
+     rules.forEach(rule => {
+        if (inv.grp !== rule.group || inv.pt !== rule.productType) return;
+        
+        let pass = true;
+        for (let req of rule.reqs) {
+            if ((inv.counts[req.size] || 0) < req.qty) {
+                pass = false; break;
+            }
+        }
+        
+        if (pass && rule.reqs.length > 0) {
+            if(!badgeResults[rule.name].items.includes(label)) {
+                badgeResults[rule.name].items.push(label);
+            }
+        }
+     });
+  });
+
+  let html = '';
+  let hasAny = false;
+
+  displayOrder.forEach(badgeName => {
+    const data = badgeResults[badgeName];
+    if (data && data.items.length > 0) {
+      hasAny = true;
+      html += `<div style="padding:var(--sp2) 0; border-bottom:1px solid var(--divider); display:flex; gap:12px; align-items:center;">
+        ${data.image ? `<img src="${data.image}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border);flex-shrink:0;">` : `<div style="width:40px;height:40px;border-radius:6px;border:1px dashed var(--border);display:grid;place-items:center;color:var(--muted);flex-shrink:0;">📷</div>`}
+        <div style="line-height:1.4;">
+            <strong style="display:block; color:var(--primary);">${badgeName}</strong> 
+            <span style="color:var(--text);font-size:var(--text-sm);">${data.items.join(' <span style="color:var(--muted); margin:0 4px;">|</span> ')}</span>
+        </div>
+      </div>`;
+    }
+  });
+
+  if (!hasAny) {
+     html = '<div class="empty">Aktuell können keine Sets aus den offenen Artikeln gebildet werden.</div>';
+  }
+  
+  content.innerHTML = html;
+  g('setBadgesModal').style.display = 'flex';
+  g('setBadgesModal').classList.add('show');
+}
+
+function closeSetBadgesModal() {
+  const m = g('setBadgesModal');
+  if(m) {
+      m.classList.remove('show');
+      m.style.display = 'none';
+  }
+}
+
 function renderMaster() {
   const cat = state.master.catalog || {};
   const groups = Object.keys(cat).sort((a,b)=>a.localeCompare(b,'de'));
@@ -2481,9 +2851,12 @@ function renderMaster() {
             <div id="badgeRulesList" style="margin-bottom:var(--sp3);">
                 ${(state.master.badgeRules||[]).map((r, i) => `
                     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--divider); padding:var(--sp2) 0;">
-                        <div>
-                            <b style="font-size:var(--text-base);">${r.name}</b> <span style="color:var(--muted); font-size:var(--text-xs);">(${r.group} · ${r.productType})</span><br>
-                            <span style="font-size:var(--text-sm); font-weight:600; color:var(--primary);">${r.reqs.map(req => `${req.qty}x Gr. ${req.size}`).join(', ')}</span>
+                        <div style="display:flex; gap:12px; align-items:center;">
+                            ${r.image ? `<img src="${r.image}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border);flex-shrink:0;">` : `<div style="width:40px;height:40px;border-radius:6px;border:1px dashed var(--border);display:grid;place-items:center;color:var(--muted);flex-shrink:0;">📷</div>`}
+                            <div>
+                                <b style="font-size:var(--text-base);">${r.name}</b> <span style="color:var(--muted); font-size:var(--text-xs);">(${r.group} · ${r.productType})</span><br>
+                                <span style="font-size:var(--text-sm); font-weight:600; color:var(--primary);">${r.reqs.map(req => `${req.qty}x Gr. ${req.size}`).join(', ')}</span>
+                            </div>
                         </div>
                         <div style="display:flex; gap:6px;">
                             <button class="btn btn-ghost" style="min-height:28px;padding:.2rem .5rem;font-size:var(--text-xs);" onclick="editBadgeRule(${i})" title="Regel bearbeiten">✏️</button>
@@ -2502,6 +2875,12 @@ function renderMaster() {
                     </select>
                     <select class="select" id="newBadgeProdType"><option value="">– Produkttyp –</option></select>
                     <input type="text" class="input" id="newBadgeReqs" placeholder="Bedarf (z.B. 64x2, 38x1)">
+                </div>
+                <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
+                    <button type="button" class="btn btn-ghost" style="padding:4px 10px; min-height:32px; font-size:var(--text-xs); border-radius:var(--rad-md);" onclick="openBadgeImgPicker()">
+                      <span id="badgeImgPreview">📷</span> Bild (optional)
+                    </button>
+                    <input type="hidden" id="newBadgeImg">
                 </div>
                 <div style="display:flex; gap:8px; margin-top:var(--sp3);">
                     <button id="saveBadgeBtn" class="btn btn-primary" style="flex:1;" onclick="addBadgeRule()">✚ Regel speichern</button>
@@ -2679,6 +3058,7 @@ document.addEventListener('click', e => {
     const itemId=e.target.dataset.delInst, instId=e.target.dataset.instId;
     const item=state.open.find(i=>i.id===itemId); if(!item) return;
     item.instances=item.instances.filter(x=>x.id!==instId);
+    if(!item.instances.length) state.open=state.open.filter(i=>i.id!==itemId);
     state.sellCart = state.sellCart.filter(c => c.inst.id !== instId);
     save(); renderOpen(); return;
   }
@@ -2696,7 +3076,7 @@ document.addEventListener('click', e => {
     fillMasterDropdowns(); save(); renderMaster(); return;
   }
   
-  // Custom Dropdowns
+  // Custom Dropdowns (z.B. Bilder-Dropdown)
   const wrap = g('imgWrap');
   if(wrap && wrap.contains(e.target)) {
     const opt = e.target.closest('.iso');
@@ -2708,6 +3088,12 @@ document.addEventListener('click', e => {
   if (sellSetWrap) {
     if (e.target.closest('#sellSetImgTrigger')) { g('sellSetImgDropdown').classList.toggle('open'); }
     else if (!sellSetWrap.contains(e.target)) { g('sellSetImgDropdown')?.classList.remove('open'); }
+  }
+  
+  // Klick auf den Modal-Hintergrund, um das Bild-Auswahl-Modal zu schließen
+  const imgModal = g('imagePickerModal');
+  if (imgModal && e.target === imgModal) {
+      closeImagePicker();
   }
 });
 
@@ -2761,5 +3147,52 @@ window.addEventListener('beforeunload', save);
 load();
 
 </script>
+
+<input type="file" id="instImgInput" accept="image/*" style="display:none">
+<script>
+let _instImgItemId = null, _instImgInstId = null;
+
+function triggerInstImgUpload(itemId, instId) {
+  _instImgItemId = itemId;
+  _instImgInstId = instId;
+  document.getElementById('instImgInput').click();
+}
+
+document.getElementById('instImgInput').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const url = e.target.result;
+    const item = state.open.find(i => i.id === _instImgItemId);
+    if (!item) return;
+    const inst = item.instances.find(x => x.id === _instImgInstId);
+    if (!inst) return;
+    inst.image = url;
+    save();
+    renderOpen();
+    toast('Bild gespeichert ✓');
+  };
+  reader.readAsDataURL(file);
+  this.value = '';
+});
+
+function resetItemForm() {
+  g('itemForm').reset();
+  if (g('purchasePrice')) g('purchasePrice').value = '';
+  if (g('quantity')) g('quantity').value = '1';
+  if (g('productType')) g('productType').innerHTML = '<option value="">Gruppe wählen</option>';
+  if (g('article')) g('article').innerHTML = '<option value="">Produkttyp wählen</option>';
+  if (g('size')) g('size').innerHTML = '<option value=""></option>';
+  if (g('color')) g('color').innerHTML = '<option value=""></option>';
+  if (g('imgValue')) g('imgValue').value = '';
+  if (g('imgLabel')) g('imgLabel').textContent = 'Aus Stammdaten wählen';
+  if (g('imgPreview')) g('imgPreview').innerHTML = '';
+  if (g('uploadPreview')) g('uploadPreview').classList.remove('show');
+  
+  onGroupChange();
+}
+</script>
+
 </body>
 </html>
