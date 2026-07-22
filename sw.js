@@ -1,10 +1,12 @@
-const CACHE_NAME = 'hero-app-offline-v1';
+const CACHE_NAME = 'hero-app-offline-v2';
 
-// Diese Dateien werden auf dem Handy gespeichert
+// Diese Dateien werden auf dem Handy im Cache gespeichert (inkl. app.js und Logo)
 const FILES_TO_CACHE = [
   './',
   './index.html',
+  './app.js',
   './manifest.json',
+  './icon-192.png',
   'https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap'
 ];
 
@@ -19,7 +21,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Aufräumen: Alte Versionen löschen, falls du ein Update auf GitHub machst
+// Aufräumen: Alte Versionen löschen, falls ein Update auf GitHub gemacht wird
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
