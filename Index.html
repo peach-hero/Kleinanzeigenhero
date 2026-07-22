@@ -47,7 +47,7 @@ img{max-width:100%;display:block;}
 .brand{display:flex;align-items:center;gap:var(--sp3);}
 .logo{width:36px;height:36px;color:var(--primary);flex-shrink:0;}
 .brand-text h1{font-size:var(--text-base);font-weight:700;margin:0;line-height:1.2;}
-.brand-text .sub{font-size:var(--text-xs);color:var(--muted);}
+.brand-text .sub{font-size:var(--text-xs);color:var(--muted); font-weight:700;}
 .top-actions{display:flex;gap:var(--sp2);}
 .icon-btn{background:transparent;border:1px solid var(--border);width:40px;height:40px;border-radius:var(--rad-md);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem; padding:0;}
 .icon-btn.active{border-color:var(--primary);color:var(--primary);background:var(--surfoff);}
@@ -264,7 +264,7 @@ input, textarea, select { -webkit-user-select: text; user-select: text; }
     </svg>
     <div class="brand-text">
       <h1>Kleinanzeigen</h1>
-      <div class="sub">Hero Edition</div>
+      <div class="sub" style="color:var(--primary);">Hero Edition v4.6</div>
     </div>
   </div>
   <div class="top-actions">
@@ -712,7 +712,6 @@ const state = {
   termine: [],
   year: String(new Date().getFullYear()),
   master: { catalog: {}, badgeRules: [], images: [], setImages: [] },
-  quick: { group: [], productType: [], article: [], size: [], color: [] },
   openCollapse: {},
   openScrollPos: 0,
   hideZero: true,
@@ -734,7 +733,7 @@ function openDB() {
 }
 
 function save() {
-  const payload = { open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year, quick:state.quick };
+  const payload = { open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year };
   try { localStorage.setItem('amp3', JSON.stringify(payload)); } catch(e) {}
   openDB().then(database => {
     const tx  = database.transaction(STORE, 'readwrite');
@@ -772,7 +771,6 @@ function fallbackLoad() {
 }
 
 function initApp() {
-    initDemoCatalog(); 
     updateMasterForm();
     populateUhrzeit();
     renderAllQuick();
@@ -782,29 +780,78 @@ function initApp() {
 
 function applyState(d) {
   try {
-    if (d.open !== undefined) state.open = Array.isArray(d.open) ? d.open.filter(Boolean) : [];
+    state.open = Array.isArray(d.open) ? d.open.filter(Boolean) : [];
     if (d.sold !== undefined && Array.isArray(d.sold) && d.sold.length > 0) state.sold = d.sold.filter(Boolean);
     if (d.termine !== undefined && Array.isArray(d.termine) && d.termine.length > 0) state.termine = d.termine.filter(Boolean);
     
-    if (d.master !== undefined && Object.keys(d.master).length > 0) {
-        state.master = d.master || {};
-        state.master.images = Array.isArray(state.master.images) ? state.master.images : [];
-        state.master.setImages = Array.isArray(state.master.setImages) ? state.master.setImages : [];
-        state.master.catalog = state.master.catalog || {};
-        state.master.badgeRules = Array.isArray(state.master.badgeRules) ? state.master.badgeRules : [];
+    if (!state.master) state.master = { catalog: {}, badgeRules: [], images: [], setImages: [] };
+    if (d.master) {
+        if (Array.isArray(d.master.images)) state.master.images = d.master.images;
+        if (Array.isArray(d.master.setImages)) state.master.setImages = d.master.setImages;
+        if (Array.isArray(d.master.badgeRules)) state.master.badgeRules = d.master.badgeRules;
+        if (d.master.catalog && typeof d.master.catalog === 'object' && !Array.isArray(d.master.catalog)) {
+            state.master.catalog = d.master.catalog;
+        }
     }
-    
-    if (d.quick) {
-        state.quick = d.quick;
-        if (!state.quick.group) state.quick.group = ['Besta', 'Malm', 'Alex', 'Pax', 'Hemnes', 'Sonstiges'];
-    } else {
-        state.quick = {
-            group: ['Besta', 'Malm', 'Alex', 'Pax', 'Hemnes', 'Sonstiges'],
-            productType: ['Korpus', 'Tür', 'Schublade', 'Einlegeboden', 'Tisch'],
-            article: ['Selsviken', 'Lappviken', 'Stressless'],
-            size: ['64', '38', '26', 'Sideboard', 'Longboard', 'TV 180', 'TV 120', '193', '128'],
-            color: ['Schwarz', 'Weiß', 'Dunkel', 'Hell', 'Grau', 'Beige', 'Holz']
-        };
+    if (!state.master.catalog) state.master.catalog = {};
+
+    // 1. Tiefen-Reinigung des Catalogs (verhindert Abstürze durch kaputte Datentypen)
+    for (let grp in state.master.catalog) {
+        if (!state.master.catalog[grp] || typeof state.master.catalog[grp] !== 'object' || Array.isArray(state.master.catalog[grp])) {
+            state.master.catalog[grp] = {};
+        }
+        for (let typ in state.master.catalog[grp]) {
+            if (!state.master.catalog[grp][typ] || typeof state.master.catalog[grp][typ] !== 'object' || Array.isArray(state.master.catalog[grp][typ])) {
+                state.master.catalog[grp][typ] = { articles: [], sizes: [], colors: [], images: [] };
+            }
+            const ptData = state.master.catalog[grp][typ];
+            ptData.articles = Array.isArray(ptData.articles) ? ptData.articles.filter(Boolean).map(String) : [];
+            ptData.sizes = Array.isArray(ptData.sizes) ? ptData.sizes.filter(Boolean).map(String) : [];
+            ptData.colors = Array.isArray(ptData.colors) ? ptData.colors.filter(Boolean).map(String) : [];
+            ptData.images = Array.isArray(ptData.images) ? ptData.images.filter(Boolean).map(String) : [];
+        }
+    }
+
+    // 2. Automatischer Import alter Listen-Formate
+    let oldG = [], oldPT = [], oldA = [], oldS = [], oldC = [];
+    if (d.quick && Array.isArray(d.quick.group) && d.quick.group.length > 0) {
+        oldG = d.quick.group;
+        oldPT = Array.isArray(d.quick.productType) ? d.quick.productType : [];
+        oldA = Array.isArray(d.quick.article) ? d.quick.article : [];
+        oldS = Array.isArray(d.quick.size) ? d.quick.size : [];
+        oldC = Array.isArray(d.quick.color) ? d.quick.color : [];
+    } else if (d.master && Array.isArray(d.master.groups) && d.master.groups.length > 0) {
+        oldG = d.master.groups;
+        oldPT = Array.isArray(d.master.producttypes) ? d.master.producttypes : [];
+        oldA = Array.isArray(d.master.articles) ? d.master.articles : [];
+        oldS = Array.isArray(d.master.sizes) ? d.master.sizes : [];
+        oldC = Array.isArray(d.master.colors) ? d.master.colors : [];
+    }
+
+    if (oldG.length > 0) {
+        if (oldPT.length === 0) oldPT = ['Standardtyp'];
+        oldG.forEach(g => {
+            const grpName = String(g).trim();
+            if (!grpName) return;
+            if (!state.master.catalog[grpName]) state.master.catalog[grpName] = {};
+            
+            oldPT.forEach(pt => {
+                const typName = String(pt).trim();
+                if (!typName) return;
+                if (!state.master.catalog[grpName][typName]) {
+                    state.master.catalog[grpName][typName] = { articles: [], sizes: [], colors: [], images: [] };
+                }
+                const target = state.master.catalog[grpName][typName];
+                
+                oldA.forEach(a => { if (a && !target.articles.includes(String(a))) target.articles.push(String(a)); });
+                oldS.forEach(s => { if (s && !target.sizes.includes(String(s))) target.sizes.push(String(s)); });
+                oldC.forEach(c => { if (c && !target.colors.includes(String(c))) target.colors.push(String(c)); });
+            });
+        });
+    }
+
+    if (Object.keys(state.master.catalog).length === 0) {
+        initDemoCatalog();
     }
     
     if (d.year) state.year = d.year;
@@ -984,22 +1031,26 @@ function renderQChips(type, items, currentVal) {
         'rot': '#e53935', 'blau': '#1e88e5', 'grün': '#43a047', 'gelb': '#fdd835'
     };
 
-    let h = items.map(val => {
-        const isActive = (val === currentVal);
-        const safeVal = val.replace(/'/g,"\\'").replace(/"/g,"&quot;");
+    const safeItems = Array.isArray(items) ? items : [];
+    
+    let h = safeItems.map(val => {
+        if(val == null) return ''; 
+        const strVal = String(val); 
+        const isActive = (strVal === String(currentVal||''));
+        const safeVal = strVal.replace(/'/g,"\\'").replace(/"/g,"&quot;");
         
         let colorDot = '';
         if (type === 'color') {
-            const hex = colorMap[val.toLowerCase()];
+            const hex = colorMap[strVal.toLowerCase()];
             if (hex) {
-                const border = (hex === '#fff' || hex === '#eee' || hex === '#f5f5dc') ? 'border:1px solid #ccc;' : '';
+                const border = (hex === '#fff' || hex === '#eee' || hex === '#f5f5dc' || hex === '#ffffff') ? 'border:1px solid #ccc;' : '';
                 colorDot = `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${hex};${border}margin-right:4px;"></span>`;
             }
         }
 
         return `
         <div class="qb-chip ${isActive ? 'active' : ''}" onclick="handleQuickSelect('${type}', '${safeVal}')">
-            ${colorDot}<span>${val}</span>
+            ${colorDot}<span>${strVal}</span>
             <span class="qb-rm" onclick="event.stopPropagation(); window.removeQuick('${type}', '${safeVal}')">×</span>
         </div>`;
     }).join('');
@@ -1009,21 +1060,26 @@ function renderQChips(type, items, currentVal) {
 }
 
 function renderAllQuick() {
-    const grpVal = g('group').value;
-    const ptVal = g('productType').value;
+  try {
+    const grpEl = g('group');
+    const ptEl = g('productType');
+    if(!grpEl || !ptEl) return;
+    
+    const grpVal = grpEl.value;
+    const ptVal = ptEl.value;
 
-    g('field-productType').style.display = grpVal ? 'block' : 'none';
-    g('field-article').style.display = (grpVal && ptVal) ? 'block' : 'none';
+    g('field-productType').style.display = grpVal ? 'grid' : 'none';
+    g('field-article').style.display = (grpVal && ptVal) ? 'grid' : 'none';
     g('field-size-color').style.display = (grpVal && ptVal) ? 'grid' : 'none';
 
     const cat = state.master.catalog || {};
     
-    const groups = Object.keys(cat).sort((a,b)=>a.localeCompare(b,'de'));
+    const groups = Object.keys(cat).sort((a,b)=>String(a).localeCompare(String(b),'de'));
     renderQChips('group', groups, grpVal);
 
     let typs = [];
     if (grpVal && cat[grpVal]) {
-        typs = Object.keys(cat[grpVal]).sort((a,b)=>a.localeCompare(b,'de'));
+        typs = Object.keys(cat[grpVal]).sort((a,b)=>String(a).localeCompare(String(b),'de'));
     }
     renderQChips('productType', typs, ptVal);
 
@@ -1034,9 +1090,10 @@ function renderAllQuick() {
         colors = cat[grpVal][ptVal].colors || [];
     }
     
-    renderQChips('article', arts, g('article').value);
-    renderQChips('size', sizes, g('size').value);
-    renderQChips('color', colors, g('color').value);
+    if(g('article')) renderQChips('article', arts, g('article').value);
+    if(g('size')) renderQChips('size', sizes, g('size').value);
+    if(g('color')) renderQChips('color', colors, g('color').value);
+  } catch(e) { console.error("renderAllQuick Error:", e); }
 }
 
 window.removeQuick = function(type, val) {
@@ -1059,13 +1116,14 @@ window.removeQuick = function(type, val) {
     else {
         const arrMap = { article: 'articles', size: 'sizes', color: 'colors' };
         const arrName = arrMap[type];
-        if (cat[grpVal] && cat[grpVal][ptVal] && cat[grpVal][ptVal][arrName]) {
-            cat[grpVal][ptVal][arrName] = cat[grpVal][ptVal][arrName].filter(x => x !== val);
+        if (cat[grpVal] && cat[grpVal][ptVal] && Array.isArray(cat[grpVal][ptVal][arrName])) {
+            cat[grpVal][ptVal][arrName] = cat[grpVal][ptVal][arrName].filter(x => String(x) !== String(val));
         }
-        if (g(type).value === val) g(type).value = '';
+        if (g(type) && g(type).value === val) g(type).value = '';
     }
 
     save();
+    updateMasterForm();
     renderAllQuick();
     renderMaster();
 };
@@ -1088,20 +1146,24 @@ window.addQuick = function(type) {
         handleQuickSelect('group', val);
     } 
     else if (type === 'productType') {
+        if (!cat[grpVal]) cat[grpVal] = {}; 
         if (!cat[grpVal][val]) cat[grpVal][val] = { articles: [], sizes: [], colors: [] };
         handleQuickSelect('productType', val);
     } 
     else {
         const arrMap = { article: 'articles', size: 'sizes', color: 'colors' };
         const arrName = arrMap[type];
-        if (!cat[grpVal][ptVal][arrName]) cat[grpVal][ptVal][arrName] = [];
+        if (!cat[grpVal]) cat[grpVal] = {};
+        if (!cat[grpVal][ptVal]) cat[grpVal][ptVal] = { articles: [], sizes: [], colors: [] };
+        if (!Array.isArray(cat[grpVal][ptVal][arrName])) cat[grpVal][ptVal][arrName] = [];
         if (!cat[grpVal][ptVal][arrName].includes(val)) {
             cat[grpVal][ptVal][arrName].push(val);
-            cat[grpVal][ptVal][arrName].sort((a,b)=>a.localeCompare(b,'de'));
+            cat[grpVal][ptVal][arrName].sort((a,b)=>String(a).localeCompare(String(b),'de'));
         }
         handleQuickSelect(type, val); 
     }
     save();
+    updateMasterForm();
     renderMaster();
 };
 
@@ -1180,28 +1242,37 @@ async function loadFromCloud() {
 
   try {
     toast('Lade aus Google Cloud...');
-    const res = await fetch(gasUrl);
+    
+    // CACHE-BUSTER: Zwingt Google, nicht die alte Version aus dem Zwischenspeicher zu holen
+    const fetchUrl = gasUrl + (gasUrl.includes('?') ? '&' : '?') + 'nocache=' + new Date().getTime();
+    
+    const res = await fetch(fetchUrl);
     const text = await res.text();
     
     try {
         const data = JSON.parse(text);
-        if(data.error) return toast('Fehler: ' + data.error);
+        if(data.error) {
+            alert('Cloud meldet: ' + data.error);
+            return toast('Laden fehlgeschlagen');
+        }
 
         applyState(data);
         save();
+        updateMasterForm();
         renderAllQuick();
+        renderMaster(); 
         render();
         toast('Cloud Download erfolgreich ✓');
     } catch(err) {
-        console.error("Server-Antwort war kein JSON:", text);
+        console.error("Parse Error:", err, text);
         if(text.includes("<html")) {
-             alert("Google blockiert den Download!\n\nBitte prüfe, ob 'Wer hat Zugriff' auf 'Jeder' steht und ob du nach Änderungen eine 'Neue Bereitstellung' gemacht hast.");
+             alert("Google blockiert den Download!\n\nLösung: Im Apps Script auf 'Bereitstellen' -> 'Neue Bereitstellung' klicken.");
         } else {
-             toast('Download-Fehler (siehe Konsole)');
+             alert('Datenfehler (siehe Konsole). Text-Anfang: ' + text.substring(0, 50));
         }
     }
   } catch(e) { 
-      toast('Netzwerkfehler'); 
+      alert('Netzwerkfehler beim Laden: ' + e.message); 
       console.error(e); 
   }
 }
@@ -1251,8 +1322,9 @@ function importData(file) {
       applyState(d); 
       state.hideZero = false; 
       save();
-      fillMasterDropdowns();
+      updateMasterForm();
       renderAllQuick();
+      renderMaster();
       state.page = 'open'; 
       render();
       toast('Daten importiert ✓');
@@ -1266,10 +1338,10 @@ function importData(file) {
 
 
 // ==========================================
-// NEUER ARTIKEL
+// NEUER ARTIKEL & MANUELLES FORULAR
 // ==========================================
 function initDemoCatalog() {
-  if (Object.keys(state.master.catalog).length > 0) return;
+  if (state.master.catalog && Object.keys(state.master.catalog).length > 0) return;
   state.master.catalog = {
     "Besta": {
       "Tür": { articles: ["Selsviken","Lappviken"], sizes: ["64","38","26"], colors: ["Schwarz","Weiß"] },
@@ -1281,6 +1353,98 @@ function initDemoCatalog() {
     "Sonstiges": { "Sonstiges": { articles: [], sizes: [], colors: [] } }
   };
   save();
+}
+
+function updateMasterForm() {
+  try {
+      const mType = document.getElementById('masterType');
+      if(!mType) return;
+      const type = mType.value;
+      const needGrp = ['producttypes','articles','sizes','colors'].includes(type);
+      const needTyp = ['articles','sizes','colors'].includes(type);
+
+      const groups = Object.keys(state.master.catalog || {}).sort((a,b)=>String(a).localeCompare(String(b),'de'));
+      const mGrp = document.getElementById('masterGroup');
+      if(mGrp) {
+          const curGrp = mGrp.value;
+          mGrp.innerHTML = '<option value="">– Gruppe wählen –</option>' + groups.map(g=>`<option value="${g}"${g===curGrp?' selected':''}>${g}</option>`).join('');
+      }
+
+      const selGrp = mGrp ? mGrp.value : '';
+      const typs = selGrp && state.master.catalog[selGrp] ? Object.keys(state.master.catalog[selGrp]).sort((a,b)=>String(a).localeCompare(String(b),'de')) : [];
+      const mTyp = document.getElementById('masterProdType');
+      if(mTyp) {
+          const curTyp = mTyp.value;
+          mTyp.innerHTML = '<option value="">– Produkttyp wählen –</option>' + typs.map(t=>`<option value="${t}"${t===curTyp?' selected':''}>${t}</option>`).join('');
+      }
+
+      document.querySelectorAll('.mf-grp').forEach(el => el.style.display = needGrp ? 'grid' : 'none');
+      document.querySelectorAll('.mf-typ').forEach(el => el.style.display = needTyp ? 'grid' : 'none');
+      document.querySelectorAll('.mf-val').forEach(el => el.style.display = type !== 'images' ? 'grid' : 'none');
+      const miz = document.getElementById('masterImgZone');
+      if(miz) miz.style.display = type === 'images' ? 'flex' : 'none';
+
+      const labels = {groups:'Gruppenname', producttypes:'Produkttyp-Name', articles:'Artikelname', sizes:'Größe', colors:'Farbe'};
+      const placeholders = {groups:'z.B. Besta', producttypes:'z.B. Tür', articles:'z.B. Selsviken', sizes:'z.B. 64×64', colors:'z.B. Schwarz'};
+      if (document.getElementById('masterValueLabel')) document.getElementById('masterValueLabel').textContent = labels[type] || 'Wert';
+      if (document.getElementById('masterValue')) document.getElementById('masterValue').placeholder = placeholders[type] || '';
+  } catch(e) { console.error("updateMasterForm error:", e); }
+}
+
+if(g('masterType')) g('masterType').addEventListener('change', updateMasterForm);
+if(g('masterGroup')) g('masterGroup').addEventListener('change', updateMasterForm);
+
+if(g('masterForm')) {
+    g('masterForm').addEventListener('submit', e => {
+      e.preventDefault();
+      try {
+        const type = document.getElementById('masterType').value;
+        const val  = document.getElementById('masterValue').value.trim();
+        const grp  = document.getElementById('masterGroup').value;
+        const typ  = document.getElementById('masterProdType').value;
+
+        if (!state.master.catalog) state.master.catalog = {};
+        if (type === 'images' || type === 'setimages') return;
+
+        if (type === 'groups') {
+          if (!val) return alert('Bitte Gruppenname eingeben.');
+          if (state.master.catalog[val] !== undefined) return alert('Gruppe existiert bereits.');
+          state.master.catalog[val] = {};
+        }
+        else if (type === 'producttypes') {
+          if (!grp) return alert('Bitte zuerst eine Gruppe wählen.');
+          if (!val) return alert('Bitte Produkttyp-Name eingeben.');
+          if (!state.master.catalog[grp]) state.master.catalog[grp] = {};
+          if (state.master.catalog[grp][val] !== undefined) return alert('Produkttyp existiert bereits.');
+          state.master.catalog[grp][val] = { articles:[], sizes:[], colors:[], images:[] };
+        }
+        else if (type === 'articles' || type === 'sizes' || type === 'colors') {
+          if (!grp) return alert('Bitte zuerst eine Gruppe wählen.');
+          if (!typ) return alert('Bitte zuerst einen Produkttyp wählen.');
+          if (!val) return alert('Bitte Wert eingeben.');
+          if (!state.master.catalog[grp]) return alert('Gruppe nicht gefunden.');
+          if (!state.master.catalog[grp][typ]) return alert('Produkttyp nicht gefunden.');
+          
+          let arr = state.master.catalog[grp][typ][type];
+          if (!Array.isArray(arr)) {
+              arr = [];
+              state.master.catalog[grp][typ][type] = arr;
+          }
+          if (arr.includes(val)) return alert('Wert existiert bereits.');
+          arr.push(val);
+          arr.sort((a,b) => String(a).localeCompare(String(b), 'de'));
+        }
+
+        document.getElementById('masterValue').value = '';
+        updateMasterForm();
+        renderAllQuick();
+        save();
+        renderMaster();
+        toast('Eingetragen ✓');
+      } catch(err) {
+        alert('Fehler: ' + err.message);
+      }
+    });
 }
 
 function onGroupChange() {
@@ -1393,22 +1557,22 @@ function updateSellFilters(trigger) {
     if (pt) items = items.filter(i => i.productType === pt);
 
     if (trigger === 'group' || trigger === 'type') {
-        const sizes = new Set(items.map(i => i.size).filter(Boolean));
+        const sizes = new Set(items.map(i => String(i.size||'')).filter(Boolean));
         fillSel(szSel, [...sizes].sort(), '– Alle –');
 
-        const colors = new Set(items.map(i => i.color).filter(Boolean));
+        const colors = new Set(items.map(i => String(i.color||'')).filter(Boolean));
         fillSel(clSel, [...colors].sort(), '– Alle –');
 
-        const arts = new Set(items.map(i => i.article).filter(Boolean));
+        const arts = new Set(items.map(i => String(i.article||'')).filter(Boolean));
         fillSel(arSel, [...arts].sort(), '– Alle –');
     }
 
     const sz = szSel.value;
-    if (sz) items = items.filter(i => i.size === sz);
+    if (sz) items = items.filter(i => String(i.size||'') === sz);
     const cl = clSel.value;
-    if (cl) items = items.filter(i => i.color === cl);
+    if (cl) items = items.filter(i => String(i.color||'') === cl);
     const ar = arSel.value;
-    if (ar) items = items.filter(i => i.article === ar);
+    if (ar) items = items.filter(i => String(i.article||'') === ar);
 
     const cartInstIds = state.sellCart.map(c => c.inst.id);
     let options = '<option value="" disabled selected>– Exemplar wählen –</option>';
@@ -1832,7 +1996,7 @@ function renderOpen() {
     tree[grp][pt][art][col].push(item);
   });
 
-  const sortKeys = (a, b) => a.localeCompare(b, 'de');
+  const sortKeys = (a, b) => String(a).localeCompare(String(b), 'de');
   let html = '';
   
   Object.keys(tree).sort(sortKeys).forEach(grp => {
@@ -2497,7 +2661,6 @@ function renderSold() {
 // ==========================================
 window.currentEditBadgeIndex = null;
 
-// Neu: Direkte Javascript-Funktionen zum Löschen von Bildern, damit es immer klappt!
 window.deleteMasterImage = function(idx) {
     if(!confirm('Dieses Bild wirklich löschen?')) return;
     state.master.images.splice(idx, 1);
@@ -2532,115 +2695,122 @@ window.deleteAllImages = function() {
 };
 
 function renderMaster() {
-  const cat = state.master.catalog || {};
-  const groups = Object.keys(cat).sort((a,b)=>a.localeCompare(b,'de'));
-  let html = '';
+  try {
+      const cat = state.master.catalog || {};
+      const groups = Object.keys(cat).sort((a,b)=>String(a).localeCompare(String(b),'de'));
+      let html = '';
 
-  window.currentEditBadgeIndex = null; 
+      window.currentEditBadgeIndex = null; 
 
-  if (groups.length) {
-    groups.forEach(grp => {
-      const typs = Object.keys(cat[grp]).sort((a,b)=>a.localeCompare(b,'de'));
-      html += `<div class="card" style="margin-bottom:var(--sp4);">
-        <div class="card-head">
-          <h3 class="card-title">📁 ${grp}</h3>
-          <button class="btn btn-danger" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-xs);" data-rm="group" data-grp="${grp}">🗑 Gruppe</button>
-        </div>
-        <div class="card-body" style="padding:0;">`;
-      if (!typs.length) { html += `<div class="empty" style="margin:var(--sp4);">Noch keine Produkttypen.</div>`; }
-      typs.forEach(typ => {
-        const d = cat[grp][typ];
-        html += `<div style="border-bottom:1px solid var(--divider);padding:var(--sp3) var(--sp4);">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp2);">
-            <b style="font-size:var(--text-sm);">🏷 ${typ}</b>
-            <button class="btn btn-danger" style="min-height:28px;padding:.2rem .5rem;font-size:var(--text-xs);" data-rm="prodtype" data-grp="${grp}" data-typ="${typ}">🗑</button>
-          </div>
-          ${['articles','sizes','colors'].map(field=>{
-            const labels={articles:'Artikelname',sizes:'Größen',colors:'Farben'};
-            return `<div style="margin-bottom:var(--sp2);">
-              <div class="muted" style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--sp1);">${labels[field]}</div>
-              <div class="chips">
-                ${(d[field]||[]).map((v,i)=>`<span class="chip" style="display:inline-flex;align-items:center;gap:4px;">${v}
-                  <button style="background:none;border:none;cursor:pointer;color:var(--err);font-size:11px;padding:0;line-height:1;" data-rm="${field}" data-grp="${grp}" data-typ="${typ}" data-idx="${i}">×</button>
-                </span>`).join('') || '<span class="muted" style="font-size:var(--text-xs);">Noch keine Einträge</span>'}
+      if (groups.length) {
+        groups.forEach(grp => {
+          const typs = Object.keys(cat[grp] || {}).sort((a,b)=>String(a).localeCompare(String(b),'de'));
+          html += `<div class="card" style="margin-bottom:var(--sp4);">
+            <div class="card-head">
+              <h3 class="card-title">📁 ${grp}</h3>
+              <button class="btn btn-danger" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-xs);" data-rm="group" data-grp="${grp}">🗑 Gruppe</button>
+            </div>
+            <div class="card-body" style="padding:0;">`;
+          if (!typs.length) { html += `<div class="empty" style="margin:var(--sp4);">Noch keine Produkttypen.</div>`; }
+          typs.forEach(typ => {
+            const d = cat[grp][typ] || {};
+            html += `<div style="border-bottom:1px solid var(--divider);padding:var(--sp3) var(--sp4);">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp2);">
+                <b style="font-size:var(--text-sm);">🏷 ${typ}</b>
+                <button class="btn btn-danger" style="min-height:28px;padding:.2rem .5rem;font-size:var(--text-xs);" data-rm="prodtype" data-grp="${grp}" data-typ="${typ}">🗑</button>
               </div>
+              ${['articles','sizes','colors'].map(field=>{
+                const labels={articles:'Artikelname',sizes:'Größen',colors:'Farben'};
+                const fieldArr = Array.isArray(d[field]) ? d[field] : [];
+                return `<div style="margin-bottom:var(--sp2);">
+                  <div class="muted" style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--sp1);">${labels[field]}</div>
+                  <div class="chips">
+                    ${fieldArr.map((v,i)=>`<span class="chip" style="display:inline-flex;align-items:center;gap:4px;">${v}
+                      <button style="background:none;border:none;cursor:pointer;color:var(--err);font-size:11px;padding:0;line-height:1;" data-rm="${field}" data-grp="${grp}" data-typ="${typ}" data-idx="${i}">×</button>
+                    </span>`).join('') || '<span class="muted" style="font-size:var(--text-xs);">Noch keine Einträge</span>'}
+                  </div>
+                </div>`;
+              }).join('')}
             </div>`;
-          }).join('')}
-        </div>`;
-      });
-      html += `</div></div>`;
-    });
-  } else {
-    html += `<div class="empty">Noch keine Gruppen angelegt.<br>Beginne mit Kategorie → Gruppe.</div>`;
-  }
+          });
+          html += `</div></div>`;
+        });
+      } else {
+        html += `<div class="empty">Noch keine Gruppen angelegt.<br>Beginne mit Kategorie → Gruppe.</div>`;
+      }
 
-  const imgs = state.master.images || [];
-  html += `<div class="card">
-    <div class="card-head">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <h3 class="card-title">🖼 Bilder</h3><span class="chip">${imgs.length}</span>
-      </div>
-      ${imgs.length > 0 ? `<button class="btn btn-danger" style="min-height:28px;padding:.2rem .6rem;font-size:var(--text-xs);" onclick="deleteAllImages()">Alle löschen</button>` : ''}
-    </div>
-    <div class="card-body">
-      <div class="img-grid">
-        ${imgs.length ? imgs.map((url,i)=>`
-          <div class="img-card">
-            <img src="${url}" loading="lazy" onerror="this.style.display='none'" style="width:100%;height:80px;object-fit:cover;">
-            <div class="img-lbl">${url.startsWith('data:')?'Upload '+(i+1):url.slice(-14)}</div>
-            <button class="img-del" onclick="deleteMasterImage(${i})" title="Bild löschen">×</button>
-          </div>`).join('')
-          : '<div class="empty" style="grid-column:1/-1;">Noch keine Bilder.</div>'}
-      </div>
-    </div></div>`;
-
-  html += `<div class="card" style="margin-bottom:var(--sp4);">
-        <div class="card-head"><h3 class="card-title">🏆 Set Badges (Regeln)</h3></div>
+      const imgs = Array.isArray(state.master.images) ? state.master.images : [];
+      html += `<div class="card">
+        <div class="card-head">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <h3 class="card-title">🖼 Bilder</h3><span class="chip">${imgs.length}</span>
+          </div>
+          ${imgs.length > 0 ? `<button class="btn btn-danger" style="min-height:28px;padding:.2rem .6rem;font-size:var(--text-xs);" onclick="deleteAllImages()">Alle löschen</button>` : ''}
+        </div>
         <div class="card-body">
-            <div id="badgeRulesList" style="margin-bottom:var(--sp3);">
-                ${(state.master.badgeRules||[]).map((r, i) => `
-                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--divider); padding:var(--sp2) 0;">
-                        <div style="display:flex; gap:12px; align-items:center;">
-                            ${r.image ? `<img src="${r.image}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border);flex-shrink:0;">` : `<div style="width:40px;height:40px;border-radius:6px;border:1px dashed var(--border);display:grid;place-items:center;color:var(--muted);flex-shrink:0;">📷</div>`}
-                            <div>
-                                <b style="font-size:var(--text-base);">${r.name}</b> <span style="color:var(--muted); font-size:var(--text-xs);">(${r.group} · ${r.productType})</span><br>
-                                <span style="font-size:var(--text-sm); font-weight:600; color:var(--primary);">${r.reqs.map(req => `${req.qty}x Gr. ${req.size}`).join(', ')}</span>
+          <div class="img-grid">
+            ${imgs.length ? imgs.map((url,i)=>`
+              <div class="img-card">
+                <img src="${url}" loading="lazy" onerror="this.style.display='none'" style="width:100%;height:80px;object-fit:cover;">
+                <div class="img-lbl">${url.startsWith('data:')?'Upload '+(i+1):url.slice(-14)}</div>
+                <button class="img-del" onclick="deleteMasterImage(${i})" title="Bild löschen">×</button>
+              </div>`).join('')
+              : '<div class="empty" style="grid-column:1/-1;">Noch keine Bilder.</div>'}
+          </div>
+        </div></div>`;
+
+      const safeBadgeRules = Array.isArray(state.master.badgeRules) ? state.master.badgeRules : [];
+      html += `<div class="card" style="margin-bottom:var(--sp4);">
+            <div class="card-head"><h3 class="card-title">🏆 Set Badges (Regeln)</h3></div>
+            <div class="card-body">
+                <div id="badgeRulesList" style="margin-bottom:var(--sp3);">
+                    ${safeBadgeRules.map((r, i) => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--divider); padding:var(--sp2) 0;">
+                            <div style="display:flex; gap:12px; align-items:center;">
+                                ${r.image ? `<img src="${r.image}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border);flex-shrink:0;">` : `<div style="width:40px;height:40px;border-radius:6px;border:1px dashed var(--border);display:grid;place-items:center;color:var(--muted);flex-shrink:0;">📷</div>`}
+                                <div>
+                                    <b style="font-size:var(--text-base);">${r.name}</b> <span style="color:var(--muted); font-size:var(--text-xs);">(${r.group} · ${r.productType})</span><br>
+                                    <span style="font-size:var(--text-sm); font-weight:600; color:var(--primary);">${(Array.isArray(r.reqs)?r.reqs:[]).map(req => `${req.qty}x Gr. ${req.size}`).join(', ')}</span>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:6px;">
+                                <button class="btn btn-ghost" style="min-height:28px;padding:.2rem .5rem;font-size:var(--text-xs);" onclick="editBadgeRule(${i})" title="Regel bearbeiten">✏️</button>
+                                <button class="btn btn-danger" style="min-height:28px;padding:.2rem .5rem;font-size:var(--text-xs);" onclick="deleteBadgeRule(${i})" title="Regel löschen">🗑</button>
                             </div>
                         </div>
-                        <div style="display:flex; gap:6px;">
-                            <button class="btn btn-ghost" style="min-height:28px;padding:.2rem .5rem;font-size:var(--text-xs);" onclick="editBadgeRule(${i})" title="Regel bearbeiten">✏️</button>
-                            <button class="btn btn-danger" style="min-height:28px;padding:.2rem .5rem;font-size:var(--text-xs);" onclick="deleteBadgeRule(${i})" title="Regel löschen">🗑</button>
-                        </div>
+                    `).join('') || '<div class="empty">Keine Regeln definiert.</div>'}
+                </div>
+                <div style="background:var(--surface2); padding:var(--sp3); border-radius:var(--rad-md); border:1px solid var(--border);">
+                    <h4 id="badgeFormTitle" style="font-size:var(--text-sm); margin:0 0 var(--sp2);">Neue Regel erstellen</h4>
+                    <div class="grid2" style="gap:8px;">
+                        <input type="text" class="input" id="newBadgeName" placeholder="Name (z.B. TV 180)">
+                        <select class="select" id="newBadgeGroup" onchange="updateBadgeProdType()">
+                            <option value="">– Gruppe wählen –</option>
+                            ${groups.map(g => `<option value="${g}">${g}</option>`).join('')}
+                        </select>
+                        <select class="select" id="newBadgeProdType"><option value="">– Produkttyp –</option></select>
+                        <input type="text" class="input" id="newBadgeReqs" placeholder="Bedarf (z.B. 64x2, 38x1)">
                     </div>
-                `).join('') || '<div class="empty">Keine Regeln definiert.</div>'}
+                    <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
+                        <button type="button" class="btn btn-ghost" style="padding:4px 10px; min-height:32px; font-size:var(--text-xs); border-radius:var(--rad-md);" onclick="openBadgeImgPicker()">
+                          <span id="badgeImgPreview">📷</span> Bild (optional)
+                        </button>
+                        <input type="hidden" id="newBadgeImg">
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:var(--sp3);">
+                        <button id="saveBadgeBtn" class="btn btn-primary" style="flex:1;" onclick="addBadgeRule()">✚ Regel speichern</button>
+                        <button id="cancelBadgeBtn" class="btn btn-ghost" style="display:none;" onclick="cancelEditBadgeRule()">Abbrechen</button>
+                    </div>
+                    <div style="font-size:11px; color:var(--muted); margin-top:6px; line-height:1.3;"><b>Bedarf-Format:</b> [Größe]x[Anzahl] (kommagetrennt).<br><i>Beispiel:</i> Um eine Regel für 2x Größe 64 und 1x Größe 38 zu erstellen, gib "64x2, 38x1" ein.</div>
+                </div>
             </div>
-            <div style="background:var(--surface2); padding:var(--sp3); border-radius:var(--rad-md); border:1px solid var(--border);">
-                <h4 id="badgeFormTitle" style="font-size:var(--text-sm); margin:0 0 var(--sp2);">Neue Regel erstellen</h4>
-                <div class="grid2" style="gap:8px;">
-                    <input type="text" class="input" id="newBadgeName" placeholder="Name (z.B. TV 180)">
-                    <select class="select" id="newBadgeGroup" onchange="updateBadgeProdType()">
-                        <option value="">– Gruppe wählen –</option>
-                        ${groups.map(g => `<option value="${g}">${g}</option>`).join('')}
-                    </select>
-                    <select class="select" id="newBadgeProdType"><option value="">– Produkttyp –</option></select>
-                    <input type="text" class="input" id="newBadgeReqs" placeholder="Bedarf (z.B. 64x2, 38x1)">
-                </div>
-                <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
-                    <button type="button" class="btn btn-ghost" style="padding:4px 10px; min-height:32px; font-size:var(--text-xs); border-radius:var(--rad-md);" onclick="openBadgeImgPicker()">
-                      <span id="badgeImgPreview">📷</span> Bild (optional)
-                    </button>
-                    <input type="hidden" id="newBadgeImg">
-                </div>
-                <div style="display:flex; gap:8px; margin-top:var(--sp3);">
-                    <button id="saveBadgeBtn" class="btn btn-primary" style="flex:1;" onclick="addBadgeRule()">✚ Regel speichern</button>
-                    <button id="cancelBadgeBtn" class="btn btn-ghost" style="display:none;" onclick="cancelEditBadgeRule()">Abbrechen</button>
-                </div>
-                <div style="font-size:11px; color:var(--muted); margin-top:6px; line-height:1.3;"><b>Bedarf-Format:</b> [Größe]x[Anzahl] (kommagetrennt).<br><i>Beispiel:</i> Um eine Regel für 2x Größe 64 und 1x Größe 38 zu erstellen, gib "64x2, 38x1" ein.</div>
-            </div>
-        </div>
-    </div>`;
+        </div>`;
 
-  g('masterContent').innerHTML = html;
+      g('masterContent').innerHTML = html;
+  } catch (err) {
+      console.error("renderMaster Error:", err);
+      g('masterContent').innerHTML = '<div class="empty" style="color:red">Ein Systemfehler verhindert das Laden der Stammdaten.</div>';
+  }
 }
 
 window.updateBadgeProdType = function() {
@@ -2898,7 +3068,7 @@ function setImgVal(url) {
 }
 
 // ==========================================
-// EVENT LISTENERS & KLICK LOGIK (Repariert!)
+// EVENT LISTENERS & KLICK LOGIK
 // ==========================================
 document.addEventListener('click', e => {
   const target = e.target;
@@ -2953,7 +3123,7 @@ document.addEventListener('click', e => {
             state.master.catalog[grp][typ][key].splice(+idx, 1); 
         }
     }
-    save(); renderAllQuick(); renderMaster(); return;
+    save(); updateMasterForm(); renderAllQuick(); renderMaster(); return;
   }
   
   const wrap = g('imgWrap');
@@ -2983,44 +3153,16 @@ g('themeToggle')?.addEventListener('click', ()=>{
 
 [g('exportBtn'), g('exportBtn2')].forEach(btn => btn?.addEventListener('click', exportData));
 
+// ==========================================
+// PWA CACHE KILLER
+// ==========================================
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(()=>{});
-}
-
-let deferredPrompt = null;
-const installBtn = document.getElementById('installBtn');
-
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  if (installBtn) installBtn.style.display = 'flex';
-});
-
-window.addEventListener('appinstalled', () => {
-  if (installBtn) installBtn.style.display = 'none';
-  deferredPrompt = null;
-  toast('App installiert ✓');
-});
-
-if (installBtn) {
-  installBtn.addEventListener('click', async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') toast('App wird installiert…');
-      deferredPrompt = null;
-      installBtn.style.display = 'none';
-    } else {
-      alert('Auf iPhone/iPad:\nSafari → Teilen-Symbol → "Zum Home-Bildschirm"\n\nAuf Android:\nChrome → Menü (⋮) → "App installieren"');
+  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+    for(let registration of registrations) {
+      registration.unregister();
     }
   });
 }
-
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') save();
-});
-window.addEventListener('pagehide', save);
-window.addEventListener('beforeunload', save);
 
 // START
 load();
