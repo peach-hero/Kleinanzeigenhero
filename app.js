@@ -1,5 +1,5 @@
 // ==========================================
-// KLEINANZEIGEN HERO - APP.JS (v6.2 Final)
+// KLEINANZEIGEN HERO - APP.JS (v6.3 PWA Ready)
 // ==========================================
 
 const g = id => document.getElementById(id);
@@ -539,7 +539,7 @@ function toggleItemProfitshare(itemId) { const item = state.open.find(i=>i.id===
 function editInstImage(itemId, instId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; const inst = item.instances.find(i=>i.id===instId); if(!inst) return; imagePickCallback = (url) => { inst.image = url; syncNewImageLabel(url); save(); renderOpen(); }; openImagePicker(inst.image || item._savedImage || ''); }
 function toggleInstProfitshare(itemId, instId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; const inst = item.instances.find(i=>i.id===instId); if(!inst) return; inst.profitshare = !inst.profitshare; save(); renderOpen(); }
 function editEK(itemId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; const val = prompt('EK Preis (€):', item.purchasePrice||0); if(val === null) return; const price = parseFloat(val.replace(',','.')) || 0; item.purchasePrice = price; item.instances.forEach(inst => inst.purchasePrice = price); save(); renderOpen(); }
-function editInstEK(itemId, instId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; const inst = item.instances.find(i=>i.id===instId); if(!inst) return; const val = prompt('EK Preis (€):', item.purchasePrice||0); if(val === null) return; inst.purchasePrice = parseFloat(val.replace(',','.')) || 0; save(); renderOpen(); }
+function editInstEK(itemId, instId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; const inst = item.instances.find(i=>i.id===instId); if(!inst) return; const val = prompt('EK Preis (€):', inst.purchasePrice||0); if(val === null) return; inst.purchasePrice = parseFloat(val.replace(',','.')) || 0; save(); renderOpen(); }
 
 function renderStats() {
   const years = [...new Set(state.sold.map(s=>(s.saleDate||today()).slice(0,4)))].sort((a,b)=>b-a);
@@ -626,6 +626,16 @@ document.addEventListener('click', e => {
 const sy = g('statsYear'); if (sy) { sy.addEventListener('change', e=>{ state.year=e.target.value; renderStats(); }); }
 const expBtn = g('exportBtn'); if(expBtn) expBtn.addEventListener('click', exportData);
 
+// Klick-Handler für untere Navigation
+document.querySelectorAll('.bottom-nav').forEach(container => { 
+  container.addEventListener('click', e => { 
+    const btn = e.target.closest('[data-page]'); 
+    if(!btn) return; 
+    state.page = btn.dataset.page; 
+    render(); 
+  }); 
+});
+
 function render() {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); 
   document.querySelectorAll('.nav-btn, .icon-btn[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===state.page));
@@ -639,9 +649,7 @@ function render() {
   const sc=document.querySelector('.scroll-container'); if(sc && state.page !== 'open') sc.scrollTop=0; 
 }
 
-// APP STARTEN
-load();
-// Service Worker registrieren für PWA-Installation
+// Service Worker für PWA-Installation registrieren
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
@@ -650,3 +658,5 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// APP STARTEN
+load();
