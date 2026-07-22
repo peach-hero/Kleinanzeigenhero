@@ -1,6 +1,5 @@
-const CACHE_NAME = 'hero-app-offline-v2';
+const CACHE_NAME = 'hero-app-v3';
 
-// Diese Dateien werden auf dem Handy im Cache gespeichert (inkl. app.js und Logo)
 const FILES_TO_CACHE = [
   './',
   './index.html',
@@ -10,18 +9,15 @@ const FILES_TO_CACHE = [
   'https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap'
 ];
 
-// Installation: App in den Speicher laden
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('App offline gespeichert');
       return cache.addAll(FILES_TO_CACHE);
     })
   );
   self.skipWaiting();
 });
 
-// Aufräumen: Alte Versionen löschen, falls ein Update auf GitHub gemacht wird
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -37,13 +33,10 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Lade-Logik: Immer aus dem Speicher laden (für Offline-Nutzung)
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
-      // Wenn im Speicher gefunden -> sofort laden. Ansonsten aus dem Internet holen.
       return response || fetch(event.request).catch(() => {
-        // Fallback: Wenn offline und nicht gefunden, starte die Startseite
         return caches.match('./index.html');
       });
     })
