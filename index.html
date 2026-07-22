@@ -4,38 +4,29 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>Kleinanzeigen Hero</title>
-<!-- PWA Meta-Tags & Manifest wiederhergestellt -->
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Kleinanzeigen Hero">
 <meta name="theme-color" content="#01696f">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%2301696f'/%3E%3Crect x='40' y='48' width='112' height='96' rx='20' fill='none' stroke='white' stroke-width='10'/%3E%3Cpath d='M64 80h64M64 104h40' stroke='white' stroke-width='10' stroke-linecap='round'/%3E%3Ccircle cx='136' cy='120' r='16' fill='white'/%3E%3C/svg%3E">
-
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
 <style>
 :root{--text-xs:.75rem;--text-sm:.875rem;--text-base:1rem;--text-lg:1.25rem;--text-xl:1.75rem;--sp1:.25rem;--sp2:.5rem;--sp3:.75rem;--sp4:1rem;--sp5:1.25rem;--sp6:1.5rem;--sp8:2rem;--bg:#f7f6f2;--surface:#f9f8f5;--surface2:#fbfbf9;--surfoff:#edeae5;--border:#d4d1ca;--divider:#dcd9d5;--text:#28251d;--muted:#66655f;--faint:#96948f;--inv:#f9f8f4;--primary:#01696f;--primary-h:#0c4e54;--success:#437a22;--warn:#964219;--err:#a13544;--rad-md:.5rem;--rad-lg:.75rem;--rad-xl:1rem;--shadow:0 1px 3px rgba(0,0,0,.07);--shadow-md:0 8px 24px rgba(0,0,0,.1);--nav-h:64px;}
 [data-theme="dark"]{--bg:#171614;--surface:#1c1b19;--surface2:#201f1d;--surfoff:#2a2926;--border:#393836;--divider:#262523;--text:#e3e1dc;--muted:#a19f9b;--faint:#6f6d68;--inv:#171614;--primary:#4f98a3;--primary-h:#227f8b;--success:#6daa45;--warn:#e8af34;--err:#dd6974;}
 *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{margin:0;min-height:100%;font-family:'Satoshi',system-ui,sans-serif;font-size:var(--text-base);background:var(--bg);color:var(--text);line-height:1.5;height:100dvh;overflow:hidden;display:flex;flex-direction:column;}
+html,body{margin:0;padding:0;width:100%;height:100%;font-family:'Satoshi',system-ui,sans-serif;font-size:var(--text-base);background:var(--bg);color:var(--text);line-height:1.5;overflow:hidden;display:flex;flex-direction:column;}
 button,input,select,textarea{font:inherit;} img{max-width:100%;display:block;}
+
 .topbar{flex-shrink:0;z-index:100;background:var(--surface);border-bottom:1px solid var(--border);padding:var(--sp3) var(--sp4);display:flex;align-items:center;justify-content:space-between;gap:var(--sp3);box-shadow:var(--shadow);}
 .brand{display:flex;align-items:center;gap:var(--sp3);} .logo{width:36px;height:36px;color:var(--primary);flex-shrink:0;}
 .brand-text h1{font-size:var(--text-base);font-weight:700;margin:0;line-height:1.2;} .brand-text .sub{font-size:var(--text-xs);color:var(--primary); font-weight:700;}
 .top-actions{display:flex;gap:var(--sp2);} .icon-btn{background:transparent;border:1px solid var(--border);width:40px;height:40px;border-radius:var(--rad-md);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem; padding:0;}
 .icon-btn.active{border-color:var(--primary);color:var(--primary);background:var(--surfoff);}
 
-/* Schickere untere Navigation mit aktivem Balken oben */
-.bottom-nav{flex-shrink:0;z-index:100;background:var(--surface);border-top:1px solid var(--border);display:flex;height:var(--nav-h);box-shadow:0 -4px 16px rgba(0,0,0,.08);}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:transparent;color:var(--muted);cursor:pointer;padding:var(--sp1);font-size:var(--text-xs);font-weight:600;position:relative;transition:color .15s;}
-.nav-btn .nav-icon{font-size:1.3rem;line-height:1;} 
-.nav-btn::after{content:'';position:absolute;top:0;left:20%;right:20%;height:3px;background:transparent;border-radius:0 0 3px 3px;transition:background .2s;}
-.nav-btn.active{color:var(--primary);} 
-.nav-btn.active::after{background:var(--primary);}
+.scroll-container{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative;width:100%;}
+.page{display:none;padding:var(--sp4);max-width:680px;margin:0 auto;padding-bottom:calc(var(--nav-h) + var(--sp8));} 
+.page.active{display:block;}
 
-.scroll-container{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
-.page{display:none;padding:var(--sp4);max-width:680px;margin:0 auto;padding-bottom:var(--sp8);} .page.active{display:block;}
 .page-head{margin-bottom:var(--sp5);} .page-head h2{font-size:var(--text-lg);font-weight:700;margin:0 0 var(--sp1);} .page-head .sub{color:var(--muted);font-size:var(--text-sm);}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad-xl);box-shadow:var(--shadow);overflow:hidden;margin-bottom:var(--sp4);}
 .card-head{padding:var(--sp4);border-bottom:1px solid var(--divider);display:flex;align-items:center;justify-content:space-between;gap:var(--sp3);}
@@ -47,31 +38,27 @@ button,input,select,textarea{font:inherit;} img{max-width:100%;display:block;}
 .checkbox-row{display:flex;align-items:center;gap:var(--sp3);min-height:48px;} .checkbox-row input[type=checkbox]{width:22px;height:22px;accent-color:var(--primary);}
 .btn{min-height:48px;padding:.75rem 1.5rem;border-radius:var(--rad-md);cursor:pointer;font-weight:600;font-size:var(--text-base);border:0;display:inline-flex;align-items:center;justify-content:center;gap:var(--sp2);}
 .btn-primary{background:var(--primary);color:var(--inv);} .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);} .btn-danger{background:transparent;border:1px solid var(--err);color:var(--err);} .btn-full{width:100%;}
-.img-select-wrap{position:relative;user-select:none;} .img-select-trigger{display:flex;align-items:center;gap:var(--sp3);min-height:48px;padding:.6rem .9rem;border:1px solid var(--border);border-radius:var(--rad-md);background:var(--surface2);cursor:pointer;}
-.isp{width:40px;height:40px;border-radius:var(--rad-md);background:var(--surfoff);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;} .isp img{width:100%;height:100%;object-fit:cover;}
-.isl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--text-sm);}
-.isd{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--rad-lg);box-shadow:var(--shadow-md);z-index:200;max-height:260px;overflow-y:auto;display:none;} .isd.open{display:block;}
-.iso{display:flex;align-items:center;gap:var(--sp3);padding:.7rem .9rem;cursor:pointer;font-size:var(--text-sm);} .iso:hover,.iso.active{background:var(--surfoff);}
-.iso-thumb{width:44px;height:44px;border-radius:var(--rad-md);background:var(--surfoff);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:1px solid var(--border);} .iso-thumb img{width:100%;height:100%;object-fit:cover;}
-.upload-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--sp2);padding:var(--sp5);border:2px dashed var(--border);border-radius:var(--rad-lg);cursor:pointer;background:var(--surface2);text-align:center;margin-top:var(--sp3);}
-.upload-preview{margin-top:var(--sp3);display:none;} .upload-preview.show{display:block;} .upload-preview img{width:100%;max-height:140px;object-fit:cover;border-radius:var(--rad-md);border:1px solid var(--border);}
+
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp3);margin-bottom:var(--sp4);} .stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rad-lg);padding:var(--sp4);}
 .stat-card .k{color:var(--muted);font-size:var(--text-xs);text-transform:uppercase;} .stat-card .v{font-size:var(--text-lg);font-weight:700;margin-top:var(--sp1);}
 .top5-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp4);} @media(max-width:600px){.top5-grid{grid-template-columns:1fr;}}
 .kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp3);} .kpi-card{background:var(--surfoff);border:1px solid var(--border);border-radius:var(--rad-md);padding:var(--sp3);}
 .mini-table{width:100%;border-collapse:collapse;} .mini-table th,.mini-table td{text-align:left;padding:.5rem .3rem;border-bottom:1px solid var(--divider);font-size:var(--text-sm);} .mini-table th:last-child,.mini-table td:last-child{text-align:right;}
 .month-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rad-lg);padding:var(--sp4);margin-bottom:var(--sp3);} .month-items{margin:var(--sp2) 0 0;padding-left:1.1rem;font-size:var(--text-sm);color:var(--muted);}
+
 .item-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad-lg);overflow:hidden;margin-bottom:var(--sp3);} .item-card-main{display:grid;grid-template-columns:24px 72px 1fr;gap:var(--sp3);padding:var(--sp3) var(--sp4);align-items:center;}
 .thumb{width:72px;height:72px;border-radius:var(--rad-md);background:var(--surfoff);display:grid;place-items:center;overflow:hidden;border:1px solid var(--border);font-size:1.5rem;flex-shrink:0;} .thumb img{width:100%;height:100%;object-fit:cover;}
 .item-info .item-title{font-weight:700;font-size:var(--text-base);} .chips{display:flex;flex-wrap:wrap;gap:var(--sp1);margin-top:var(--sp1);}
 .chip{padding:.2rem .5rem;border-radius:999px;font-size:var(--text-xs);background:var(--surfoff);border:1px solid var(--border);}
-.chip.stack{background:#e0f2f1;border-color:#80cbc4;color:#00695c;font-weight:700;} [data-theme="dark"] .chip.stack{background:#1a3533;border-color:#2e6b66;color:#4f98a3;}
-.chip.ps{border-color:var(--warn);color:var(--warn);} .item-footer{display:flex;align-items:center;justify-content:space-between;padding:var(--sp2) var(--sp4);border-top:1px solid var(--divider);background:var(--surface2);}
+.chip.stack{background:#e0f2f1;border-color:#80cbc4;color:#00695c;font-weight:700;}
+.chip.ps{border-color:var(--warn);color:var(--warn);} 
+.item-footer{display:flex;align-items:center;justify-content:space-between;padding:var(--sp2) var(--sp4);border-top:1px solid var(--divider);background:var(--surface2);}
 .item-price-row{font-size:var(--text-sm);color:var(--muted);} .item-price-row b{color:var(--text);} .item-actions{display:flex;gap:var(--sp2);}
 .stack-toggle{display:flex;align-items:center;gap:var(--sp2);padding:var(--sp2) var(--sp4);background:var(--surfoff);border:0;border-top:1px solid var(--divider);width:100%;cursor:pointer;color:var(--primary);font-size:var(--text-sm);font-weight:600;}
 .stack-details{display:none;border-top:1px solid var(--divider);} .stack-details.open{display:block;}
 .stack-inst{display:grid;grid-template-columns:52px 1fr auto;gap:var(--sp2);padding:var(--sp3) var(--sp4);border-bottom:1px solid var(--divider);align-items:center;font-size:var(--text-sm);}
 .inst-thumb{width:52px;height:52px;border-radius:var(--rad-md);background:var(--surfoff);display:grid;place-items:center;overflow:hidden;border:1px solid var(--border);} .inst-thumb img{width:100%;height:100%;object-fit:cover;}
+
 .sold-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad-lg);margin-bottom:var(--sp3);overflow:hidden;} .sold-card-main{display:grid;grid-template-columns:72px 1fr;gap:var(--sp3);padding:var(--sp3) var(--sp4);align-items:start;}
 .sold-thumb{width:72px;height:72px;border-radius:var(--rad-md);background:var(--surfoff);display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden;border:1px solid var(--border);flex-shrink:0;} .sold-thumb img{width:100%;height:100%;object-fit:cover;}
 .profit{color:var(--success);font-weight:700;}
@@ -81,11 +68,24 @@ button,input,select,textarea{font:inherit;} img{max-width:100%;display:block;}
 .group-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp3);} .group-title{font-size:var(--text-base);font-weight:700;margin:0;}
 .success-toast{position:fixed;top:var(--sp4);left:50%;transform:translateX(-50%);background:var(--primary);color:var(--inv);padding:var(--sp3) var(--sp5);border-radius:999px;font-size:var(--text-sm);font-weight:600;z-index:99999;opacity:0;transition:opacity .3s;pointer-events:none;} .success-toast.show{opacity:1;}
 * { touch-action: manipulation; } .quick-btns{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
-.modal{display:none!important;position:fixed!important;inset:0!important;background-color:rgba(0,0,0,0.55)!important;z-index:99999!important;align-items:center!important;justify-content:center!important;padding:20px!important;} .modal.show{display:flex!important;}
+
+.modal{display:none!important;position:fixed!important;inset:0!important;background-color:rgba(0,0,0,0.55)!important;z-index:99999!important;align-items:center!important;justify-content:center!important;padding:20px!important;} 
+.modal.show{display:flex!important;}
 .modal-content{background:var(--surface)!important;color:var(--text)!important;max-width:600px;width:100%;max-height:85vh;overflow:auto;border-radius:16px;padding:16px;}
 .img-pick{padding:8px;border-radius:14px;background:var(--surface2);border:2px solid transparent;cursor:pointer;display:flex;flex-direction:column;gap:8px;min-height:180px;}
+
 .qb-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;font-size:var(--text-sm);min-height:36px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;font-weight:600;color:var(--text);transition:all 0.15s;}
-.qb-chip.active{background:var(--primary);color:var(--inv);border-color:var(--primary);} .qb-rm{color:var(--err);font-size:16px;padding-left:6px;border-left:1px solid var(--divider);cursor:pointer;} .qb-add{background:transparent;border:1px dashed var(--primary);color:var(--primary);}
+.qb-chip.active{background:var(--primary);color:var(--inv);border-color:var(--primary);} 
+.qb-rm{color:var(--err);font-size:16px;padding-left:6px;border-left:1px solid var(--divider);cursor:pointer;} 
+.qb-add{background:transparent;border:1px dashed var(--primary);color:var(--primary);}
+
+/* Fester unterer Reiterbereich (Bottom Navigation) */
+.bottom-nav{flex-shrink:0;z-index:1000;background:var(--surface);border-top:1px solid var(--border);display:flex;height:var(--nav-h);box-shadow:0 -4px 16px rgba(0,0,0,.08);width:100%;position:relative;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:transparent;color:var(--muted);cursor:pointer;padding:var(--sp1);font-size:var(--text-xs);font-weight:600;position:relative;transition:color .15s;}
+.nav-btn .nav-icon{font-size:1.3rem;line-height:1;} 
+.nav-btn::after{content:'';position:absolute;top:0;left:15%;right:15%;height:3px;background:transparent;border-radius:0 0 3px 3px;transition:background .2s;}
+.nav-btn.active{color:var(--primary);} 
+.nav-btn.active::after{background:var(--primary);}
 </style>
 </head>
 <body>
@@ -94,361 +94,181 @@ button,input,select,textarea{font:inherit;} img{max-width:100%;display:block;}
 <header class="topbar">
   <div class="brand">
     <svg class="logo" viewBox="0 0 64 64" fill="none"><rect x="8" y="10" width="48" height="44" rx="12" stroke="currentColor" stroke-width="4"/><path d="M20 24H44M20 34H34" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><circle cx="44" cy="40" r="6" fill="currentColor"/></svg>
-    <div class="brand-text"><h1>Kleinanzeigen</h1><div class="sub">Hero Edition v6.2</div></div>
+    <div class="brand-text"><h1>Kleinanzeigen</h1><div class="sub">Hero Edition v6.3</div></div>
   </div>
   <div class="top-actions">
-    <button class="icon-btn" onclick="openSetBadgesModal()">🏆</button>
-    <button class="icon-btn" data-page="sell" style="font-weight:bold;font-size:1.2rem;">€</button>
-    <button class="icon-btn" data-page="termin">📅</button>
-    <button class="icon-btn" id="exportBtn">📤</button>
-    <label class="icon-btn" for="importFile" style="cursor:pointer;display:flex;">📥</label>
+    <button class="icon-btn" onclick="openSetBadgesModal()" title="Sets">🏆</button>
+    <button class="icon-btn" data-page="sell" title="Verkaufen" style="font-weight:bold;font-size:1.2rem;">€</button>
+    <button class="icon-btn" data-page="termin" title="Termine">📅</button>
+    <button class="icon-btn" id="exportBtn" title="Export">📤</button>
+    <label class="icon-btn" for="importFile" title="Import" style="cursor:pointer;display:flex;align-items:center;justify-content:center;">📥</label>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this.files[0]); this.value='';">
-    <button class="icon-btn" id="themeToggle">◐</button>
+    <button class="icon-btn" id="themeToggle" title="Theme">◐</button>
   </div>
 </header>
 
 <div class="scroll-container">
-<!-- STATISTIK -->
-<section class="page" id="page-stats">
-  <div class="page-head"><h2>Statistik</h2></div>
-  <div class="card"><div class="card-body"><div class="field"><label>Jahr</label><select class="select" id="statsYear"></select></div></div></div>
-  <div class="stats-grid" id="statsCards"></div>
-  <div class="card"><div class="card-head"><h3 class="card-title">Monatsgewinne</h3></div><div class="card-body"><table class="mini-table" id="monthTable"></table></div></div>
-  <div class="card" style="margin-bottom:var(--sp4);"><div class="card-head"><h3 class="card-title">🏆 Top 10 Übersicht</h3></div><div class="card-body"><div id="top5Cards"></div></div></div>
-  <div class="card"><div class="card-head"><h3 class="card-title">📊 Artikel-KPIs</h3></div><div class="card-body"><div id="kpiCards"></div></div></div>
-  <h3 class="section-title" style="margin-top:var(--sp4);">Verkäufe nach Monat</h3><div id="monthCards"></div>
-</section>
+  <!-- STATISTIK -->
+  <section class="page" id="page-stats">
+    <div class="page-head"><h2>Statistik</h2></div>
+    <div class="card"><div class="card-body"><div class="field"><label>Jahr</label><select class="select" id="statsYear"></select></div></div></div>
+    <div class="stats-grid" id="statsCards"></div>
+    <div class="card"><div class="card-head"><h3 class="card-title">Monatsgewinne</h3></div><div class="card-body"><table class="mini-table" id="monthTable"></table></div></div>
+    <div class="card" style="margin-bottom:var(--sp4);"><div class="card-head"><h3 class="card-title">🏆 Top 10 Übersicht</h3></div><div class="card-body"><div id="top5Cards"></div></div></div>
+    <div class="card"><div class="card-head"><h3 class="card-title">📊 Artikel-KPIs</h3></div><div class="card-body"><div id="kpiCards"></div></div></div>
+    <h3 class="section-title" style="margin-top:var(--sp4);">Verkäufe nach Monat</h3><div id="monthCards"></div>
+  </section>
 
-<!-- NEU -->
-<section class="page active" id="page-new">
-  <div class="page-head"><h2>Neuer Artikel</h2></div>
-  <div class="card">
-    <div class="card-body">
-      <form id="itemForm" class="grid">
-        <div class="checkbox-row"><input id="profitshare" type="checkbox"><label for="profitshare">Profitshare</label><button type="button" class="btn btn-ghost" onclick="resetItemForm()" style="margin-left:auto;min-height:40px;padding:.5rem;">Reset</button></div>
-        <div class="grid2"><div class="field"><label>Einkaufspreis (€)</label><input class="input" id="purchasePrice" type="number" min="0" step="0.01" value="0"></div><div class="field"><label for="quantity">Anzahl</label><input class="input" id="quantity" type="number" min="1" step="1" value="1"></div></div>
-        <div class="field"><label>Gruppe</label><select class="select" id="group" style="display:none;"><option value=""></option></select><div id="qb-group" class="quick-btns"></div></div>
-        <div class="field" id="field-productType" style="display:none;"><label>Produkttyp</label><select class="select" id="productType" style="display:none;"><option value=""></option></select><div class="quick-btns" id="qb-productType"></div></div>
-        <div class="field" id="field-article" style="display:none;"><label>Artikelname</label><select class="select" id="article" style="display:none;"><option value=""></option></select><div class="quick-btns" id="qb-article"></div></div>
-        <div class="grid2" id="field-size-color" style="display:none;">
-          <div class="field"><label>Größe</label><select class="select" id="size" style="display:none;"><option value=""></option></select><div class="quick-btns" id="qb-size"></div></div>
-          <div class="field"><label>Farbe</label><select class="select" id="color" style="display:none;"><option value=""></option></select><div class="quick-btns" id="qb-color"></div></div>
-        </div>
-        <div class="field"><label>Mängel</label><textarea class="textarea" id="defect"></textarea></div>
-        <div class="field" id="imgWrap">
-          <label>Bild</label>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <button type="button" class="chip" style="cursor:pointer;border:none;padding:6px 12px;display:flex;align-items:center;gap:8px;" id="imgTrigger" onclick="openNewImgPicker()"><span id="imgPreview">🖼</span><span id="imgLabel">Wählen…</span></button>
-            <label for="uploadFileInput" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:1.2rem;">📂</label>
+  <!-- NEU -->
+  <section class="page active" id="page-new">
+    <div class="page-head"><h2>Neuer Artikel</h2></div>
+    <div class="card">
+      <div class="card-body">
+        <form id="itemForm" class="grid">
+          <div class="checkbox-row"><input id="profitshare" type="checkbox"><label for="profitshare">Profitshare</label><button type="button" class="btn btn-ghost" onclick="resetItemForm()" style="margin-left:auto;min-height:40px;padding:.5rem;">Reset</button></div>
+          <div class="grid2"><div class="field"><label>Einkaufspreis (€)</label><input class="input" id="purchasePrice" type="number" min="0" step="0.01" value="0"></div><div class="field"><label for="quantity">Anzahl</label><input class="input" id="quantity" type="number" min="1" step="1" value="1"></div></div>
+          <div class="field"><label>Gruppe</label><select class="select" id="group" style="display:none;"><option value=""></option></select><div id="qb-group" class="quick-btns"></div></div>
+          <div class="field" id="field-productType" style="display:none;"><label>Produkttyp</label><select class="select" id="productType" style="display:none;"><option value=""></option></select><div class="quick-btns" id="qb-productType"></div></div>
+          <div class="field" id="field-article" style="display:none;"><label>Artikelname</label><select class="select" id="article" style="display:none;"><option value=""></option></select><div class="quick-btns" id="qb-article"></div></div>
+          <div class="grid2" id="field-size-color" style="display:none;">
+            <div class="field"><label>Größe</label><select class="select" id="size" style="display:none;"><option value=""></option></select><div class="quick-btns" id="qb-size"></div></div>
+            <div class="field"><label>Farbe</label><select class="select" id="color" style="display:none;"><option value=""></option></select><div class="quick-btns" id="qb-color"></div></div>
           </div>
-          <input type="hidden" id="imgValue"><input type="file" id="uploadFileInput" accept="image/*" multiple style="display:none">
-        </div>
-        <button type="submit" class="btn btn-primary btn-full">✚ Hinzufügen</button>
-      </form>
+          <div class="field"><label>Mängel</label><textarea class="textarea" id="defect"></textarea></div>
+          <div class="field" id="imgWrap">
+            <label>Bild</label>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button type="button" class="chip" style="cursor:pointer;border:none;padding:6px 12px;display:flex;align-items:center;gap:8px;" id="imgTrigger" onclick="openNewImgPicker()"><span id="imgPreview">🖼</span><span id="imgLabel">Wählen…</span></button>
+              <label for="uploadFileInput" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:1.2rem;">📂</label>
+            </div>
+            <input type="hidden" id="imgValue"><input type="file" id="uploadFileInput" accept="image/*" multiple style="display:none">
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">✚ Hinzufügen</button>
+        </form>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- VERKAUFEN -->
-<section class="page" id="page-sell">
-  <div class="page-head"><h2>Set Verkaufen</h2></div>
-  <div class="card">
-     <div class="card-head"><h3 class="card-title">1. Auswahl</h3></div>
-     <div class="card-body grid">
+  <!-- VERKAUFEN -->
+  <section class="page" id="page-sell">
+    <div class="page-head"><h2>Set Verkaufen</h2></div>
+    <div class="card">
+       <div class="card-head"><h3 class="card-title">1. Auswahl</h3></div>
+       <div class="card-body grid">
+          <div class="grid2">
+             <div class="field"><label>Gruppe</label><select class="select" id="sellFilterGroup" onchange="updateSellFilters('group')"></select></div>
+             <div class="field"><label>Produkttyp</label><select class="select" id="sellFilterType" onchange="updateSellFilters('type')"></select></div>
+          </div>
+          <div class="grid2" style="grid-template-columns: 1fr 1fr 1fr;">
+             <div class="field"><label>Größe</label><select class="select" id="sellFilterSize" onchange="updateSellFilters('size')"></select></div>
+             <div class="field"><label>Farbe</label><select class="select" id="sellFilterColor" onchange="updateSellFilters('color')"></select></div>
+             <div class="field"><label>Artikel</label><select class="select" id="sellFilterArticle" onchange="updateSellFilters('article')"></select></div>
+          </div>
+          <div class="field">
+             <label>Exemplar</label>
+             <div style="display:flex; gap:8px;"><select class="select" id="sellFilterInstance" style="flex:1;"></select><button type="button" class="btn btn-primary" onclick="addSellPosition()" style="padding:0; width:48px;">✚</button></div>
+          </div>
+       </div>
+    </div>
+    <div class="card"><div class="card-head"><h3 class="card-title">2. Positionen</h3></div><div class="card-body"><div id="sellCartContainer"></div></div></div>
+    <div class="card">
+       <div class="card-head"><h3 class="card-title">3. Details</h3></div>
+       <div class="card-body grid">
+          <div class="field"><label>Name</label><input type="text" class="input" id="sellBaseName" oninput="updateSellPreview()"></div>
+          <div class="grid2">
+              <div class="field"><label>Verkaufspreis (€)</label><input type="number" class="input" id="sellPrice" oninput="updateSellPreview()"><div id="sellHistPreview" style="font-size:var(--text-xs);margin-top:4px;"></div></div>
+              <div class="field"><label>Erlös</label><div style="padding:12px; background:var(--surfoff); border-radius:var(--rad-md); font-size:var(--text-sm);">EK: <b id="sellEKTotal">0,00 €</b><br>Netto: <b id="sellNetto" style="color:var(--primary);">0,00 €</b></div></div>
+          </div>
+          <div class="field"><label>Profitshare (%)</label><input class="input" type="number" id="sellPsInput" value="0" style="width:80px;" oninput="state.psManualOverride = true; updateSellPreview();"><div id="sellFinalProfit" style="font-size:var(--text-sm); font-weight:700; color:var(--success); margin-top:4px;"></div></div>
+          <button class="btn btn-primary btn-full" onclick="executeSale()">✓ Verkaufen</button>
+       </div>
+    </div>
+  </section>
+
+  <!-- OFFEN -->
+  <section class="page" id="page-open">
+    <div class="page-head"><h2>Offene Artikel</h2></div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-body grid" style="gap:8px;">
+        <input class="input" id="openSearchText" type="text" placeholder="🔍 Textsuche (Titel, Mängel etc.)..." oninput="updateOpenFilters()">
         <div class="grid2">
-           <div class="field"><label>Gruppe</label><select class="select" id="sellFilterGroup" onchange="updateSellFilters('group')"></select></div>
-           <div class="field"><label>Produkttyp</label><select class="select" id="sellFilterType" onchange="updateSellFilters('type')"></select></div>
+          <select class="select" id="openSearchGroup" onchange="updateOpenFilters()"></select>
+          <select class="select" id="openSearchType" onchange="updateOpenFilters()"></select>
         </div>
-        <div class="grid2" style="grid-template-columns: 1fr 1fr 1fr;">
-           <div class="field"><label>Größe</label><select class="select" id="sellFilterSize" onchange="updateSellFilters('size')"></select></div>
-           <div class="field"><label>Farbe</label><select class="select" id="sellFilterColor" onchange="updateSellFilters('color')"></select></div>
-           <div class="field"><label>Artikel</label><select class="select" id="sellFilterArticle" onchange="updateSellFilters('article')"></select></div>
+        <div class="grid2">
+          <select class="select" id="openSearchArticle" onchange="updateOpenFilters()"></select>
+          <select class="select" id="openSearchSize" onchange="updateOpenFilters()"></select>
         </div>
         <div class="field">
-           <label>Exemplar</label>
-           <div style="display:flex; gap:8px;"><select class="select" id="sellFilterInstance" style="flex:1;"></select><button type="button" class="btn btn-primary" onclick="addSellPosition()" style="padding:0; width:48px;">✚</button></div>
+          <select class="select" id="openSearchColor" onchange="updateOpenFilters()"></select>
         </div>
-     </div>
-  </div>
-  <div class="card"><div class="card-head"><h3 class="card-title">2. Positionen</h3></div><div class="card-body"><div id="sellCartContainer"></div></div></div>
-  <div class="card">
-     <div class="card-head"><h3 class="card-title">3. Details</h3></div>
-     <div class="card-body grid">
-        <div class="field"><label>Name</label><input type="text" class="input" id="sellBaseName" oninput="updateSellPreview()"></div>
-        <div class="grid2">
-            <div class="field"><label>Verkaufspreis (€)</label><input type="number" class="input" id="sellPrice" oninput="updateSellPreview()"><div id="sellHistPreview" style="font-size:var(--text-xs);margin-top:4px;"></div></div>
-            <div class="field"><label>Erlös</label><div style="padding:12px; background:var(--surfoff); border-radius:var(--rad-md); font-size:var(--text-sm);">EK: <b id="sellEKTotal">0,00 €</b><br>Netto: <b id="sellNetto" style="color:var(--primary);">0,00 €</b></div></div>
-        </div>
-        <div class="field"><label>Profitshare (%)</label><input class="input" type="number" id="sellPsInput" value="0" style="width:80px;" oninput="state.psManualOverride = true; updateSellPreview();"><div id="sellFinalProfit" style="font-size:var(--text-sm); font-weight:700; color:var(--success); margin-top:4px;"></div></div>
-        <button class="btn btn-primary btn-full" onclick="executeSale()">✓ Verkaufen</button>
-     </div>
-  </div>
-</section>
-
-<!-- OFFEN -->
-<section class="page" id="page-open">
-  <div class="page-head"><h2>Offene Artikel</h2></div>
-  <div class="card" style="margin-bottom:16px;">
-    <div class="card-body grid" style="gap:8px;">
-      <input class="input" id="openSearchText" type="text" placeholder="🔍 Textsuche (Titel, Mängel etc.)..." oninput="updateOpenFilters()">
-      <div class="grid2">
-        <select class="select" id="openSearchGroup" onchange="updateOpenFilters()"></select>
-        <select class="select" id="openSearchType" onchange="updateOpenFilters()"></select>
-      </div>
-      <div class="grid2">
-        <select class="select" id="openSearchArticle" onchange="updateOpenFilters()"></select>
-        <select class="select" id="openSearchSize" onchange="updateOpenFilters()"></select>
-      </div>
-      <div class="field">
-        <select class="select" id="openSearchColor" onchange="updateOpenFilters()"></select>
       </div>
     </div>
-  </div>
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-      <button class="btn btn-ghost" id="toggleAllBtn" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-sm);" onclick="toggleAllGroups()">↕ Alle aufklappen</button>
-      <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><span style="color:var(--muted); font-weight:600;">Nullbestand</span><span onclick="toggleZeroFilter()" id="zeroFilterBtn" style="display:inline-block;width:44px;height:24px;border-radius:12px;background:#ccc;position:relative;transition:background 0.2s;"><span id="zeroFilterKnob" style="display:block;width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left 0.2s;"></span></span></label>
-  </div>
-  <div id="openContent"></div>
-</section>
-
-<!-- TERMINE -->
-<section class="page" id="page-termin">
-  <div class="page-head"><h2>Termine</h2></div>
-  <div class="card">
-    <div class="card-head"><h3 class="card-title">Neuer Eintrag</h3></div>
-    <div class="card-body">
-      <form id="terminForm" class="grid">
-        <div class="grid2"><div class="field"><label>Art</label><select class="select" id="terminArt" required><option value="Abholung">Abholung</option><option value="Kunde">Kunde</option></select></div><div class="field"><label>Name</label><input class="input" type="text" id="terminName" required></div></div>
-        <div class="grid2"><div class="field"><label>Preis</label><input class="input" type="text" id="terminPreis"></div><div class="field"><label>Ort</label><input class="input" type="text" id="terminOrt"></div></div>
-        <div class="grid2"><div class="field"><label>Datum</label><input class="input" type="date" id="terminDatum" required></div><div class="field"><label>Uhrzeit</label><select class="select" id="terminUhrzeit" required></select></div></div>
-        <div class="grid2"><div class="field"><label>User</label><input class="input" type="text" id="terminUser"></div><div class="field"><label>Info</label><input class="input" type="text" id="terminInfo"></div></div>
-        <button type="submit" class="btn btn-primary btn-full">✚ Hinzufügen</button>
-      </form>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <button class="btn btn-ghost" id="toggleAllBtn" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-sm);" onclick="toggleAllGroups()">↕ Alle aufklappen</button>
+        <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><span style="color:var(--muted); font-weight:600;">Nullbestand</span><span onclick="toggleZeroFilter()" id="zeroFilterBtn" style="display:inline-block;width:44px;height:24px;border-radius:12px;background:#ccc;position:relative;transition:background 0.2s;"><span id="zeroFilterKnob" style="display:block;width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left 0.2s;"></span></span></label>
     </div>
-  </div>
-  <div id="terminContent"></div>
-</section>
+    <div id="openContent"></div>
+  </section>
 
-<!-- VERKAUFT -->
-<section class="page" id="page-sold">
-  <div class="page-head"><h2>Verkaufte Artikel</h2><div class="sub" id="soldSubtitle"></div></div>
-  <div class="card" style="margin-bottom:var(--sp4);"><div class="card-body"><input class="input" id="soldSearch" type="text" placeholder="🔍 Suchen…" oninput="state.soldFilter = this.value; renderSold();"></div></div>
-  <div id="soldContent"></div>
-</section>
+  <!-- TERMINE -->
+  <section class="page" id="page-termin">
+    <div class="page-head"><h2>Termine</h2></div>
+    <div class="card">
+      <div class="card-head"><h3 class="card-title">Neuer Eintrag</h3></div>
+      <div class="card-body">
+        <form id="terminForm" class="grid">
+          <div class="grid2"><div class="field"><label>Art</label><select class="select" id="terminArt" required><option value="Abholung">Abholung</option><option value="Kunde">Kunde</option></select></div><div class="field"><label>Name</label><input class="input" type="text" id="terminName" required></div></div>
+          <div class="grid2"><div class="field"><label>Preis</label><input class="input" type="text" id="terminPreis"></div><div class="field"><label>Ort</label><input class="input" type="text" id="terminOrt"></div></div>
+          <div class="grid2"><div class="field"><label>Datum</label><input class="input" type="date" id="terminDatum" required></div><div class="field"><label>Uhrzeit</label><select class="select" id="terminUhrzeit" required></select></div></div>
+          <div class="grid2"><div class="field"><label>User</label><input class="input" type="text" id="terminUser"></div><div class="field"><label>Info</label><input class="input" type="text" id="terminInfo"></div></div>
+          <button type="submit" class="btn btn-primary btn-full">✚ Hinzufügen</button>
+        </form>
+      </div>
+    </div>
+    <div id="terminContent"></div>
+  </section>
 
-<!-- STAMMDATEN -->
-<section class="page" id="page-master">
-  <div class="page-head"><h2>Stammdaten</h2></div>
-  <div class="card">
-    <div class="card-head"><h3 class="card-title">☁️ Cloud Sync</h3></div>
-    <div class="card-body">
-      <div class="field"><label>Web-App-URL</label><input class="input" id="gasUrl" type="url"></div>
-      <div class="grid2" style="margin-top:16px;"><button class="btn btn-primary" onclick="saveToCloud()">In Cloud</button><button class="btn btn-ghost" onclick="loadFromCloud()">Aus Cloud</button></div>
+  <!-- VERKAUFT -->
+  <section class="page" id="page-sold">
+    <div class="page-head"><h2>Verkaufte Artikel</h2><div class="sub" id="soldSubtitle"></div></div>
+    <div class="card" style="margin-bottom:var(--sp4);"><div class="card-body"><input class="input" id="soldSearch" type="text" placeholder="🔍 Suchen…" oninput="state.soldFilter = this.value; renderSold();"></div></div>
+    <div id="soldContent"></div>
+  </section>
+
+  <!-- STAMMDATEN -->
+  <section class="page" id="page-master">
+    <div class="page-head"><h2>Stammdaten</h2></div>
+    <div class="card">
+      <div class="card-head"><h3 class="card-title">☁️ Cloud Sync</h3></div>
+      <div class="card-body">
+        <div class="field"><label>Web-App-URL</label><input class="input" id="gasUrl" type="url"></div>
+        <div class="grid2" style="margin-top:16px;"><button class="btn btn-primary" onclick="saveToCloud()">In Cloud</button><button class="btn btn-ghost" onclick="loadFromCloud()">Aus Cloud</button></div>
+      </div>
     </div>
-  </div>
-  <div class="card">
-    <div class="card-head"><h3 class="card-title">Neuer Eintrag</h3></div>
-    <div class="card-body">
-      <form id="masterForm" class="grid">
-        <div class="field"><label>Kategorie</label><select class="select" id="masterType"><option value="groups">Gruppe</option><option value="producttypes">Produkttyp</option><option value="articles">Artikelname</option><option value="sizes">Größe</option><option value="colors">Farbe</option></select></div>
-        <div class="field mf-grp" style="display:none;"><label>Gruppe</label><select class="select" id="masterGroup"></select></div>
-        <div class="field mf-typ" style="display:none;"><label>Produkttyp</label><select class="select" id="masterProdType"></select></div>
-        <div class="field mf-val"><label id="masterValueLabel">Wert</label><input class="input" id="masterValue" type="text"></div>
-        <button type="submit" class="btn btn-primary">Hinzufügen</button>
-      </form>
+    <div class="card">
+      <div class="card-head"><h3 class="card-title">Neuer Eintrag</h3></div>
+      <div class="card-body">
+        <form id="masterForm" class="grid">
+          <div class="field"><label>Kategorie</label><select class="select" id="masterType"><option value="groups">Gruppe</option><option value="producttypes">Produkttyp</option><option value="articles">Artikelname</option><option value="sizes">Größe</option><option value="colors">Farbe</option></select></div>
+          <div class="field mf-grp" style="display:none;"><label>Gruppe</label><select class="select" id="masterGroup"></select></div>
+          <div class="field mf-typ" style="display:none;"><label>Produkttyp</label><select class="select" id="masterProdType"></select></div>
+          <div class="field mf-val"><label id="masterValueLabel">Wert</label><input class="input" id="masterValue" type="text"></div>
+          <button type="submit" class="btn btn-primary">Hinzufügen</button>
+        </form>
+      </div>
     </div>
-  </div>
-  <div id="masterContent"></div>
-</section>
+    <div id="masterContent"></div>
+  </section>
 </div>
 
-<!-- Footer Navigation mit aktiver Markierung -->
+<!-- Fester unterer Reiterbereich mit Aktiv-Balken -->
 <nav class="bottom-nav">
   <button class="nav-btn" data-page="stats"><span class="nav-icon">📊</span>Statistik</button>
   <button class="nav-btn active" data-page="new"><span class="nav-icon">✚</span>Neu</button>
   <button class="nav-btn" data-page="open"><span class="nav-icon">📦</span>Offen</button>
   <button class="nav-btn" data-page="sold"><span class="nav-icon">💰</span>Verkauft</button>
   <button class="nav-btn" data-page="master"><span class="nav-icon">⚙️</span>Stammdaten</button>
-</nav>
-
-<div id="imagePickerModal" class="modal"><div class="modal-content"><div style="display:flex;justify-content:space-between;margin-bottom:12px;"><h3>Bild</h3><button class="btn btn-ghost" onclick="closeImagePicker()">X</button></div><div id="imagePickerList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;"></div></div></div>
-<div id="setBadgesModal" class="modal"><div class="modal-content"><div style="display:flex;justify-content:space-between;margin-bottom:12px;"><h3>Sets</h3><button class="btn btn-ghost" onclick="closeSetBadgesModal()">X</button></div><div id="setBadgesContent"></div></div></div>
-
-<script src="app.js"></script>
-</body>
-</html>
-  <div class="top-actions">
-    <button class="icon-btn" onclick="openSetBadgesModal()">🏆</button>
-    <button class="icon-btn" data-page="sell" style="font-weight:bold;font-size:1.2rem;">€</button>
-    <button class="icon-btn" data-page="termin">📅</button>
-    <button class="icon-btn" id="exportBtn">📤</button>
-    <label class="icon-btn" for="importFile" style="cursor:pointer;display:flex;">📥</label>
-    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this.files[0]); this.value='';">
-    <button class="icon-btn" id="themeToggle">◐</button>
-  </div>
-</header>
-
-<div class="scroll-container">
-<!-- STATISTIK -->
-<section class="page" id="page-stats">
-  <div class="page-head"><h2>Statistik</h2></div>
-  <div class="card"><div class="card-body"><div class="field"><label>Jahr</label><select class="select" id="statsYear"></select></div></div></div>
-  <div class="stats-grid" id="statsCards"></div>
-  <div class="card"><div class="card-head"><h3 class="card-title">Monatsgewinne</h3></div><div class="card-body"><table class="mini-table" id="monthTable"></table></div></div>
-  <div class="card" style="margin-bottom:var(--sp4);"><div class="card-head"><h3 class="card-title">🏆 Top 10 Übersicht</h3></div><div class="card-body"><div id="top5Cards"></div></div></div>
-  <div class="card"><div class="card-head"><h3 class="card-title">📊 Artikel-KPIs</h3></div><div class="card-body"><div id="kpiCards"></div></div></div>
-  <h3 class="section-title" style="margin-top:var(--sp4);">Verkäufe nach Monat</h3><div id="monthCards"></div>
-</section>
-
-<!-- NEU -->
-<section class="page active" id="page-new">
-  <div class="page-head"><h2>Neuer Artikel</h2></div>
-  <div class="card">
-    <div class="card-body">
-      <form id="itemForm" class="grid">
-        <div class="checkbox-row"><input id="profitshare" type="checkbox"><label for="profitshare">Profitshare</label><button type="button" class="btn btn-ghost" onclick="resetItemForm()" style="margin-left:auto;min-height:40px;padding:.5rem;">Reset</button></div>
-        <div class="grid2"><div class="field"><label>Einkaufspreis (€)</label><input class="input" id="purchasePrice" type="number" min="0" step="0.01" value="0"></div><div class="field"><label for="quantity">Anzahl</label><input class="input" id="quantity" type="number" min="1" step="1" value="1"></div></div>
-        <div class="field"><label>Gruppe</label><select class="select" id="group" style="display:none;"><option value=""></option></select><div id="qb-group" class="quick-btns"></div></div>
-        <div class="field" id="field-productType" style="display:none;"><label>Produkttyp</label><select class="select" id="productType" style="display:none;"><option value=""></option></select><div class="quick-btns" id="qb-productType"></div></div>
-        <div class="field" id="field-article" style="display:none;"><label>Artikelname</label><select class="select" id="article" style="display:none;"><option value=""></option></select><div class="quick-btns" id="qb-article"></div></div>
-        <div class="grid2" id="field-size-color" style="display:none;">
-          <div class="field"><label>Größe</label><select class="select" id="size" style="display:none;"><option value=""></option></select><div class="quick-btns" id="qb-size"></div></div>
-          <div class="field"><label>Farbe</label><select class="select" id="color" style="display:none;"><option value=""></option></select><div class="quick-btns" id="qb-color"></div></div>
-        </div>
-        <div class="field"><label>Mängel</label><textarea class="textarea" id="defect"></textarea></div>
-        <div class="field" id="imgWrap">
-          <label>Bild</label>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <button type="button" class="chip" style="cursor:pointer;border:none;padding:6px 12px;display:flex;align-items:center;gap:8px;" id="imgTrigger" onclick="openNewImgPicker()"><span id="imgPreview">🖼</span><span id="imgLabel">Wählen…</span></button>
-            <label for="uploadFileInput" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:var(--rad-md);border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:1.2rem;">📂</label>
-          </div>
-          <input type="hidden" id="imgValue"><input type="file" id="uploadFileInput" accept="image/*" multiple style="display:none">
-        </div>
-        <button type="submit" class="btn btn-primary btn-full">✚ Hinzufügen</button>
-      </form>
-    </div>
-  </div>
-</section>
-
-<!-- VERKAUFEN -->
-<section class="page" id="page-sell">
-  <div class="page-head"><h2>Set Verkaufen</h2></div>
-  <div class="card">
-     <div class="card-head"><h3 class="card-title">1. Auswahl</h3></div>
-     <div class="card-body grid">
-        <div class="grid2">
-           <div class="field"><label>Gruppe</label><select class="select" id="sellFilterGroup" onchange="updateSellFilters('group')"></select></div>
-           <div class="field"><label>Produkttyp</label><select class="select" id="sellFilterType" onchange="updateSellFilters('type')"></select></div>
-        </div>
-        <div class="grid2" style="grid-template-columns: 1fr 1fr 1fr;">
-           <div class="field"><label>Größe</label><select class="select" id="sellFilterSize" onchange="updateSellFilters('size')"></select></div>
-           <div class="field"><label>Farbe</label><select class="select" id="sellFilterColor" onchange="updateSellFilters('color')"></select></div>
-           <div class="field"><label>Artikel</label><select class="select" id="sellFilterArticle" onchange="updateSellFilters('article')"></select></div>
-        </div>
-        <div class="field">
-           <label>Exemplar</label>
-           <div style="display:flex; gap:8px;"><select class="select" id="sellFilterInstance" style="flex:1;"></select><button type="button" class="btn btn-primary" onclick="addSellPosition()" style="padding:0; width:48px;">✚</button></div>
-        </div>
-     </div>
-  </div>
-  <div class="card"><div class="card-head"><h3 class="card-title">2. Positionen</h3></div><div class="card-body"><div id="sellCartContainer"></div></div></div>
-  <div class="card">
-     <div class="card-head"><h3 class="card-title">3. Details</h3></div>
-     <div class="card-body grid">
-        <div class="field"><label>Name</label><input type="text" class="input" id="sellBaseName" oninput="updateSellPreview()"></div>
-        <div class="grid2">
-            <div class="field"><label>Verkaufspreis (€)</label><input type="number" class="input" id="sellPrice" oninput="updateSellPreview()"><div id="sellHistPreview" style="font-size:var(--text-xs);margin-top:4px;"></div></div>
-            <div class="field"><label>Erlös</label><div style="padding:12px; background:var(--surfoff); border-radius:var(--rad-md); font-size:var(--text-sm);">EK: <b id="sellEKTotal">0,00 €</b><br>Netto: <b id="sellNetto" style="color:var(--primary);">0,00 €</b></div></div>
-        </div>
-        <div class="field"><label>Profitshare (%)</label><input class="input" type="number" id="sellPsInput" value="0" style="width:80px;" oninput="state.psManualOverride = true; updateSellPreview();"><div id="sellFinalProfit" style="font-size:var(--text-sm); font-weight:700; color:var(--success); margin-top:4px;"></div></div>
-        <button class="btn btn-primary btn-full" onclick="executeSale()">✓ Verkaufen</button>
-     </div>
-  </div>
-</section>
-
-<!-- OFFEN (Mit erweiterten Filtern) -->
-<section class="page" id="page-open">
-  <div class="page-head"><h2>Offene Artikel</h2></div>
-  <div class="card" style="margin-bottom:16px;">
-    <div class="card-body grid" style="gap:8px;">
-      <input class="input" id="openSearchText" type="text" placeholder="🔍 Textsuche (Titel, Mängel etc.)..." oninput="updateOpenFilters()">
-      <div class="grid2">
-        <select class="select" id="openSearchGroup" onchange="updateOpenFilters()"></select>
-        <select class="select" id="openSearchType" onchange="updateOpenFilters()"></select>
-      </div>
-      <div class="grid2">
-        <select class="select" id="openSearchArticle" onchange="updateOpenFilters()"></select>
-        <select class="select" id="openSearchSize" onchange="updateOpenFilters()"></select>
-      </div>
-      <div class="field">
-        <select class="select" id="openSearchColor" onchange="updateOpenFilters()"></select>
-      </div>
-    </div>
-  </div>
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-      <button class="btn btn-ghost" id="toggleAllBtn" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-sm);" onclick="toggleAllGroups()">↕ Alle aufklappen</button>
-      <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><span style="color:var(--muted); font-weight:600;">Nullbestand</span><span onclick="toggleZeroFilter()" id="zeroFilterBtn" style="display:inline-block;width:44px;height:24px;border-radius:12px;background:#ccc;position:relative;transition:background 0.2s;"><span id="zeroFilterKnob" style="display:block;width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left 0.2s;"></span></span></label>
-  </div>
-  <div id="openContent"></div>
-</section>
-
-<!-- TERMINE -->
-<section class="page" id="page-termin">
-  <div class="page-head"><h2>Termine</h2></div>
-  <div class="card">
-    <div class="card-head"><h3 class="card-title">Neuer Eintrag</h3></div>
-    <div class="card-body">
-      <form id="terminForm" class="grid">
-        <div class="grid2"><div class="field"><label>Art</label><select class="select" id="terminArt" required><option value="Abholung">Abholung</option><option value="Kunde">Kunde</option></select></div><div class="field"><label>Name</label><input class="input" type="text" id="terminName" required></div></div>
-        <div class="grid2"><div class="field"><label>Preis</label><input class="input" type="text" id="terminPreis"></div><div class="field"><label>Ort</label><input class="input" type="text" id="terminOrt"></div></div>
-        <div class="grid2"><div class="field"><label>Datum</label><input class="input" type="date" id="terminDatum" required></div><div class="field"><label>Uhrzeit</label><select class="select" id="terminUhrzeit" required></select></div></div>
-        <div class="grid2"><div class="field"><label>User</label><input class="input" type="text" id="terminUser"></div><div class="field"><label>Info</label><input class="input" type="text" id="terminInfo"></div></div>
-        <button type="submit" class="btn btn-primary btn-full">✚ Hinzufügen</button>
-      </form>
-    </div>
-  </div>
-  <div id="terminContent"></div>
-</section>
-
-<!-- VERKAUFT -->
-<section class="page" id="page-sold">
-  <div class="page-head"><h2>Verkaufte Artikel</h2><div class="sub" id="soldSubtitle"></div></div>
-  <div class="card" style="margin-bottom:var(--sp4);"><div class="card-body"><input class="input" id="soldSearch" type="text" placeholder="🔍 Suchen…" oninput="state.soldFilter = this.value; renderSold();"></div></div>
-  <div id="soldContent"></div>
-</section>
-
-<!-- STAMMDATEN -->
-<section class="page" id="page-master">
-  <div class="page-head"><h2>Stammdaten</h2></div>
-  <div class="card">
-    <div class="card-head"><h3 class="card-title">☁️ Cloud Sync</h3></div>
-    <div class="card-body">
-      <div class="field"><label>Web-App-URL</label><input class="input" id="gasUrl" type="url"></div>
-      <div class="grid2" style="margin-top:16px;"><button class="btn btn-primary" onclick="saveToCloud()">In Cloud</button><button class="btn btn-ghost" onclick="loadFromCloud()">Aus Cloud</button></div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-head"><h3 class="card-title">Neuer Eintrag</h3></div>
-    <div class="card-body">
-      <form id="masterForm" class="grid">
-        <div class="field"><label>Kategorie</label><select class="select" id="masterType"><option value="groups">Gruppe</option><option value="producttypes">Produkttyp</option><option value="articles">Artikelname</option><option value="sizes">Größe</option><option value="colors">Farbe</option></select></div>
-        <div class="field mf-grp" style="display:none;"><label>Gruppe</label><select class="select" id="masterGroup"></select></div>
-        <div class="field mf-typ" style="display:none;"><label>Produkttyp</label><select class="select" id="masterProdType"></select></div>
-        <div class="field mf-val"><label id="masterValueLabel">Wert</label><input class="input" id="masterValue" type="text"></div>
-        <button type="submit" class="btn btn-primary">Hinzufügen</button>
-      </form>
-    </div>
-  </div>
-  <div id="masterContent"></div>
-</section>
-</div>
-
-<nav class="bottom-nav">
-  <button class="nav-btn" data-page="stats">📊 Statistik</button>
-  <button class="nav-btn active" data-page="new">✚ Neu</button>
-  <button class="nav-btn" data-page="open">📦 Offen</button>
-  <button class="nav-btn" data-page="sold">💰 Verkauft</button>
-  <button class="nav-btn" data-page="master">⚙️ Stammdaten</button>
 </nav>
 
 <div id="imagePickerModal" class="modal"><div class="modal-content"><div style="display:flex;justify-content:space-between;margin-bottom:12px;"><h3>Bild</h3><button class="btn btn-ghost" onclick="closeImagePicker()">X</button></div><div id="imagePickerList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;"></div></div></div>
