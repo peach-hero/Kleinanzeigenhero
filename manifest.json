@@ -1,20 +1,15 @@
 {
   "name": "Kleinanzeigen Hero",
-  "short_name": "Hero App",
+  "short_name": "KA Hero",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f7f6f2",
+  "background_color": "#01696f",
   "theme_color": "#01696f",
   "icons": [
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxOTIgMTkyJz48cmVjdCB3aWR0aD0nMTkyJyBoZWlnaHQ9JzE5Micgcng9JzQwJyBmaWxsPScjMDE2OTZmJy8+PHJlY3QgeD0nNDAnIHk9JzQ4JyB3aWR0aD0nMTEyJyBoZWlnaHQ9Jzk2JyByeD0nMjAnIGZpbGw9J25vbmUnIHN0cm9rZT0nd2hpdGUnIHN0cm9rZS13aWR0aD0nMTAnLz48cGF0aCBkPSdNNjQgODBoNjRNNjQgMTA0aDQwJyBzdHJva2U9J3doaXRlJyBzdHJva2Utd2lkdGg9JzEwJyBzdHJva2UtbGluZWNhcD0ncm91bmQnLz48Y2lyY2xlIGN4PScxMzYnIGN5PScxMjAnIHI9JzE2JyBmaWxsPSd3aGl0ZScvPjwvc3ZnPg==",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxOTIgMTkyJz48cmVjdCB3aWR0aD0nMTkyJyBoZWlnaHQ9JzE5Micgcng9JzQwJyBmaWxsPScjMDE2OTZmJy8+PHJlY3QgeD0nNDAnIHk9JzQ4JyB3aWR0aD0nMTEyJyBoZWlnaHQ9Jzk2JyByeD0nMjAnIGZpbGw9J25vbmUnIHN0cm9rZT0nd2hpdGUnIHN0cm9rZS13aWR0aD0nMTAnLz48cGF0aCBkPSdNNjQgODBoNjRNNjQgMTA0aDQwJyBzdHJva2U9J3doaXRlJyBzdHJva2Utd2lkdGg9JzEwJyBzdHJva2UtbGluZWNhcD0ncm91bmQnLz48Y2lyY2xlIGN4PScxMzYnIGN5PScxMjAnIHI9JzE2JyBmaWxsPSd3aGl0ZScvPjwvc3ZnPg==",
-      "sizes": "512x512",
-      "type": "image/svg+xml"
+      "type": "image/png"
     }
   ]
 }
