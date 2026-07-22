@@ -6,6 +6,7 @@ const FILES_TO_CACHE = [
   './app.js',
   './manifest.json',
   './icon-192.png',
+  './icon-512.png',
   'https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap'
 ];
 
