@@ -1,5 +1,5 @@
 // ==========================================
-// KLEINANZEIGEN HERO - APP.JS (v6.3 PWA Ready)
+// KLEINANZEIGEN HERO - APP.JS (Clean PWA Build)
 // ==========================================
 
 const g = id => document.getElementById(id);
@@ -275,7 +275,7 @@ function closeImagePicker() { const modal = g('imagePickerModal'); if(modal){ mo
 
 window.currentEditBadgeIndex = null;
 window.deleteMasterImage = function(idx) { if(!confirm('Dieses Bild löschen?')) return; if(Array.isArray(state.master.images)) { state.master.images.splice(idx, 1); save(); renderMaster(); } };
-window.deleteAllImages = function() { if(!confirm('ACHTUNG: Alle Bilder löschen?')) return; state.master.images = []; state.master.setImages = []; state.open.forEach(item => { item._savedImage = ''; if(item.instances) item.instances.forEach(inst => inst.image = ''); }); state.sold.forEach(set => { set.previewImage = ''; }); if (state.master.catalog) { Object.keys(state.master.catalog).forEach(grp => { Object.keys(state.master.catalog[grp]||{}).forEach(typ => { if(state.master.catalog[grp][typ] && state.master.catalog[grp][typ].images) { state.master.catalog[grp][typ].images = []; } }); }); } if (Array.isArray(state.master.badgeRules)) { state.master.badgeRules.forEach(rule => { rule.image = ''; }); } save(); renderMaster(); toast('Gelöscht ✓'); };
+window.deleteAllImages = function() { if(!confirm('ACHTUNG: Alle Bilder löschen?')) return; state.master.images = []; state.master.setImages = []; state.open.forEach(item => { item._savedImage = ''; if(item.instances) item.instances.forEach(inst => inst.image = ''); }); state.sold.forEach(set => { set.previewImage = ''; }); if (state.master.catalog) { Object.keys(state.master.catalog).forEach(grp => { Object.keys(state.master.catalog[grp]||{}).forEach(typ => { if(state.master.catalog[grp][typ] && state.master.catalog[grp][typ].images) { state.master.catalog[grp][typ][typ].images = []; } }); }); } if (Array.isArray(state.master.badgeRules)) { state.master.badgeRules.forEach(rule => { rule.image = ''; }); } save(); renderMaster(); toast('Gelöscht ✓'); };
 
 // ==========================================
 // BADGE RULES & SET BADGES MODAL LOGIK
