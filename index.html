@@ -63,7 +63,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-    /* Header Bar */
+    /* Top Navigation Header */
     .top-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: var(--sp2) var(--sp4); display: flex; align-items: center; justify-content: space-between; height: 56px; flex-shrink: 0; }
     .brand { font-weight: 700; font-size: var(--text-lg); display: flex; align-items: center; gap: 8px; color: var(--text); }
     .brand-icon { width: 28px; height: 28px; border-radius: var(--rad-sm); object-fit: cover; }
@@ -73,8 +73,8 @@
     .icon-btn:active { background: var(--surface2); }
     .icon-btn.active { border-color: var(--primary); background: rgba(1, 105, 111, 0.15); }
 
-    /* Subtile Icon Buttons (Ohne Rahmen/Kästen) */
-    .btn-icon-subtle { background: transparent; border: none; color: var(--muted); padding: 4px 8px; cursor: pointer; font-size: 1.1rem; border-radius: var(--rad-sm); transition: background 0.15s, color 0.15s; }
+    /* Schlichte Icon-Buttons ohne Rahmen */
+    .btn-icon-subtle { background: transparent; border: none; color: var(--muted); padding: 4px 6px; cursor: pointer; font-size: 1.1rem; border-radius: var(--rad-sm); transition: background 0.15s, color 0.15s; }
     .btn-icon-subtle:hover { background: var(--surface2); color: var(--text); }
     .btn-icon-subtle.danger:hover { color: var(--err); background: rgba(248, 81, 73, 0.15); }
 
@@ -98,7 +98,7 @@
     .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp2); }
     .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--sp2); }
 
-    /* Buttons Fix: Breiten auf auto umgestellt! */
+    /* Buttons */
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border-radius: var(--rad-sm); border: none; font-weight: 600; font-size: var(--text-xs); cursor: pointer; min-height: 32px; width: auto; transition: background 0.15s; }
     .btn-primary { background: var(--primary); color: #fff; width: 100%; min-height: 42px; font-size: var(--text-sm); }
     .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
@@ -134,7 +134,7 @@
 
     .sold-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); margin-bottom: var(--sp3); }
 
-    /* Modal */
+    /* Modals */
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; padding: var(--sp4); }
     .modal.show { display: flex; }
     .modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-lg); width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: var(--sp4); }
@@ -522,8 +522,7 @@
     </div>
   </div>
 
-  <!-- BUSTING-VERSION HINZUGEFÜGT! -->
-  <script src="./app.js?v=2.0"></script>
+  <script src="./app.js?v=3.0"></script>
 
 </body>
 </html>
