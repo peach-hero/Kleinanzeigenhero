@@ -1,5 +1,5 @@
 // ==========================================
-// KLEINANZEIGEN HERO - APP.JS (v2.0 Clean UI)
+// KLEINANZEIGEN HERO - APP.JS (v3.0 Fully Working)
 // ==========================================
 
 const g = id => document.getElementById(id);
@@ -39,6 +39,44 @@ function save() { const payload = { open:state.open, sold:state.sold, termine:st
 function load() { openDB().then(database => { const tx = database.transaction(STORE, 'readonly'); const req = tx.objectStore(STORE).get('state'); req.onsuccess = e => { const d = e.target.result; if (d) { applyState(d); } else { try { const ls = JSON.parse(localStorage.getItem('amp3') || 'null'); if (ls) { applyState(ls); save(); } } catch(e) {} } initApp(); }; req.onerror = () => fallbackLoad(); }).catch(() => fallbackLoad()); }
 function fallbackLoad() { try { const ls = JSON.parse(localStorage.getItem('amp3') || 'null'); if (ls) applyState(ls); } catch(e) {} initApp(); }
 
+function exportData() {
+  const data = { open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year }; const json = JSON.stringify(data, null, 2); const filename = `kleinanzeigen-hero-${today()}.json`;
+  const blob = new Blob([json], { type:'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); document.body.removeChild(a); }, 1000); toast('Exportiert ✓');
+}
+
+function importData(file) {
+  if (!file) return; toast('Lese Datei...'); const reader = new FileReader();
+  reader.onload = e => { 
+    try { 
+      let d = JSON.parse(e.target.result); 
+      if (Array.isArray(d)) d = { open: d }; 
+      else if (d.state) d = d.state; 
+      else if (d.data) d = d.data; 
+      applyState(d); 
+      save(); 
+      updateMasterForm(); 
+      renderAllQuick(); 
+      renderMaster(); 
+      render(); 
+      toast('Import erfolgreich ✓'); 
+    } catch(err) { 
+      alert('Fehler beim Importieren der Datei: ' + err.message); 
+    } 
+  };
+  reader.readAsText(file);
+}
+
+async function saveToCloud() {
+  const gasUrl = gVal('gasUrl').trim(); if(!gasUrl) return toast('Bitte Script URL eingeben.'); localStorage.setItem('gasUrl', gasUrl);
+  const cloudPayload = { open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year };
+  try { toast('Speichere in Cloud...'); const res = await fetch(gasUrl, { method: 'POST', body: JSON.stringify(cloudPayload) }); const text = await res.text(); try { const result = JSON.parse(text); if(result.status === 'success') toast('Sync erfolgreich ✓'); else toast('Fehler: ' + result.message); } catch(err) { alert("Zugriff blockiert."); } } catch(e) { toast('Netzwerkfehler'); }
+}
+
+async function loadFromCloud() {
+  const gasUrl = gVal('gasUrl').trim(); if(!gasUrl) return toast('Bitte URL eingeben.'); localStorage.setItem('gasUrl', gasUrl);
+  try { toast('Lade aus Cloud...'); const fetchUrl = gasUrl + (gasUrl.includes('?') ? '&' : '?') + 'nocache=' + new Date().getTime(); const res = await fetch(fetchUrl); const text = await res.text(); try { const data = JSON.parse(text); if(data.error) return toast('Fehler: ' + data.error); applyState(data); save(); updateMasterForm(); renderAllQuick(); renderMaster(); render(); toast('Download erfolgreich ✓'); } catch(err) { alert("Datenfehler."); } } catch(e) { alert('Netzwerkfehler'); }
+}
+
 function initApp() { 
   updateMasterForm(); 
   populateUhrzeit(); 
@@ -55,9 +93,31 @@ function applyState(d) {
     if (d.termine !== undefined && Array.isArray(d.termine)) state.termine = d.termine.filter(Boolean);
     if (!state.master) state.master = { catalog: {}, badgeRules: [], images: [], setImages: [] };
     
-    if (d.master && d.master.catalog && typeof d.master.catalog === 'object' && !Array.isArray(d.master.catalog)) state.master.catalog = JSON.parse(JSON.stringify(d.master.catalog)); 
-    if (d.master) { if (Array.isArray(d.master.images)) state.master.images = d.master.images; if (Array.isArray(d.master.setImages)) state.master.setImages = d.master.setImages; }
+    if (d.master && d.master.catalog && typeof d.master.catalog === 'object' && !Array.isArray(d.master.catalog)) {
+      state.master.catalog = JSON.parse(JSON.stringify(d.master.catalog)); 
+    }
+    if (d.master) { 
+      if (Array.isArray(d.master.images)) state.master.images = d.master.images; 
+      if (Array.isArray(d.master.setImages)) state.master.setImages = d.master.setImages; 
+    }
     if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
+
+    // Automatische Gruppenerfassung aus vorhandenen Artikeln (verhindert Datenverlust)
+    const autoAdd = (grPrm, ptPrm, a, s, c) => {
+        if (!grPrm) return; const grp = String(grPrm).trim(); if (!grp) return; const typ = ptPrm ? String(ptPrm).trim() : 'Standardtyp';
+        if (!state.master.catalog[grp]) state.master.catalog[grp] = {}; 
+        if (!state.master.catalog[grp][typ]) state.master.catalog[grp][typ] = { articles: [], sizes: [], colors: [], images: [] };
+        const target = state.master.catalog[grp][typ];
+        if (!Array.isArray(target.articles)) target.articles = []; 
+        if (!Array.isArray(target.sizes)) target.sizes = []; 
+        if (!Array.isArray(target.colors)) target.colors = [];
+        if (a && !target.articles.includes(String(a).trim())) target.articles.push(String(a).trim());
+        if (s && !target.sizes.includes(String(s).trim())) target.sizes.push(String(s).trim());
+        if (c && !target.colors.includes(String(c).trim())) target.colors.push(String(c).trim());
+    };
+
+    state.open.forEach(item => autoAdd(item.group, item.productType, item.article, item.size, item.color));
+    state.sold.forEach(set => { (set.items || []).forEach(item => autoAdd(item.group, item.productType, item.article, item.size, item.color)); });
 
     let newOpen = [];
     for (let i=0; i < state.open.length; i++) {
@@ -89,6 +149,42 @@ function updateMasterForm() {
       if(mTyp) { const curTyp = mTyp.value; mTyp.innerHTML = '<option value="">– Typ –</option>' + typs.map(t=>`<option value="${esc(t)}"${t===curTyp?' selected':''}>${esc(t)}</option>`).join(''); }
       document.querySelectorAll('.mf-grp').forEach(el => el.style.display = needGrp ? 'grid' : 'none'); document.querySelectorAll('.mf-typ').forEach(el => el.style.display = needTyp ? 'grid' : 'none'); document.querySelectorAll('.mf-val').forEach(el => el.style.display = type !== 'images' ? 'grid' : 'none');
   } catch(e) {}
+}
+
+const mfBtn = g('masterForm');
+if(mfBtn) {
+    mfBtn.addEventListener('submit', e => {
+      e.preventDefault();
+      try {
+        const type = gVal('masterType'); const val = gVal('masterValue').trim(); const grp = gVal('masterGroup'); const typ = gVal('masterProdType');
+        if (!state.master.catalog) state.master.catalog = {};
+        if (type === 'groups') { if (!val) return alert('Name eingeben.'); if (state.master.catalog[val] !== undefined) return alert('Existiert bereits.'); state.master.catalog[val] = {}; }
+        else if (type === 'producttypes') { if (!grp || !val) return alert('Pflichtfelder fehlen.'); if (!state.master.catalog[grp]) state.master.catalog[grp] = {}; if (state.master.catalog[grp][val] !== undefined) return alert('Existiert bereits.'); state.master.catalog[grp][val] = { articles:[], sizes:[], colors:[], images:[] }; }
+        else if (type === 'articles' || type === 'sizes' || type === 'colors') { if (!grp || !typ || !val) return alert('Pflichtfelder fehlen.'); if (!state.master.catalog[grp] || !state.master.catalog[grp][typ]) return alert('Gruppe/Typ fehlt.'); let arr = state.master.catalog[grp][typ][type]; if (!Array.isArray(arr)) { arr = []; state.master.catalog[grp][typ][type] = arr; } if (arr.includes(val)) return alert('Existiert bereits.'); arr.push(val); arr.sort(sortKeys); }
+        if(g('masterValue')) g('masterValue').value = ''; updateMasterForm(); renderAllQuick(); save(); renderMaster(); toast('Gespeichert ✓');
+      } catch(err) { alert('Fehler: ' + err.message); }
+    });
+}
+
+function renderMaster() {
+  try {
+      const cat = state.master.catalog || {}; const groups = Object.keys(cat).sort(sortKeys); let html = '';
+      if (groups.length) {
+        groups.forEach(grp => {
+          const typs = Object.keys(cat[grp] || {}).sort(sortKeys);
+          html += `<div class="card" style="margin-bottom:var(--sp4);"><div class="card-head"><h3 class="card-title">📁 ${esc(grp)}</h3><button class="btn btn-danger" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-xs);" data-rm="group" data-grp="${esc(grp)}">🗑 Gruppe</button></div><div class="card-body" style="padding:0;">`;
+          if (!typs.length) { html += `<div class="empty" style="margin:var(--sp4);">Noch keine Produkttypen.</div>`; }
+          typs.forEach(typ => {
+            const d = cat[grp][typ] || {};
+            html += `<div style="border-bottom:1px solid var(--divider);padding:var(--sp3) var(--sp4);"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp2);"><b style="font-size:var(--text-sm);">🏷 ${esc(typ)}</b><button class="btn btn-danger" style="min-height:28px;padding:.2rem .5rem;font-size:var(--text-xs);" data-rm="prodtype" data-grp="${esc(grp)}" data-typ="${esc(typ)}">🗑</button></div>${['articles','sizes','colors'].map(field=>{ const labels={articles:'Artikelname',sizes:'Größen',colors:'Farben'}; const fieldArr = Array.isArray(d[field]) ? d[field] : []; return `<div style="margin-bottom:var(--sp2);"><div class="muted" style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--sp1);">${labels[field]}</div><div class="chips">${fieldArr.map((v,i)=>`<span class="chip" style="display:inline-flex;align-items:center;gap:4px;">${esc(v)}<button style="background:none;border:none;cursor:pointer;color:var(--err);font-size:11px;padding:0;line-height:1;" data-rm="${field}" data-grp="${esc(grp)}" data-typ="${esc(typ)}" data-idx="${i}">×</button></span>`).join('') || '<span class="muted" style="font-size:var(--text-xs);">Noch keine Einträge</span>'}</div></div>`; }).join('')}</div>`;
+          });
+          html += `</div></div>`;
+        });
+      } else { html += `<div class="empty">Noch keine Gruppen angelegt.</div>`; }
+      const imgs = Array.isArray(state.master.images) ? state.master.images : [];
+      html += `<div class="card"><div class="card-head"><div style="display:flex;align-items:center;gap:8px;"><h3 class="card-title">🖼 Bilder</h3><span class="chip">${imgs.length}</span></div></div><div class="card-body"><div class="img-grid">${imgs.length ? imgs.map((url,i)=>`<div class="img-card"><img src="${url}" loading="lazy" style="width:100%;height:80px;object-fit:cover;"></div>`).join('') : '<div class="empty" style="grid-column:1/-1;">Noch keine Bilder.</div>'}</div></div></div>`;
+      const mc = g('masterContent'); if (mc) mc.innerHTML = html;
+  } catch (err) {}
 }
 
 function onGroupChange() { if(state.page !== 'new') return; ['productType', 'article', 'size', 'color'].forEach(id => { const el = g(id); if (el) el.value = ''; }); renderAllQuick(); }
@@ -139,33 +235,17 @@ if(ifrm) {
       save(); toast(qty>1?qty+' Artikel hinzugefügt ✓':'Artikel hinzugefügt ✓'); state.page='open'; render();
     });
 }
+
 function addOrStack(item) { const key = stackKey(item); const ex = state.open.find(i=>stackKey(i)===key); const inst = { id:uid(), image:item.image, comment:item.comment, defect:item.defect, entryDate:item.entryDate, profitshare:item.profitshare, purchasePrice:item.purchasePrice }; if (ex) { ex.instances.push(inst); } else { state.open.unshift({ id:uid(), group:item.group, productType:item.productType, article:item.article, size:item.size, color:item.color, purchasePrice:item.purchasePrice, profitshare:item.profitshare, instances:[inst] }); } }
 
-let imagePickCallback = null;
-function openNewImgPicker() { imagePickCallback = (url) => { const iv = g('imgValue'); if(iv) iv.value = url; const prev = g('imgPreview'); const lbl = g('imgLabel'); if(prev) prev.innerHTML = url ? `<img src="${url}" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">` : '🖼'; if(lbl) lbl.textContent = url ? 'Bild gewählt ✓' : 'Wählen…'; }; const iv = g('imgValue'); openImagePicker(iv ? iv.value : ''); }
+function editItem(itemId) { const item = state.open.find(i=>i.id===itemId); if (!item) return; const newArticle = prompt('Artikelname:', item.article||''); if(newArticle === null) return; item.article = newArticle; save(); renderOpen(); }
+function deleteItem(itemId) { if (!confirm('Artikel löschen?')) return; state.open = state.open.filter(i=>i.id!==itemId); save(); renderOpen(); }
+function editEK(itemId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; const val = prompt('EK Preis (€):', item.purchasePrice||0); if(val === null) return; const price = parseFloat(val.replace(',','.')) || 0; item.instances.forEach(inst => inst.purchasePrice = price); save(); renderOpen(); }
 
-function openImagePicker(currentUrl='') {
-  const modal = g('imagePickerModal'); const list = g('imagePickerList'); if(!modal || !list) return;
-  const catImgs = (gVal('group') && gVal('productType') && state.master.catalog[gVal('group')]?.[gVal('productType')]?.images) || [];
-  const allImgs = [...new Set([...catImgs, ...(state.master.images||[])])];
-  const uploadTile = `<label class="img-pick-upload" style="border:2px dashed var(--primary); display:flex; flex-direction:column; align-items:center; justify-content:center; height:100px; border-radius:8px; cursor:pointer; background:var(--surface2); color:var(--primary); font-weight:bold; font-size:var(--text-xs);"><span style="font-size:1.5rem;">✚</span><span>Upload</span><input type="file" accept="image/*" style="display:none;" onchange="handleModalImageUpload(this.files[0])"></label>`;
-  list.innerHTML = uploadTile + (allImgs.length ? allImgs.map(u => `<button type="button" class="img-pick" data-url="${u.replace(/"/g,'&quot;')}" style="border:2px solid ${u===currentUrl?'#4caf50':'transparent'}"><img src="${u}" loading="lazy" style="width:100%;height:100px;object-fit:cover;border-radius:8px;"></button>`).join('') : '');
-  modal.style.display='flex'; modal.classList.add('show');
-}
-function closeImagePicker() { const modal = g('imagePickerModal'); if(modal){ modal.classList.remove('show'); modal.style.display='none'; } }
-
-window.handleModalImageUpload = function(file) {
-  if (!file) return;
-  compressImage(file, url => {
-    if (!Array.isArray(state.master.images)) state.master.images = [];
-    state.master.images.unshift(url); save();
-    if (imagePickCallback) imagePickCallback(url);
-    closeImagePicker(); toast('Bild hochgeladen ✓');
-  });
-};
+function editSoldName(id) { const set = state.sold.find(s=>s.id===id); if(!set) return; const val = prompt('Name:', set.setName||''); if(val===null) return; set.setName = val.trim(); save(); renderSold(); }
+function editSoldPrice(id) { const set = state.sold.find(s=>s.id===id); if(!set) return; const val = prompt('Verkaufspreis (EUR):', set.salePrice||0); if(val===null) return; const price = parseFloat(val.replace(',','.')); if(isNaN(price)) return; set.salePrice = price; set.netProfit = price - (set.purchaseTotal||0); save(); renderSold(); }
 
 function renderOpen() {
-  updateZeroToggleUI();
   const oc = g('openContent'); if (!oc) return;
   if (!state.open || !state.open.length) { oc.innerHTML='<div class="empty">Keine offenen Artikel.</div>'; return; }
   
@@ -198,7 +278,6 @@ function renderOpen() {
             let img = allInst.find(n=>n.image)?.image || firstItem._savedImage || '';
             const ekSumme = allInst.reduce((s,i)=>s+(+i.purchasePrice||0),0); const menge = allInst.length; const einzel = menge > 0 ? ekSumme / menge : (+firstItem.purchasePrice || 0); const hasPsh = menge > 0 ? allInst.some(x=>x.profitshare) : firstItem.profitshare;
             
-            // Tage im Bestand (Ältestes Exemplar)
             const oldestDays = allInst.length ? Math.max(...allInst.map(x => calcDays(x.entryDate, today()))) : 0;
 
             cardsHtml += `<div class="item-card">
@@ -209,7 +288,6 @@ function renderOpen() {
                     <div>
                       <div class="item-title">${esc(firstItem.article) || esc(firstItem.productType) || '–'}</div>
                     </div>
-                    <!-- EK Summe oben rechts -->
                     <div style="font-size:var(--text-xs); color:var(--muted); font-weight:bold; text-align:right;">
                       ${menge} × Ø${euro(einzel)} = <b style="color:var(--text); font-size:var(--text-sm);">${euro(ekSumme)}</b>
                     </div>
@@ -217,23 +295,14 @@ function renderOpen() {
                   <div class="chips" style="margin-top:6px;">
                     <span class="chip">Gr. ${esc(firstItem.size)||'-'}</span>
                     <span class="chip">${esc(firstItem.color)||'-'}</span>
-                    <!-- DEUTLICHER TAG-CHIP -->
                     <span class="chip days">⏱️ ${oldestDays} Tage im Bestand</span>
                   </div>
                 </div>
               </div>
               
-              <!-- Unten rechts: Aktionschips & Icon-Buttons -->
               <div class="item-footer">
                 <div class="item-actions">
                   <span class="chip" style="cursor:pointer;" onclick="editEK('${firstItem.id}')">EK ${euro(einzel)} ✎</span>
-                  <button class="chip" style="cursor:pointer;border:none" onclick="editItemImage('${firstItem.id}')">🖼 Bild</button>
-                  <button class="chip" style="cursor:pointer;border:none" onclick="toggleItemProfitshare('${firstItem.id}')">${hasPsh?'PS ✓':'PS ✎'}</button>
-                  <span class="chip stack" style="display:inline-flex;gap:3px;align-items:center;padding:0 6px">
-                    <button onclick="changeQty('${firstItem.id}',1)" style="width:16px;height:16px;border-radius:50%;background:#4CAF50;color:white;font-size:10px;border:none;cursor:pointer">+</button>
-                    ${menge}
-                    <button onclick="changeQty('${firstItem.id}',-1)" style="width:16px;height:16px;border-radius:50%;background:#f44336;color:white;font-size:10px;border:none;cursor:pointer">−</button>
-                  </span>
                   <button class="btn-icon-subtle" onclick="editItem('${firstItem.id}')" title="Bearbeiten">✏️</button>
                   <button class="btn-icon-subtle danger" onclick="deleteItem('${firstItem.id}')" title="Löschen">🗑️</button>
                 </div>
@@ -263,7 +332,6 @@ function renderSold() {
     const profitSign = isProfit ? '+' : '';
     const itemCount = (set.items||[]).reduce((s,i)=>s+((i.menge||i.quantity)||1), 0);
 
-    // Filter-Anforderung: Bei Korpus / Tür nur die Farben ausgeben
     const summary = (set.items||[]).map(i => {
       const ptLower = (i.productType||'').toLowerCase();
       const artLower = (i.article||'').toLowerCase();
@@ -282,7 +350,6 @@ function renderSold() {
           <div>
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <span class="item-title">${esc(set.setName)||'Unbenanntes Set'}</span>
-              <!-- Farblicher Nettogewinn groß direkt neben dem Namen -->
               <span style="font-weight:800; font-size:1.1rem; ${profitColor};">
                 ${profitSign}${euro(set.netProfit)}
               </span>
@@ -296,7 +363,6 @@ function renderSold() {
           </div>
         </div>
 
-        <!-- Rechte Seite: VK/EK + SCHLICHTE ICON-BUTTONS IN 1 REIHE -->
         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0;">
           <div style="font-size:var(--text-xs); color:var(--muted); white-space:nowrap;">
             VK ${euro(set.salePrice)} · EK ${euro(set.purchaseTotal)}
@@ -304,7 +370,6 @@ function renderSold() {
           <div style="display:flex; gap:2px; align-items:center;">
             <button class="btn-icon-subtle" onclick="editSoldName('${set.id}')" title="Name bearbeiten">✏️</button>
             <button class="btn-icon-subtle" onclick="editSoldPrice('${set.id}')" title="VK bearbeiten">🏷️</button>
-            <button class="btn-icon-subtle" onclick="editSoldImage('${set.id}')" title="Bild ändern">🖼️</button>
             <button class="btn-icon-subtle danger" onclick="deleteSoldSet('${set.id}')" title="Löschen">🗑️</button>
           </div>
         </div>
@@ -319,7 +384,6 @@ function deleteSoldSet(id) {
   save(); renderSold(); toast('Gelöscht ✓');
 }
 
-// Interaktiver KPI Filter Handler
 window.onStatsFilterChange = function(type) {
   if (type === 'grp') { g('statsFilterTyp').value = ''; g('statsFilterArt').value = ''; }
   else if (type === 'typ') { g('statsFilterArt').value = ''; }
@@ -405,7 +469,6 @@ if(tfrm) { tfrm.addEventListener('submit', e => { e.preventDefault(); const entr
 
 document.addEventListener('click', e => {
   const target = e.target; if (!target) return; const el = target.nodeType === 3 ? target.parentElement : target; if (!el || typeof el.closest !== 'function') return;
-  const imgPickBtn = el.closest('.img-pick'); if(imgPickBtn) { if(imagePickCallback) imagePickCallback(imgPickBtn.dataset.url); closeImagePicker(); return; }
   const tgl = g('themeToggle'); if(tgl && tgl.contains(el)) { document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'); return; }
   const nb = el.closest('[data-page]'); if (nb) { state.page = nb.dataset.page; render(); }
 });
@@ -432,17 +495,6 @@ function render() {
   if (state.page==='sold') renderSold(); 
   if (state.page==='master') renderMaster(); 
   if (state.page==='termin') renderTermine();
-}
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => {
-        reg.update();
-        console.log('Service Worker registriert & aktualisiert:', reg.scope);
-      })
-      .catch(err => console.log('Service Worker Fehler:', err));
-  });
 }
 
 load();
