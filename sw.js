@@ -1,34 +1,29 @@
-const CACHE_NAME = 'hero-app-v10-force-update';
+const CACHE_NAME = 'hero-app-v2.0-buster';
 
 const FILES_TO_CACHE = [
   './',
   './index.html',
-  './app.js',
+  './app.js?v=2.0',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
   'https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap'
 ];
 
-// Sofort installieren und alten Cache überschreiben
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(FILES_TO_CACHE);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE))
   );
 });
 
-// Alten Cache sofort löschen
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
+    caches.keys().then((keys) => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Lösche alten Cache:', cacheName);
-            return caches.delete(cacheName);
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
           }
         })
       );
@@ -37,15 +32,21 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Netzwerk-First Strategie: Versuche immer erst frischen Code zu laden
+// Network-first für app.js und index.html damit Updates immer sofort geladen werden
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        const resClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, resClone));
-        return response;
-      })
-      .catch(() => caches.match(event.request))
-  );
+  if (event.request.url.includes('app.js') || event.request.url.includes('index.html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const resClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, resClone));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+  } else {
+    event.respondWith(
+      caches.match(event.request).then((resp) => resp || fetch(event.request))
+    );
+  }
 });
