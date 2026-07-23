@@ -63,7 +63,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-    /* Top Navigation Header */
+    /* Header Bar */
     .top-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: var(--sp2) var(--sp4); display: flex; align-items: center; justify-content: space-between; height: 56px; flex-shrink: 0; }
     .brand { font-weight: 700; font-size: var(--text-lg); display: flex; align-items: center; gap: 8px; color: var(--text); }
     .brand-icon { width: 28px; height: 28px; border-radius: var(--rad-sm); object-fit: cover; }
@@ -73,7 +73,6 @@
     .icon-btn:active { background: var(--surface2); }
     .icon-btn.active { border-color: var(--primary); background: rgba(1, 105, 111, 0.15); }
 
-    /* Subtile Icon Buttons */
     .btn-icon-subtle { background: transparent; border: none; color: var(--muted); padding: 4px 6px; cursor: pointer; font-size: 1.1rem; border-radius: var(--rad-sm); transition: background 0.15s, color 0.15s; }
     .btn-icon-subtle:hover { background: var(--surface2); color: var(--text); }
     .btn-icon-subtle.danger:hover { color: var(--err); background: rgba(248, 81, 73, 0.15); }
@@ -132,19 +131,17 @@
 
     .sold-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); margin-bottom: var(--sp3); }
 
-    /* Tabelle Entzerrung & Styling (Monatsübersicht) */
+    /* Tabelle Entzerrung (Monatsübersicht) */
     .mini-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
     .mini-table th, .mini-table td { padding: 12px 14px !important; border-bottom: 1px solid var(--divider); text-align: left !important; white-space: nowrap; }
     .mini-table th { background: var(--surface2); font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; }
 
-    /* Modals */
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; padding: var(--sp4); }
-    .modal.show { display: flex; }
-    .modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-lg); width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: var(--sp4); }
-    .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    /* Prominente KPI-Karten */
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); }
+    .stat-card .k { font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; font-weight: 700; }
+    .stat-card .v { font-size: 1.3rem; font-weight: 800; color: var(--primary); margin-top: 2px; }
 
-    /* KPI Grid */
-    .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp2); margin-top: var(--sp3); }
+    .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp2); margin-top: var(--sp2); }
     .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); }
     .kpi-card .k { font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; font-weight: 700; }
     .kpi-card .v { font-size: var(--text-base); font-weight: 700; margin: 4px 0 2px; color: var(--text); }
@@ -156,6 +153,12 @@
     .nav-btn .icon { font-size: 1.2rem; }
     .nav-btn.active { color: var(--primary); font-weight: 700; }
 
+    /* Modals */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; padding: var(--sp4); }
+    .modal.show { display: flex; }
+    .modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-lg); width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: var(--sp4); }
+    .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
     #toast { position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%) translateY(20px); background: #323232; color: #fff; padding: 8px 16px; border-radius: 20px; font-size: var(--text-xs); opacity: 0; transition: all 0.2s; pointer-events: none; z-index: 2000; }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
@@ -164,7 +167,7 @@
 </head>
 <body>
 
-  <!-- Top Header Bar -->
+  <!-- Header Bar -->
   <header class="top-bar">
     <div class="brand">
       <img src="icon-192.png" class="brand-icon" alt="Logo" onerror="this.style.display='none'">
@@ -407,13 +410,14 @@
       <div id="terminContent"></div>
     </section>
 
-    <!-- PAGE: Statistik -->
+    <!-- PAGE: Statistik mit Prominenten KPIs -->
     <section id="page-stats" class="page">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
         <h2>Statistik</h2>
         <select id="statsYear" class="select" style="width:auto;"></select>
       </div>
 
+      <!-- Dynamischer Filter -->
       <div class="card" style="margin-bottom:var(--sp3);">
         <div class="card-head"><h3 class="card-title">🔍 Dynamischer KPI Filter</h3></div>
         <div class="card-body">
@@ -425,10 +429,13 @@
         </div>
       </div>
 
+      <!-- Haupt-KPIs (Verkäufe, Gewinn, Umsatz, Standzeit) -->
       <div id="statsCards" class="grid2" style="margin-bottom:var(--sp3);"></div>
+
+      <!-- Intelligente Detail-KPIs -->
       <div id="dynamicKpis" class="kpi-grid" style="margin-bottom:var(--sp4);"></div>
 
-      <!-- Monatsübersicht Card (Entzerrt) -->
+      <!-- Monatsübersicht Card -->
       <div class="card" style="margin-bottom:var(--sp3);">
         <div class="card-head"><h3 class="card-title">Monatsübersicht</h3></div>
         <div class="card-body" style="padding:0; overflow-x:auto;">
@@ -541,7 +548,7 @@
     </div>
   </div>
 
-  <script src="./app.js?v=6.0"></script>
+  <script src="./app.js?v=7.0"></script>
 
 </body>
 </html>
