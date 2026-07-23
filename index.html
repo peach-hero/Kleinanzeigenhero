@@ -73,7 +73,7 @@
     .icon-btn:active { background: var(--surface2); }
     .icon-btn.active { border-color: var(--primary); background: rgba(1, 105, 111, 0.15); }
 
-    /* Schlichte Icon-Buttons ohne Rahmen */
+    /* Subtile Icon Buttons */
     .btn-icon-subtle { background: transparent; border: none; color: var(--muted); padding: 4px 6px; cursor: pointer; font-size: 1.1rem; border-radius: var(--rad-sm); transition: background 0.15s, color 0.15s; }
     .btn-icon-subtle:hover { background: var(--surface2); color: var(--text); }
     .btn-icon-subtle.danger:hover { color: var(--err); background: rgba(248, 81, 73, 0.15); }
@@ -109,8 +109,6 @@
     .chip { padding: 2px 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; font-size: var(--text-xs); color: var(--text); }
     .chip.days { background: rgba(1, 105, 111, 0.25); border-color: var(--primary); color: #23b2b8; font-weight: 700; }
     .chip.stack { background: rgba(1, 105, 111, 0.15); border-color: var(--primary); color: #23b2b8; font-weight: 700; }
-    .chip.ps { background: rgba(210, 153, 34, 0.15); border-color: var(--warn); color: var(--warn); }
-    .chip.profit { background: rgba(46, 160, 67, 0.15); border-color: var(--accent); color: var(--success); font-weight: 700; }
 
     /* Quick Selector Chips */
     .qb-chip { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--rad-sm); font-size: var(--text-xs); cursor: pointer; user-select: none; }
@@ -134,11 +132,23 @@
 
     .sold-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); margin-bottom: var(--sp3); }
 
+    /* Tabelle Entzerrung & Styling (Monatsübersicht) */
+    .mini-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+    .mini-table th, .mini-table td { padding: 12px 14px !important; border-bottom: 1px solid var(--divider); text-align: left !important; white-space: nowrap; }
+    .mini-table th { background: var(--surface2); font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; }
+
     /* Modals */
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; padding: var(--sp4); }
     .modal.show { display: flex; }
     .modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-lg); width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: var(--sp4); }
     .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+    /* KPI Grid */
+    .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp2); margin-top: var(--sp3); }
+    .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); }
+    .kpi-card .k { font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; font-weight: 700; }
+    .kpi-card .v { font-size: var(--text-base); font-weight: 700; margin: 4px 0 2px; color: var(--text); }
+    .kpi-card .d { font-size: 11px; color: var(--muted); }
 
     /* Bottom Nav Bar */
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; height: 60px; z-index: 100; }
@@ -248,7 +258,7 @@
     <section id="page-open" class="page">
       <div style="display:flex; gap:8px; margin-bottom:var(--sp3);">
         <input type="text" id="openSearchText" class="input" placeholder="🔍 Suche im Bestand..." oninput="updateOpenFilters()">
-        <button id="toggleAllBtn" class="btn btn-ghost" style="width:auto; white-space:nowrap;" onclick="toggleAllGroups()">↕ Alle</button>
+        <button class="btn btn-ghost" style="width:auto; white-space:nowrap;" onclick="openSetBadgesModal()">🏆 Mögliche Sets</button>
       </div>
 
       <div class="grid3" style="margin-bottom:var(--sp3);">
@@ -404,7 +414,6 @@
         <select id="statsYear" class="select" style="width:auto;"></select>
       </div>
 
-      <!-- KPI Filter -->
       <div class="card" style="margin-bottom:var(--sp3);">
         <div class="card-head"><h3 class="card-title">🔍 Dynamischer KPI Filter</h3></div>
         <div class="card-body">
@@ -417,7 +426,9 @@
       </div>
 
       <div id="statsCards" class="grid2" style="margin-bottom:var(--sp3);"></div>
-      
+      <div id="dynamicKpis" class="kpi-grid" style="margin-bottom:var(--sp4);"></div>
+
+      <!-- Monatsübersicht Card (Entzerrt) -->
       <div class="card" style="margin-bottom:var(--sp3);">
         <div class="card-head"><h3 class="card-title">Monatsübersicht</h3></div>
         <div class="card-body" style="padding:0; overflow-x:auto;">
@@ -426,7 +437,7 @@
       </div>
     </section>
 
-    <!-- PAGE: Stammdaten (Master) -->
+    <!-- PAGE: Stammdaten -->
     <section id="page-master" class="page">
       <div class="card">
         <div class="card-head"><h3 class="card-title">✚ Stammdaten hinzufügen</h3></div>
@@ -489,7 +500,6 @@
 
   </main>
 
-  <!-- Bottom Nav Bar -->
   <nav class="bottom-nav">
     <button class="nav-btn active" data-page="new">
       <span class="icon">✚</span>
@@ -511,7 +521,6 @@
 
   <div id="toast"></div>
 
-  <!-- Image Picker Modal -->
   <div id="imagePickerModal" class="modal">
     <div class="modal-content">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
@@ -522,6 +531,17 @@
     </div>
   </div>
 
-<script src="./app.js?v=4.0"></script>
+  <div id="setBadgesModal" class="modal">
+    <div class="modal-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
+        <h3>🏆 Baubare Sets im Bestand</h3>
+        <button class="btn btn-ghost" style="width:auto; padding:4px 8px;" onclick="closeSetBadgesModal()">✕</button>
+      </div>
+      <div id="setBadgesContent"></div>
+    </div>
+  </div>
+
+  <script src="./app.js?v=6.0"></script>
+
 </body>
 </html>
