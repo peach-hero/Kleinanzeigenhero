@@ -1,5 +1,5 @@
 // ==========================================
-// KLEINANZEIGEN HERO - APP.JS (v9.0 Final Build)
+// KLEINANZEIGEN HERO - APP.JS (v10.0 Global Fixed)
 // ==========================================
 
 const g = id => document.getElementById(id);
@@ -146,7 +146,7 @@ function applyState(d) {
   } catch(e) { console.error(e); }
 }
 
-// SET BADGES
+// SET BADGES LOGIK
 window.currentEditBadgeIndex = null;
 window.updateBadgeProdType = function() {
     const grp = gVal('newBadgeGroup'); const ptSel = g('newBadgeProdType'); if(!ptSel) return;
@@ -514,6 +514,67 @@ function renderOpen() {
   oc.innerHTML = html || '<div class="empty">Keine Treffer.</div>';
 }
 
+// VERKAUF LOGIK
+window.renderSellFilters = function() { window.updateSellFilters('init'); };
+
+window.updateSellFilters = function(trigger) {
+    const grpSel = g('sellFilterGroup'); const ptSel = g('sellFilterType'); const szSel = g('sellFilterSize'); const clSel = g('sellFilterColor'); const arSel = g('sellFilterArticle'); const inSel = g('sellFilterInstance'); if (!grpSel) return;
+    if (trigger === 'group') { ptSel.value=''; arSel.value=''; szSel.value=''; clSel.value=''; } else if (trigger === 'type') { arSel.value=''; szSel.value=''; clSel.value=''; } else if (trigger === 'article') { szSel.value=''; clSel.value=''; } else if (trigger === 'size') { clSel.value=''; }
+    const cartInstIds = state.sellCart.map(c => c.inst.id); 
+    
+    const validItems = [];
+    for(let i=0; i<state.open.length; i++){
+        const item = state.open[i];
+        if(!item.instances) continue;
+        const validInsts = [];
+        for(let j=0; j<item.instances.length; j++){
+            if(!cartInstIds.includes(item.instances[j].id)) validInsts.push(item.instances[j]);
+        }
+        if(validInsts.length > 0) validItems.push({...item, validInsts});
+    }
+
+    const updateDropdown = (selEl, valuesSet, defaultText) => { const currentVal = selEl.value; fillSel(selEl, [...valuesSet].sort(sortKeys), defaultText); if ([...valuesSet].includes(currentVal)) selEl.value = currentVal; else selEl.value = ''; };
+    if (['init', 'cart'].includes(trigger)) updateDropdown(grpSel, new Set(validItems.map(i => i.group).filter(Boolean)), '– Alle Gruppen –'); let itemsBase = grpSel.value ? validItems.filter(i => i.group === grpSel.value) : validItems;
+    if (['init', 'cart', 'group'].includes(trigger)) updateDropdown(ptSel, new Set(itemsBase.map(i => i.productType).filter(Boolean)), '– Alle Typen –'); itemsBase = ptSel.value ? itemsBase.filter(i => i.productType === ptSel.value) : itemsBase;
+    if (['init', 'cart', 'group', 'type'].includes(trigger)) updateDropdown(arSel, new Set(itemsBase.map(i => String(i.article||'')).filter(Boolean)), '– Alle Artikel –'); itemsBase = arSel.value ? itemsBase.filter(i => String(i.article||'') === arSel.value) : itemsBase;
+    if (['init', 'cart', 'group', 'type', 'article'].includes(trigger)) updateDropdown(szSel, new Set(itemsBase.map(i => String(i.size||'')).filter(Boolean)), '– Alle Größen –'); itemsBase = szSel.value ? itemsBase.filter(i => String(i.size||'') === szSel.value) : itemsBase;
+    if (['init', 'cart', 'group', 'type', 'article', 'size'].includes(trigger)) updateDropdown(clSel, new Set(itemsBase.map(i => String(i.color||'')).filter(Boolean)), '– Alle Farben –'); itemsBase = clSel.value ? itemsBase.filter(i => String(i.color||'') === clSel.value) : itemsBase;
+    
+    let options = '<option value="" disabled selected>– Exemplar wählen –</option>'; let hasOptions = false;
+    itemsBase.forEach(item => { item.validInsts.forEach(inst => { hasOptions = true; const days = calcDays(inst.entryDate); const label = `${esc(item.article)||'Unbenannt'} ${esc(item.color)||''} | EK: ${euro(inst.purchasePrice)} | ⏱️ ${days}d`; options += `<option value="${item.id}::${inst.id}">${label}</option>`; }); });
+    if(!hasOptions) options = '<option value="" disabled selected>Keine Exemplare</option>'; inSel.innerHTML = options;
+};
+
+window.addSellPosition = function() { const val = gVal('sellFilterInstance'); if(!val) return; const [itemId, instId] = val.split('::'); const item = state.open.find(i=>i.id===itemId); const inst = item ? item.instances.find(x=>x.id===instId) : null; if (item && inst) { state.sellCart.push({item, inst}); state.psManualOverride = false; window.renderSellCart(); window.updateSellFilters('cart'); } };
+window.removeSellPosition = function(index) { state.sellCart.splice(index, 1); state.psManualOverride = false; window.renderSellCart(); window.updateSellFilters('cart'); };
+
+window.renderSellCart = function() { const container = g('sellCartContainer'); if (!container) return; if (state.sellCart.length === 0) { container.innerHTML = '<div class="empty">Noch keine Positionen hinzugefügt.</div>'; window.updateSellPreview(); return; } let html = ''; state.sellCart.forEach((pos, i) => { const title = `${esc(pos.item.group)||''} / ${esc(pos.item.productType)||''} / ${esc(pos.item.article)||''}`; html += `<div class="sell-pos-row" style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--divider);"><div style="flex:1;"><b>${i+1}.</b> ${title} <span style="color:var(--primary);font-weight:600;">${euro(pos.inst.purchasePrice)}</span> <span style="color:var(--muted); font-size:var(--text-xs);">(⏱️ ${calcDays(pos.inst.entryDate)}d)</span></div><button class="btn btn-danger" style="width:auto; min-height:28px; padding:.2rem .5rem;" onclick="window.removeSellPosition(${i})">✕</button></div>`; }); container.innerHTML = html; window.updateSellPreview(); };
+
+window.updateSellPreview = function() {
+    const nameInput = g('sellBaseName'); const priceInput = g('sellPrice'); const psInput = g('sellPsInput'); const previewName = g('sellNamePreview'); const ekEl = g('sellEKTotal'); const netEl = g('sellNetto'); const finalProfitEl = g('sellFinalProfit'); if(!nameInput) return;
+    const base = nameInput.value.trim(); const articles = [...new Set(state.sellCart.map(c => c.item.article).filter(Boolean))]; previewName.textContent = base + (articles.length > 0 ? ' ' + articles.join(' ') : '') ? `Finaler Set-Name: ${base + (articles.length > 0 ? ' ' + articles.join(' ') : '')}` : '';
+    let purchaseTotal = 0; state.sellCart.forEach(c => purchaseTotal += (+c.inst.purchasePrice || 0)); ekEl.textContent = euro(purchaseTotal);
+    if (!state.psManualOverride && state.sellCart.length > 0) { const allPs = state.sellCart.every(c => c.inst.profitshare); const nonePs = state.sellCart.every(c => !c.inst.profitshare); if (allPs) psInput.value = 50; else if (nonePs) psInput.value = 0; }
+    const salePrice = +priceInput.value || 0; const rohertrag = salePrice - purchaseTotal; netEl.textContent = euro(rohertrag); netEl.style.color = rohertrag < 0 ? 'var(--err)' : 'var(--primary)';
+    const psVal = +(psInput ? psInput.value : 0); const finalProfit = rohertrag * (1 - psVal/100); if (salePrice > 0) { finalProfitEl.textContent = psVal > 0 ? `Netto nach ${psVal}% PS: ${euro(finalProfit)}` : `Netto: ${euro(finalProfit)}`; } else { finalProfitEl.textContent = ''; }
+};
+
+window.executeSale = function() {
+  if (state.sellCart.length === 0) return alert('Bitte Artikel einfügen.'); const sp = +gVal('sellPrice')||0; if (sp<=0) return alert('Bitte Verkaufspreis eingeben.');
+  const byArticle = new Map(); state.sellCart.forEach(({item,inst})=>{ if(!byArticle.has(item.id)) byArticle.set(item.id,{item,insts:[]}); byArticle.get(item.id).insts.push(inst); });
+  const base = gVal('sellBaseName').trim(); const articles = [...new Set(state.sellCart.map(c => c.item.article).filter(Boolean))]; const setName = base + (articles.length > 0 ? ' ' + articles.join(' ') : '');
+  const purchaseTotal = state.sellCart.reduce((s,{inst})=>s+(+inst.purchasePrice||0),0); const rawProfit = sp - purchaseTotal; const psPct = +(g('sellPsInput') ? gVal('sellPsInput') : 0); const netProfit = rawProfit * (1 - psPct/100); const psSome = psPct > 0;
+  
+  let previewImage = ''; for(let i=0; i<state.sellCart.length; i++) { if(state.sellCart[i].inst.image) { previewImage = state.sellCart[i].inst.image; break; } }
+  const totalDays = state.sellCart.reduce((sum, c) => sum + calcDays(c.inst.entryDate, today()), 0);
+  const avgDaysInStock = state.sellCart.length ? Math.round(totalDays / state.sellCart.length) : 0;
+
+  state.sold.unshift({ id:uid(), setName: setName.trim() || 'Unbenanntes Set', salePrice:sp, purchaseTotal, netProfit, saleDate:today(), hasProfitshare:psSome, previewImage: previewImage, avgDaysInStock: avgDaysInStock, items:[...byArticle.values()].map(e=>({ article:e.item.article, productType:e.item.productType||'', group:e.item.group, size:e.item.size, color:e.item.color, menge:e.insts.length, quantity:e.insts.length, entryDate: e.insts[0]?.entryDate })) });
+  byArticle.forEach(({item,insts})=>{ const rmIds = new Set(insts.map(x=>x.id)); if(item.instances) item.instances = item.instances.filter(x=>!rmIds.has(x.id)); });
+  state.sellCart = []; ['sellBaseName', 'sellPrice'].forEach(id => { const el=g(id); if(el) el.value=''; });
+  save(); toast('Verkauft ✓'); state.page='sold'; render();
+};
+
 function renderSold() {
   const sf = g('soldSearch'); const needle = sf ? sf.value.trim().toLowerCase() : '';
   const sets = needle ? state.sold.filter(s=>(s.setName||'').toLowerCase().includes(needle)) : state.sold;
@@ -579,17 +640,18 @@ window.deleteSoldSet = function(id) {
   save(); renderSold(); toast('Gelöscht ✓');
 };
 
-// INTELLIGENTE STATISTIK MIT SPEZIFIKATIONEN & TOP 5 RANKING
+// INTELLIGENTE STATISTIK (ALLER 5 FILTER: Gruppe, Typ, Artikel, Größe, Farbe)
 window.onStatsFilterChange = function(type) {
-  if (type === 'grp') { g('statsFilterTyp').value = ''; g('statsFilterArt').value = ''; }
-  else if (type === 'typ') { g('statsFilterArt').value = ''; }
+  if (type === 'grp') { g('statsFilterTyp').value = ''; g('statsFilterArt').value = ''; g('statsFilterSize').value = ''; g('statsFilterCol').value = ''; }
+  else if (type === 'typ') { g('statsFilterArt').value = ''; g('statsFilterSize').value = ''; g('statsFilterCol').value = ''; }
+  else if (type === 'art') { g('statsFilterSize').value = ''; g('statsFilterCol').value = ''; }
   renderStats();
 };
 
 function populateStatsFilters() {
-  const grpSel = g('statsFilterGrp'); const typSel = g('statsFilterTyp'); const artSel = g('statsFilterArt'); if (!grpSel) return;
-  const curGrp = grpSel.value; const curTyp = typSel.value; const curArt = artSel.value;
-  const grps = new Set(), typs = new Set(), arts = new Set();
+  const grpSel = g('statsFilterGrp'); const typSel = g('statsFilterTyp'); const artSel = g('statsFilterArt'); const szSel = g('statsFilterSize'); const colSel = g('statsFilterCol'); if (!grpSel) return;
+  const curGrp = grpSel.value; const curTyp = typSel.value; const curArt = artSel.value; const curSz = szSel ? szSel.value : ''; const curCol = colSel ? colSel.value : '';
+  const grps = new Set(), typs = new Set(), arts = new Set(), sizes = new Set(), colors = new Set();
 
   state.sold.forEach(s => {
     (s.items||[]).forEach(i => {
@@ -598,19 +660,24 @@ function populateStatsFilters() {
         if (i.productType) typs.add(i.productType);
         if (!curTyp || i.productType === curTyp) {
           if (i.article) arts.add(i.article);
+          if (i.size) sizes.add(i.size);
+          if (i.color) colors.add(i.color);
         }
       }
     });
   });
 
-  fillSel(grpSel, [...grps].sort(sortKeys), 'Alle Gruppen'); grpSel.value = curGrp;
-  fillSel(typSel, [...typs].sort(sortKeys), 'Alle Typen'); typSel.value = curTyp;
-  fillSel(artSel, [...arts].sort(sortKeys), 'Alle Artikel'); artSel.value = curArt;
+  fillSel(grpSel, [...grps].sort(sortKeys), 'Gruppe'); grpSel.value = curGrp;
+  fillSel(typSel, [...typs].sort(sortKeys), 'Produkttyp'); typSel.value = curTyp;
+  fillSel(artSel, [...arts].sort(sortKeys), 'Artikelname'); artSel.value = curArt;
+  if (szSel) { fillSel(szSel, [...sizes].sort(sortKeys), 'Größe'); szSel.value = curSz; }
+  if (colSel) { fillSel(colSel, [...colors].sort(sortKeys), 'Farbe'); colSel.value = curCol; }
 }
 
 function renderStats() {
   populateStatsFilters();
   const fGrp = gVal('statsFilterGrp'); const fTyp = gVal('statsFilterTyp'); const fArt = gVal('statsFilterArt');
+  const fSz = gVal('statsFilterSize'); const fCol = gVal('statsFilterCol');
   
   const years = [...new Set(state.sold.map(s=>(s.saleDate||today()).slice(0,4)))].sort((a,b)=>b-a);
   if (years.length > 0 && !years.includes(state.year)) state.year = years[0];
@@ -619,8 +686,14 @@ function renderStats() {
   let ys = state.sold.filter(s=>(s.saleDate||today()).startsWith(state.year));
   if (ys.length === 0 && state.sold.length > 0) ys = state.sold;
 
-  if (fGrp || fTyp || fArt) {
-    ys = ys.filter(s => (s.items||[]).some(i => (!fGrp || i.group === fGrp) && (!fTyp || i.productType === fTyp) && (!fArt || i.article === fArt)));
+  if (fGrp || fTyp || fArt || fSz || fCol) {
+    ys = ys.filter(s => (s.items||[]).some(i => 
+      (!fGrp || i.group === fGrp) && 
+      (!fTyp || i.productType === fTyp) && 
+      (!fArt || i.article === fArt) &&
+      (!fSz || i.size === fSz) &&
+      (!fCol || i.color === fCol)
+    ));
   }
 
   const totalSets = ys.length; 
@@ -639,7 +712,7 @@ function renderStats() {
     ].map(c=>`<div class="stat-card"><div class="k">${c.k}</div><div class="v">${c.v}</div></div>`).join('');
   }
 
-  // Präzise Aufschlüsselung nach Spezifikation (Name, Größe, Farbe)
+  // Spezifikationsgenaue Auswertung
   const specStats = new Map();
 
   ys.forEach(s => {
@@ -648,9 +721,9 @@ function renderStats() {
     const shareRevenue = (s.salePrice || 0) / itemCount;
 
     (s.items||[]).forEach(i => {
-      if ((!fGrp || i.group === fGrp) && (!fTyp || i.productType === fTyp) && (!fArt || i.article === fArt)) {
-        // Detaillierte Namensgebung inklusive Größe und Farbe
-        const specName = `${i.productType||''} ${i.article||''} ${i.color||''} ${i.size ? '('+i.size+')' : ''}`.replace(/\s+/g, ' ').trim() || 'Unbenannt';
+      if ((!fGrp || i.group === fGrp) && (!fTyp || i.productType === fTyp) && (!fArt || i.article === fArt) && (!fSz || i.size === fSz) && (!fCol || i.color === fCol)) {
+        const parts = [i.productType, i.article, i.color, i.size ? `(${i.size})` : ''].filter(Boolean);
+        const specName = parts.join(' ').trim() || 'Unbenannt';
         if (!specStats.has(specName)) specStats.set(specName, { name: specName, count: 0, profit: 0, revenue: 0 });
         const entry = specStats.get(specName);
         const qty = (i.menge || i.quantity || 1);
@@ -674,16 +747,16 @@ function renderStats() {
   const dkContainer = g('dynamicKpis');
   if (dkContainer) {
     dkContainer.innerHTML = `
-      <div class="kpi-card"><div class="k">🏆 Bestseller (Spezifikation)</div><div class="v">${bestCount ? esc(bestCount.name) : '–'}</div><div class="d">${bestCount ? bestCount.count + 'x verkauft' : ''}</div></div>
-      <div class="kpi-card"><div class="k">🎯 Top Gewinnprodukt</div><div class="v">${bestProfit ? esc(bestProfit.name) : '–'}</div><div class="d">${bestProfit ? euro(bestProfit.profit) : ''}</div></div>
+      <div class="kpi-card"><div class="k">🏆 Bestseller (Exakte Spezifikation)</div><div class="v">${bestCount ? esc(bestCount.name) : '–'}</div><div class="d">${bestCount ? bestCount.count + 'x verkauft' : ''}</div></div>
+      <div class="kpi-card"><div class="k">🎯 Top Gewinnbringer</div><div class="v">${bestProfit ? esc(bestProfit.name) : '–'}</div><div class="d">${bestProfit ? euro(bestProfit.profit) : ''}</div></div>
       <div class="kpi-card"><div class="k">💵 Top Umsatzbringer</div><div class="v">${bestRevenue ? esc(bestRevenue.name) : '–'}</div><div class="d">${bestRevenue ? euro(bestRevenue.revenue) : ''}</div></div>
       <div class="kpi-card"><div class="k">⚠️ Geringster Absatz</div><div class="v">${worstCount ? esc(worstCount.name) : '–'}</div><div class="d">${worstCount ? worstCount.count + 'x verkauft' : ''}</div></div>
       <div class="kpi-card"><div class="k">📈 Ø Marge in %</div><div class="v">${avgMargin} %</div><div class="d">Gewinn vs. Umsatz</div></div>
-      <div class="kpi-card"><div class="k">⏳ Rotationsgeschwindigkeit</div><div class="v">${avgDaysOverall} Tage</div><div class="d">Verkaufsdauer im Lager</div></div>
+      <div class="kpi-card"><div class="k">⏳ Rotationsgeschwindigkeit</div><div class="v">${avgDaysOverall} Tage</div><div class="d">Durchschnittliche Lagerdauer</div></div>
     `;
   }
 
-  // TOP 5 RANKING KARTEN GENERIEREN
+  // TOP 5 RANKINGS GENERIEREN
   const trContainer = g('topRankings');
   if (trContainer) {
     if (sortedSpecsByCount.length > 0) {
@@ -699,7 +772,7 @@ function renderStats() {
                   <td><b>#${idx + 1}</b></td>
                   <td>${esc(item.name)}</td>
                   <td><b style="color:var(--primary);">${item.count}x</b></td>
-                  <td style="color:var(--success);">${euro(item.profit)}</td>
+                  <td style="color:var(--success); font-weight:bold;">${euro(item.profit)}</td>
                 </tr>`).join('')}
               </tbody>
             </table>
@@ -811,7 +884,7 @@ function render() {
   document.querySelectorAll('.nav-btn, .icon-btn[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===state.page));
   const activePage = g('page-'+state.page); if(activePage) activePage.classList.add('active');
   if (state.page==='stats') renderStats(); 
-  if (state.page==='sell') { renderSellFilters(); renderSellCart(); }
+  if (state.page==='sell') { window.renderSellFilters(); window.renderSellCart(); }
   if (state.page==='open') renderOpen(); 
   if (state.page==='sold') renderSold(); 
   if (state.page==='master') renderMaster(); 
