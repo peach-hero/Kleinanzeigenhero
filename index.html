@@ -68,7 +68,7 @@
     .brand { font-weight: 700; font-size: var(--text-lg); display: flex; align-items: center; gap: 8px; color: var(--text); }
     .brand-icon { width: 28px; height: 28px; border-radius: var(--rad-sm); object-fit: cover; }
 
-    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .header-actions { display: flex; align-items: center; gap: 6px; }
     .icon-btn { background: transparent; border: 1px solid var(--border); color: var(--text); width: 36px; height: 36px; border-radius: var(--rad-sm); display: grid; place-items: center; cursor: pointer; font-size: 1.1rem; }
     .icon-btn:active { background: var(--surface2); }
     .icon-btn.active { border-color: var(--primary); background: rgba(1, 105, 111, 0.15); }
@@ -115,14 +115,15 @@
     .qb-chip .qb-rm:hover { color: var(--err); }
     .qb-add { border-style: dashed; }
 
-    /* Items & Tree Lists */
+    /* Items & Tree Lists (Flex Layout) */
     .group-head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp2) 0; border-bottom: 1px solid var(--divider); }
     .group-title { font-size: var(--text-base); font-weight: 700; display: flex; align-items: center; gap: 6px; }
     
     .item-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); margin-top: var(--sp2); }
-    .item-card-main { display: grid; grid-template-columns: 56px 1fr; gap: var(--sp3); align-items: center; }
-    .thumb { width: 56px; height: 56px; border-radius: var(--rad-sm); background: var(--bg); border: 1px solid var(--border); overflow: hidden; display: grid; place-items: center; font-size: 1.5rem; }
+    .item-card-main { display: flex; gap: var(--sp3); align-items: flex-start; width: 100%; }
+    .thumb { width: 56px; height: 56px; border-radius: var(--rad-sm); background: var(--bg); border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.5rem; }
     .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .item-info { flex: 1; min-width: 0; }
     .item-title { font-weight: 700; font-size: var(--text-base); }
     .item-footer { margin-top: var(--sp3); padding-top: var(--sp2); border-top: 1px solid var(--divider); display: flex; justify-content: space-between; align-items: center; }
     .item-price-row { font-size: var(--text-xs); color: var(--muted); }
@@ -136,13 +137,13 @@
     .inst-thumb { width: 40px; height: 40px; border-radius: 4px; overflow: hidden; background: var(--bg); display: grid; place-items: center; }
     .inst-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* Tables & Stats */
+    /* Tables & Stats (Left-Aligned) */
     .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); }
     .stat-card .k { font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; font-weight: 700; }
     .stat-card .v { font-size: 1.4rem; font-weight: 700; color: var(--primary); margin-top: 2px; }
     
     .mini-table { width: 100%; border-collapse: collapse; font-size: var(--text-xs); }
-    .mini-table td, .mini-table th { padding: 6px 0; border-bottom: 1px solid var(--divider); }
+    .mini-table td, .mini-table th, #monthTable th, #monthTable td { padding: 8px 6px; border-bottom: 1px solid var(--divider); text-align: left !important; }
     
     .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp2); }
     .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); }
@@ -155,9 +156,10 @@
     .month-items { list-style: none; margin-top: var(--sp2); font-size: var(--text-xs); }
     .month-items li { padding: 4px 0; border-bottom: 1px dashed var(--divider); }
 
+    /* Sold / History Card */
     .sold-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); margin-bottom: var(--sp3); }
-    .sold-card-main { display: grid; grid-template-columns: 56px 1fr; gap: var(--sp3); }
-    .sold-thumb { width: 56px; height: 56px; border-radius: var(--rad-sm); background: var(--bg); overflow: hidden; display: grid; place-items: center; }
+    .sold-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .sold-thumb { width: 56px; height: 56px; border-radius: var(--rad-sm); background: var(--bg); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.5rem; }
     .sold-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
     /* Modals & Popups */
@@ -184,13 +186,15 @@
 </head>
 <body>
 
-  <!-- Top Header Bar -->
+  <!-- Top Header Bar mit Historie & Statistik Buttons -->
   <header class="top-bar">
     <div class="brand">
       <img src="icon-192.png" class="brand-icon" alt="Logo" onerror="this.style.display='none'">
       <span>Kleinanzeigen Hero</span>
     </div>
     <div class="header-actions">
+      <button class="icon-btn" data-page="sold" title="Historie">📜</button>
+      <button class="icon-btn" data-page="stats" title="Statistik">📊</button>
       <button class="icon-btn" id="themeToggle" title="Theme wechseln">🌗</button>
       <button class="icon-btn" data-page="master" title="Stammdaten">⚙️</button>
     </div>
@@ -205,34 +209,35 @@
         <div class="card-head"><h3 class="card-title">✚ Neuer Artikel</h3></div>
         <div class="card-body">
           <form id="itemForm">
+            <!-- Versteckte Selects für JS-Kompatibilität, Steuerung rein über Chips -->
             <div class="form-group">
               <label class="form-label">Gruppe</label>
-              <select id="group" class="select" onchange="onGroupChange()"></select>
-              <div id="qb-group" class="chips" style="margin-top:6px;"></div>
+              <select id="group" class="select" style="display:none;" onchange="onGroupChange()"></select>
+              <div id="qb-group" class="chips"></div>
             </div>
 
             <div class="form-group" id="field-productType" style="display:none;">
               <label class="form-label">Produkttyp</label>
-              <select id="productType" class="select" onchange="onProductTypeChange()"></select>
-              <div id="qb-productType" class="chips" style="margin-top:6px;"></div>
+              <select id="productType" class="select" style="display:none;" onchange="onProductTypeChange()"></select>
+              <div id="qb-productType" class="chips"></div>
             </div>
 
             <div class="form-group" id="field-article" style="display:none;">
               <label class="form-label">Artikelname</label>
-              <select id="article" class="select"></select>
-              <div id="qb-article" class="chips" style="margin-top:6px;"></div>
+              <select id="article" class="select" style="display:none;"></select>
+              <div id="qb-article" class="chips"></div>
             </div>
 
             <div class="grid2" id="field-size-color" style="display:none;">
               <div class="form-group">
                 <label class="form-label">Größe</label>
-                <select id="size" class="select"></select>
-                <div id="qb-size" class="chips" style="margin-top:6px;"></div>
+                <select id="size" class="select" style="display:none;"></select>
+                <div id="qb-size" class="chips"></div>
               </div>
               <div class="form-group">
                 <label class="form-label">Farbe</label>
-                <select id="color" class="select"></select>
-                <div id="qb-color" class="chips" style="margin-top:6px;"></div>
+                <select id="color" class="select" style="display:none;"></select>
+                <div id="qb-color" class="chips"></div>
               </div>
             </div>
 
@@ -366,7 +371,7 @@
       <div id="soldContent"></div>
     </section>
 
-    <!-- PAGE: Termine -->
+    <!-- PAGE: Termine (in 2 Spalten für Abholung & Übergabe) -->
     <section id="page-termin" class="page">
       <div class="card">
         <div class="card-head"><h3 class="card-title">📅 Neuer Termin</h3></div>
@@ -423,7 +428,8 @@
         </div>
       </div>
 
-      <div id="terminContent"></div>
+      <!-- 2-Spalten Kalender-Ansicht -->
+      <div id="terminContent" class="grid2" style="align-items: flex-start;"></div>
     </section>
 
     <!-- PAGE: Statistiken -->
@@ -437,7 +443,7 @@
       
       <div class="card" style="margin-bottom:var(--sp3);">
         <div class="card-head"><h3 class="card-title">Monatsübersicht</h3></div>
-        <div class="card-body" style="padding:0;">
+        <div class="card-body" style="padding:0; overflow-x:auto;">
           <table id="monthTable" class="mini-table" style="margin:0;"></table>
         </div>
       </div>
@@ -542,7 +548,7 @@
   <!-- Toast Notification -->
   <div id="toast"></div>
 
-  <!-- Image Picker Modal -->
+  <!-- Image Picker Modal mit Upload-Option -->
   <div id="imagePickerModal" class="modal">
     <div class="modal-content">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
