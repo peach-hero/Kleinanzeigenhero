@@ -115,8 +115,8 @@
     .qb-chip .qb-rm { margin-left: 4px; color: var(--muted); font-size: 14px; }
     .qb-add { border-style: dashed; }
 
-    /* Item Card Layouts */
-    .group-head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp2) 0; border-bottom: 1px solid var(--divider); }
+    /* Item Cards & Lists */
+    .group-head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp2) 0; border-bottom: 1px solid var(--divider); user-select: none; }
     .group-title { font-size: var(--text-base); font-weight: 700; display: flex; align-items: center; gap: 6px; }
     
     .item-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); margin-top: var(--sp2); }
@@ -232,7 +232,7 @@
 
             <div class="form-group">
               <label class="form-label">Bild auswählen</label>
-              <button type="button" class="btn btn-ghost" onclick="openNewImgPicker()" style="justify-content:flex-start; width:100%;">
+              <button type="button" class="btn btn-ghost" onclick="window.openNewImgPicker()" style="justify-content:flex-start; width:100%;">
                 <span id="imgPreview">📷</span> <span id="imgLabel">Wählen…</span>
               </button>
               <input type="hidden" id="imgValue">
@@ -256,23 +256,29 @@
       </div>
     </section>
 
-    <!-- PAGE: Bestand -->
+    <!-- PAGE: Bestand (5 Vollständige Filter & Nullbestand Schieber) -->
     <section id="page-open" class="page">
       <div style="display:flex; gap:8px; margin-bottom:var(--sp3);">
-        <input type="text" id="openSearchText" class="input" placeholder="🔍 Suche im Bestand..." oninput="updateOpenFilters()">
+        <input type="text" id="openSearchText" class="input" placeholder="🔍 Suche im Bestand..." oninput="window.updateOpenFilters()">
+        <button id="toggleAllBtn" class="btn btn-ghost" style="width:auto; white-space:nowrap;" onclick="window.toggleAllGroups()">↕ Alle</button>
         <button class="btn btn-ghost" style="width:auto; white-space:nowrap;" onclick="window.openSetBadgesModal()">🏆 Mögliche Sets</button>
       </div>
 
-      <div class="grid3" style="margin-bottom:var(--sp3);">
-        <select id="openSearchGroup" class="select" onchange="updateOpenFilters()"><option value="">Grps</option></select>
-        <select id="openSearchType" class="select" onchange="updateOpenFilters()"><option value="">Typen</option></select>
-        <select id="openSearchArticle" class="select" onchange="updateOpenFilters()"><option value="">Art</option></select>
+      <!-- 5 Ausführliche Filter-Dropdowns -->
+      <div class="grid3" style="margin-bottom:6px;">
+        <select id="openSearchGroup" class="select" onchange="window.updateOpenFilters()"><option value="">Gruppe</option></select>
+        <select id="openSearchType" class="select" onchange="window.updateOpenFilters()"><option value="">Produkttyp</option></select>
+        <select id="openSearchArticle" class="select" onchange="window.updateOpenFilters()"><option value="">Artikelname</option></select>
+      </div>
+      <div class="grid2" style="margin-bottom:var(--sp3);">
+        <select id="openSearchSize" class="select" onchange="window.updateOpenFilters()"><option value="">Größe</option></select>
+        <select id="openSearchColor" class="select" onchange="window.updateOpenFilters()"><option value="">Farbe</option></select>
       </div>
 
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
         <span style="font-size:var(--text-xs); color:var(--muted);">Nullbestände ausblenden</span>
-        <div id="zeroFilterBtn" onclick="toggleZeroFilter()" style="width:40px; height:20px; background:#ccc; border-radius:10px; position:relative; cursor:pointer; transition:background 0.2s;">
-          <div id="zeroFilterKnob" style="width:16px; height:16px; background:#fff; border-radius:50%; position:absolute; top:2px; left:2px; transition:left 0.2s;"></div>
+        <div id="zeroFilterBtn" onclick="window.toggleZeroFilter()" style="width:40px; height:20px; background:var(--primary); border-radius:10px; position:relative; cursor:pointer; transition:background 0.2s;">
+          <div id="zeroFilterKnob" style="width:16px; height:16px; background:#fff; border-radius:50%; position:absolute; top:2px; left:22px; transition:left 0.2s;"></div>
         </div>
       </div>
 
@@ -409,7 +415,7 @@
       <div id="terminContent"></div>
     </section>
 
-    <!-- PAGE: Statistik -->
+    <!-- PAGE: Statistik mit Bestseller Top 5 & Spezifikationen -->
     <section id="page-stats" class="page">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
         <h2>Statistik</h2>
@@ -429,6 +435,9 @@
 
       <div id="statsCards" class="grid2" style="margin-bottom:var(--sp3);"></div>
       <div id="dynamicKpis" class="kpi-grid" style="margin-bottom:var(--sp4);"></div>
+
+      <!-- Top 5 / Top 10 Bestseller Ranking -->
+      <div id="topRankings" style="margin-bottom:var(--sp4);"></div>
 
       <div class="card" style="margin-bottom:var(--sp3);">
         <div class="card-head"><h3 class="card-title">Monatsübersicht</h3></div>
@@ -542,7 +551,7 @@
     </div>
   </div>
 
-  <script src="./app.js?v=8.0"></script>
+  <script src="./app.js?v=9.0"></script>
 
 </body>
 </html>
