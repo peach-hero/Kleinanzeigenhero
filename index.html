@@ -63,7 +63,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-    /* Top Navigation Header */
+    /* Top Bar Header */
     .top-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: var(--sp2) var(--sp4); display: flex; align-items: center; justify-content: space-between; height: 56px; flex-shrink: 0; }
     .brand { font-weight: 700; font-size: var(--text-lg); display: flex; align-items: center; gap: 8px; color: var(--text); }
     .brand-icon { width: 28px; height: 28px; border-radius: var(--rad-sm); object-fit: cover; }
@@ -77,7 +77,7 @@
     .btn-icon-subtle:hover { background: var(--surface2); color: var(--text); }
     .btn-icon-subtle.danger:hover { color: var(--err); background: rgba(248, 81, 73, 0.15); }
 
-    /* Scroll Container */
+    /* Scroll Area */
     .scroll-container { flex: 1; overflow-y: auto; padding: var(--sp4); padding-bottom: 80px; }
     .page { display: none; }
     .page.active { display: block; }
@@ -88,7 +88,7 @@
     .card-title { font-size: var(--text-base); font-weight: 700; }
     .card-body { padding: var(--sp4); }
 
-    /* Form Controls */
+    /* Controls */
     .form-group { margin-bottom: var(--sp3); display: grid; gap: var(--sp1); }
     .form-label { font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; color: var(--muted); }
     .input, .select { width: 100%; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--rad-sm); color: var(--text); font-size: var(--text-sm); outline: none; }
@@ -109,13 +109,12 @@
     .chip.days { background: rgba(1, 105, 111, 0.25); border-color: var(--primary); color: #23b2b8; font-weight: 700; }
     .chip.stack { background: rgba(1, 105, 111, 0.15); border-color: var(--primary); color: #23b2b8; font-weight: 700; }
 
-    /* Quick Selector Chips */
     .qb-chip { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--rad-sm); font-size: var(--text-xs); cursor: pointer; user-select: none; }
     .qb-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
     .qb-chip .qb-rm { margin-left: 4px; color: var(--muted); font-size: 14px; }
     .qb-add { border-style: dashed; }
 
-    /* Item Cards & Lists */
+    /* Tree Lists & Cards */
     .group-head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp2) 0; border-bottom: 1px solid var(--divider); user-select: none; }
     .group-title { font-size: var(--text-base); font-weight: 700; display: flex; align-items: center; gap: 6px; }
     
@@ -131,7 +130,7 @@
 
     .sold-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); margin-bottom: var(--sp3); }
 
-    /* Tabelle Entzerrung */
+    /* Tables */
     .mini-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
     .mini-table th, .mini-table td { padding: 12px 14px !important; border-bottom: 1px solid var(--divider); text-align: left !important; white-space: nowrap; }
     .mini-table th { background: var(--surface2); font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; }
@@ -143,7 +142,7 @@
     .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp2); margin-top: var(--sp2); }
     .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); }
     .kpi-card .k { font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; font-weight: 700; }
-    .kpi-card .v { font-size: var(--text-base); font-weight: 700; margin: 4px 0 2px; color: var(--text); }
+    .kpi-card .v { font-size: var(--text-base); font-weight: 700; margin: 4px 0 2px; color: var(--text); word-break: break-word; }
     .kpi-card .d { font-size: 11px; color: var(--muted); }
 
     /* Bottom Nav Bar */
@@ -256,7 +255,7 @@
       </div>
     </section>
 
-    <!-- PAGE: Bestand (5 Vollständige Filter & Nullbestand Schieber) -->
+    <!-- PAGE: Bestand -->
     <section id="page-open" class="page">
       <div style="display:flex; gap:8px; margin-bottom:var(--sp3);">
         <input type="text" id="openSearchText" class="input" placeholder="🔍 Suche im Bestand..." oninput="window.updateOpenFilters()">
@@ -293,13 +292,13 @@
           <div class="form-group">
             <label class="form-label">1. Filter wählen</label>
             <div class="grid2">
-              <select id="sellFilterGroup" class="select" onchange="updateSellFilters('group')"></select>
-              <select id="sellFilterType" class="select" onchange="updateSellFilters('type')"></select>
+              <select id="sellFilterGroup" class="select" onchange="window.updateSellFilters('group')"></select>
+              <select id="sellFilterType" class="select" onchange="window.updateSellFilters('type')"></select>
             </div>
             <div class="grid3" style="margin-top:6px;">
-              <select id="sellFilterArticle" class="select" onchange="updateSellFilters('article')"></select>
-              <select id="sellFilterSize" class="select" onchange="updateSellFilters('size')"></select>
-              <select id="sellFilterColor" class="select" onchange="updateSellFilters('color')"></select>
+              <select id="sellFilterArticle" class="select" onchange="window.updateSellFilters('article')"></select>
+              <select id="sellFilterSize" class="select" onchange="window.updateSellFilters('size')"></select>
+              <select id="sellFilterColor" class="select" onchange="window.updateSellFilters('color')"></select>
             </div>
           </div>
 
@@ -307,7 +306,7 @@
             <label class="form-label">2. Exemplar hinzufügen</label>
             <div style="display:flex; gap:8px;">
               <select id="sellFilterInstance" class="select"></select>
-              <button type="button" class="btn btn-primary" style="width:auto;" onclick="addSellPosition()">✚</button>
+              <button type="button" class="btn btn-primary" style="width:auto;" onclick="window.addSellPosition()">✚</button>
             </div>
           </div>
 
@@ -320,18 +319,18 @@
 
           <div class="form-group">
             <label class="form-label">Set Name / Basisname</label>
-            <input type="text" id="sellBaseName" class="input" placeholder="z.B. Besta TV-Kombination" oninput="updateSellPreview()">
+            <input type="text" id="sellBaseName" class="input" placeholder="z.B. Besta TV-Kombination" oninput="window.updateSellPreview()">
             <div id="sellNamePreview" style="font-size:var(--text-xs); color:var(--muted); margin-top:2px;"></div>
           </div>
 
           <div class="grid2">
             <div class="form-group">
               <label class="form-label">Verkaufspreis (€)</label>
-              <input type="number" step="0.01" id="sellPrice" class="input" placeholder="0.00" oninput="updateSellPreview()">
+              <input type="number" step="0.01" id="sellPrice" class="input" placeholder="0.00" oninput="window.updateSellPreview()">
             </div>
             <div class="form-group">
               <label class="form-label">Profitshare %</label>
-              <input type="number" id="sellPsInput" class="input" value="0" min="0" max="100" oninput="state.psManualOverride=true; updateSellPreview()">
+              <input type="number" id="sellPsInput" class="input" value="0" min="0" max="100" oninput="state.psManualOverride=true; window.updateSellPreview()">
             </div>
           </div>
 
@@ -341,7 +340,7 @@
             <div id="sellFinalProfit" style="font-weight:700; color:var(--primary); margin-top:4px;"></div>
           </div>
 
-          <button type="button" class="btn btn-primary" onclick="executeSale()">Verkauf abschließen</button>
+          <button type="button" class="btn btn-primary" onclick="window.executeSale()">Verkauf abschließen</button>
         </div>
       </div>
     </section>
@@ -415,7 +414,7 @@
       <div id="terminContent"></div>
     </section>
 
-    <!-- PAGE: Statistik mit Bestseller Top 5 & Spezifikationen -->
+    <!-- PAGE: Statistik (Mit 5-stufigem Filter & Spezifikationen) -->
     <section id="page-stats" class="page">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
         <h2>Statistik</h2>
@@ -425,10 +424,14 @@
       <div class="card" style="margin-bottom:var(--sp3);">
         <div class="card-head"><h3 class="card-title">🔍 Dynamischer KPI Filter</h3></div>
         <div class="card-body">
-          <div class="grid3">
-            <select id="statsFilterGrp" class="select" onchange="window.onStatsFilterChange('grp')"><option value="">Alle Gruppen</option></select>
-            <select id="statsFilterTyp" class="select" onchange="window.onStatsFilterChange('typ')"><option value="">Alle Typen</option></select>
-            <select id="statsFilterArt" class="select" onchange="window.onStatsFilterChange('art')"><option value="">Alle Artikel</option></select>
+          <div class="grid3" style="margin-bottom:6px;">
+            <select id="statsFilterGrp" class="select" onchange="window.onStatsFilterChange('grp')"><option value="">Gruppe</option></select>
+            <select id="statsFilterTyp" class="select" onchange="window.onStatsFilterChange('typ')"><option value="">Produkttyp</option></select>
+            <select id="statsFilterArt" class="select" onchange="window.onStatsFilterChange('art')"><option value="">Artikelname</option></select>
+          </div>
+          <div class="grid2">
+            <select id="statsFilterSize" class="select" onchange="window.onStatsFilterChange('size')"><option value="">Größe</option></select>
+            <select id="statsFilterCol" class="select" onchange="window.onStatsFilterChange('col')"><option value="">Farbe</option></select>
           </div>
         </div>
       </div>
@@ -436,7 +439,6 @@
       <div id="statsCards" class="grid2" style="margin-bottom:var(--sp3);"></div>
       <div id="dynamicKpis" class="kpi-grid" style="margin-bottom:var(--sp4);"></div>
 
-      <!-- Top 5 / Top 10 Bestseller Ranking -->
       <div id="topRankings" style="margin-bottom:var(--sp4);"></div>
 
       <div class="card" style="margin-bottom:var(--sp3);">
@@ -551,7 +553,7 @@
     </div>
   </div>
 
-  <script src="./app.js?v=9.0"></script>
+  <script src="./app.js?v=10.0"></script>
 
 </body>
 </html>
