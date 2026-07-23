@@ -1,5 +1,5 @@
 // ==========================================
-// KLEINANZEIGEN HERO - APP.JS (v3.0 Fully Working)
+// KLEINANZEIGEN HERO - APP.JS (v4.0 Full Fix)
 // ==========================================
 
 const g = id => document.getElementById(id);
@@ -60,7 +60,7 @@ function importData(file) {
       render(); 
       toast('Import erfolgreich ✓'); 
     } catch(err) { 
-      alert('Fehler beim Importieren der Datei: ' + err.message); 
+      alert('Fehler beim Importieren: ' + err.message); 
     } 
   };
   reader.readAsText(file);
@@ -75,6 +75,10 @@ async function saveToCloud() {
 async function loadFromCloud() {
   const gasUrl = gVal('gasUrl').trim(); if(!gasUrl) return toast('Bitte URL eingeben.'); localStorage.setItem('gasUrl', gasUrl);
   try { toast('Lade aus Cloud...'); const fetchUrl = gasUrl + (gasUrl.includes('?') ? '&' : '?') + 'nocache=' + new Date().getTime(); const res = await fetch(fetchUrl); const text = await res.text(); try { const data = JSON.parse(text); if(data.error) return toast('Fehler: ' + data.error); applyState(data); save(); updateMasterForm(); renderAllQuick(); renderMaster(); render(); toast('Download erfolgreich ✓'); } catch(err) { alert("Datenfehler."); } } catch(e) { alert('Netzwerkfehler'); }
+}
+
+function compressImage(file, callback) {
+    const reader = new FileReader(); reader.onload = e => { const img = new Image(); img.onload = () => { const canvas = document.createElement('canvas'); let w = img.width, h = img.height; const MAX = 800; if (w > h && w > MAX) { h = Math.round(h * MAX / w); w = MAX; } else if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } canvas.width = w; canvas.height = h; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, w, h); callback(canvas.toDataURL('image/jpeg', 0.75)); }; img.src = e.target.result; }; reader.readAsDataURL(file);
 }
 
 function initApp() { 
@@ -102,7 +106,6 @@ function applyState(d) {
     }
     if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
 
-    // Automatische Gruppenerfassung aus vorhandenen Artikeln (verhindert Datenverlust)
     const autoAdd = (grPrm, ptPrm, a, s, c) => {
         if (!grPrm) return; const grp = String(grPrm).trim(); if (!grp) return; const typ = ptPrm ? String(ptPrm).trim() : 'Standardtyp';
         if (!state.master.catalog[grp]) state.master.catalog[grp] = {}; 
@@ -172,20 +175,28 @@ function renderMaster() {
       if (groups.length) {
         groups.forEach(grp => {
           const typs = Object.keys(cat[grp] || {}).sort(sortKeys);
-          html += `<div class="card" style="margin-bottom:var(--sp4);"><div class="card-head"><h3 class="card-title">📁 ${esc(grp)}</h3><button class="btn btn-danger" style="min-height:32px;padding:.2rem .6rem;font-size:var(--text-xs);" data-rm="group" data-grp="${esc(grp)}">🗑 Gruppe</button></div><div class="card-body" style="padding:0;">`;
+          html += `<div class="card" style="margin-bottom:var(--sp4);"><div class="card-head"><h3 class="card-title">📁 ${esc(grp)}</h3><button class="btn btn-danger" style="min-height:28px;padding:.2rem .6rem;font-size:var(--text-xs);width:auto;" data-rm="group" data-grp="${esc(grp)}">🗑 Gruppe</button></div><div class="card-body" style="padding:0;">`;
           if (!typs.length) { html += `<div class="empty" style="margin:var(--sp4);">Noch keine Produkttypen.</div>`; }
           typs.forEach(typ => {
             const d = cat[grp][typ] || {};
-            html += `<div style="border-bottom:1px solid var(--divider);padding:var(--sp3) var(--sp4);"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp2);"><b style="font-size:var(--text-sm);">🏷 ${esc(typ)}</b><button class="btn btn-danger" style="min-height:28px;padding:.2rem .5rem;font-size:var(--text-xs);" data-rm="prodtype" data-grp="${esc(grp)}" data-typ="${esc(typ)}">🗑</button></div>${['articles','sizes','colors'].map(field=>{ const labels={articles:'Artikelname',sizes:'Größen',colors:'Farben'}; const fieldArr = Array.isArray(d[field]) ? d[field] : []; return `<div style="margin-bottom:var(--sp2);"><div class="muted" style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--sp1);">${labels[field]}</div><div class="chips">${fieldArr.map((v,i)=>`<span class="chip" style="display:inline-flex;align-items:center;gap:4px;">${esc(v)}<button style="background:none;border:none;cursor:pointer;color:var(--err);font-size:11px;padding:0;line-height:1;" data-rm="${field}" data-grp="${esc(grp)}" data-typ="${esc(typ)}" data-idx="${i}">×</button></span>`).join('') || '<span class="muted" style="font-size:var(--text-xs);">Noch keine Einträge</span>'}</div></div>`; }).join('')}</div>`;
+            html += `<div style="border-bottom:1px solid var(--divider);padding:var(--sp3) var(--sp4);"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp2);"><b style="font-size:var(--text-sm);">🏷 ${esc(typ)}</b><button class="btn btn-danger" style="min-height:26px;padding:.2rem .5rem;font-size:var(--text-xs);width:auto;" data-rm="prodtype" data-grp="${esc(grp)}" data-typ="${esc(typ)}">🗑 Typ</button></div>${['articles','sizes','colors'].map(field=>{ const labels={articles:'Artikelname',sizes:'Größen',colors:'Farben'}; const fieldArr = Array.isArray(d[field]) ? d[field] : []; return `<div style="margin-bottom:var(--sp2);"><div class="muted" style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--sp1);">${labels[field]}</div><div class="chips">${fieldArr.map((v,i)=>`<span class="chip" style="display:inline-flex;align-items:center;gap:4px;">${esc(v)}<button style="background:none;border:none;cursor:pointer;color:var(--err);font-size:12px;padding:0;line-height:1;" data-rm="${field}" data-grp="${esc(grp)}" data-typ="${esc(typ)}" data-idx="${i}">×</button></span>`).join('') || '<span class="muted" style="font-size:var(--text-xs);">Noch keine Einträge</span>'}</div></div>`; }).join('')}</div>`;
           });
           html += `</div></div>`;
         });
       } else { html += `<div class="empty">Noch keine Gruppen angelegt.</div>`; }
       const imgs = Array.isArray(state.master.images) ? state.master.images : [];
-      html += `<div class="card"><div class="card-head"><div style="display:flex;align-items:center;gap:8px;"><h3 class="card-title">🖼 Bilder</h3><span class="chip">${imgs.length}</span></div></div><div class="card-body"><div class="img-grid">${imgs.length ? imgs.map((url,i)=>`<div class="img-card"><img src="${url}" loading="lazy" style="width:100%;height:80px;object-fit:cover;"></div>`).join('') : '<div class="empty" style="grid-column:1/-1;">Noch keine Bilder.</div>'}</div></div></div>`;
+      html += `<div class="card"><div class="card-head"><div style="display:flex;align-items:center;gap:8px;"><h3 class="card-title">🖼 Bilder</h3><span class="chip">${imgs.length}</span></div></div><div class="card-body"><div class="img-grid">${imgs.length ? imgs.map((url,i)=>`<div class="img-card" style="position:relative;"><img src="${url}" loading="lazy" style="width:100%;height:80px;object-fit:cover;"><button class="btn-icon-subtle danger" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.7);padding:2px 6px;" onclick="window.deleteMasterImage(${i})">🗑</button></div>`).join('') : '<div class="empty" style="grid-column:1/-1;">Noch keine Bilder.</div>'}</div></div></div>`;
       const mc = g('masterContent'); if (mc) mc.innerHTML = html;
   } catch (err) {}
 }
+
+window.deleteMasterImage = function(idx) {
+  if (!confirm('Bild löschen?')) return;
+  if (Array.isArray(state.master.images)) {
+    state.master.images.splice(idx, 1);
+    save(); renderMaster(); toast('Bild gelöscht ✓');
+  }
+};
 
 function onGroupChange() { if(state.page !== 'new') return; ['productType', 'article', 'size', 'color'].forEach(id => { const el = g(id); if (el) el.value = ''; }); renderAllQuick(); }
 function onProductTypeChange() { if(state.page !== 'new') return; ['article', 'size', 'color'].forEach(id => { const el = g(id); if (el) el.value = ''; }); renderAllQuick(); }
@@ -196,12 +207,31 @@ window.handleQuickSelect = function(selId, val) {
     if (selId === 'group') onGroupChange(); else if (selId === 'productType') onProductTypeChange(); else renderAllQuick();
 };
 
+window.removeQuick = function(type, val) {
+    if(!confirm(`"${val}" entfernen?`)) return;
+    const grpVal = gVal('group'); const ptVal = gVal('productType'); const cat = state.master.catalog;
+    if (type === 'group') { if(cat[val]) delete cat[val]; if (grpVal === val) { g('group').value = ''; onGroupChange(); } } 
+    else if (type === 'productType') { if (cat[grpVal] && cat[grpVal][val]) { delete cat[grpVal][val]; } if (ptVal === val) { g('productType').value = ''; onProductTypeChange(); } } 
+    else { const arrMap = { article: 'articles', size: 'sizes', color: 'colors' }; const arrName = arrMap[type]; if (cat[grpVal] && cat[grpVal][ptVal] && Array.isArray(cat[grpVal][ptVal][arrName])) { cat[grpVal][ptVal][arrName] = cat[grpVal][ptVal][arrName].filter(x => String(x) !== String(val)); } if (g(type) && g(type).value === val) g(type).value = ''; }
+    save(); updateMasterForm(); renderAllQuick(); renderMaster();
+};
+
+window.addQuick = function(type) {
+    const grpVal = gVal('group'); const ptVal = gVal('productType');
+    if (type !== 'group' && !grpVal) return alert('Zuerst Gruppe wählen.'); if (['article', 'size', 'color'].includes(type) && !ptVal) return alert('Zuerst Produkttyp wählen.');
+    const v = prompt('Neuer Eintrag:'); if (!v || v.trim() === '') return; const val = v.trim(); const cat = state.master.catalog;
+    if (type === 'group') { if (!cat[val]) cat[val] = {}; handleQuickSelect('group', val); } 
+    else if (type === 'productType') { if (!cat[grpVal]) cat[grpVal] = {}; if (!cat[grpVal][val]) cat[grpVal][val] = { articles: [], sizes: [], colors: [] }; handleQuickSelect('productType', val); } 
+    else { const arrMap = { article: 'articles', size: 'sizes', color: 'colors' }; const arrName = arrMap[type]; if (!cat[grpVal]) cat[grpVal] = {}; if (!cat[grpVal][ptVal]) cat[grpVal][ptVal] = { articles: [], sizes: [], colors: [] }; if (!Array.isArray(cat[grpVal][ptVal][arrName])) cat[grpVal][ptVal][arrName] = []; if (!cat[grpVal][ptVal][arrName].includes(val)) { cat[grpVal][ptVal][arrName].push(val); cat[grpVal][ptVal][arrName].sort(sortKeys); } handleQuickSelect(type, val); }
+    save(); updateMasterForm(); renderMaster();
+};
+
 function renderQChips(type, items, currentVal) {
     const c = g('qb-' + type); if (!c) return;
     const safeItems = Array.isArray(items) ? items : [];
     let h = safeItems.map(val => {
         if(val == null) return ''; const strVal = String(val); const isActive = (strVal === String(currentVal||'')); const safeVal = strVal.replace(/'/g,"\\'").replace(/"/g,"&quot;");
-        return `<div class="qb-chip ${isActive ? 'active' : ''}" onclick="handleQuickSelect('${type}', '${safeVal}')"><span>${esc(strVal)}</span></div>`;
+        return `<div class="qb-chip ${isActive ? 'active' : ''}" onclick="handleQuickSelect('${type}', '${safeVal}')"><span>${esc(strVal)}</span><span class="qb-rm" onclick="event.stopPropagation(); window.removeQuick('${type}', '${safeVal}')">×</span></div>`;
     }).join('');
     h += `<button type="button" class="qb-chip qb-add" onclick="window.addQuick('${type}')">✚ Neu</button>`; c.innerHTML = h;
 }
@@ -238,12 +268,39 @@ if(ifrm) {
 
 function addOrStack(item) { const key = stackKey(item); const ex = state.open.find(i=>stackKey(i)===key); const inst = { id:uid(), image:item.image, comment:item.comment, defect:item.defect, entryDate:item.entryDate, profitshare:item.profitshare, purchasePrice:item.purchasePrice }; if (ex) { ex.instances.push(inst); } else { state.open.unshift({ id:uid(), group:item.group, productType:item.productType, article:item.article, size:item.size, color:item.color, purchasePrice:item.purchasePrice, profitshare:item.profitshare, instances:[inst] }); } }
 
+let imagePickCallback = null;
+function openNewImgPicker() { imagePickCallback = (url) => { const iv = g('imgValue'); if(iv) iv.value = url; const prev = g('imgPreview'); const lbl = g('imgLabel'); if(prev) prev.innerHTML = url ? `<img src="${url}" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">` : '🖼'; if(lbl) lbl.textContent = url ? 'Bild gewählt ✓' : 'Wählen…'; }; const iv = g('imgValue'); openImagePicker(iv ? iv.value : ''); }
+
+function openImagePicker(currentUrl='') {
+  const modal = g('imagePickerModal'); const list = g('imagePickerList'); if(!modal || !list) return;
+  const catImgs = (gVal('group') && gVal('productType') && state.master.catalog[gVal('group')]?.[gVal('productType')]?.images) || [];
+  const allImgs = [...new Set([...catImgs, ...(state.master.images||[])])];
+  const uploadTile = `<label class="img-pick-upload" style="border:2px dashed var(--primary); display:flex; flex-direction:column; align-items:center; justify-content:center; height:100px; border-radius:8px; cursor:pointer; background:var(--surface2); color:var(--primary); font-weight:bold; font-size:var(--text-xs);"><span style="font-size:1.5rem;">✚</span><span>Upload</span><input type="file" accept="image/*" style="display:none;" onchange="handleModalImageUpload(this.files[0])"></label>`;
+  list.innerHTML = uploadTile + (allImgs.length ? allImgs.map(u => `<button type="button" class="img-pick" data-url="${u.replace(/"/g,'&quot;')}" style="border:2px solid ${u===currentUrl?'#4caf50':'transparent'}"><img src="${u}" loading="lazy" style="width:100%;height:100px;object-fit:cover;border-radius:8px;"></button>`).join('') : '');
+  modal.style.display='flex'; modal.classList.add('show');
+}
+function closeImagePicker() { const modal = g('imagePickerModal'); if(modal){ modal.classList.remove('show'); modal.style.display='none'; } }
+
+window.handleModalImageUpload = function(file) {
+  if (!file) return;
+  compressImage(file, url => {
+    if (!Array.isArray(state.master.images)) state.master.images = [];
+    state.master.images.unshift(url); save();
+    if (imagePickCallback) imagePickCallback(url);
+    closeImagePicker(); toast('Bild hochgeladen ✓');
+  });
+};
+
 function editItem(itemId) { const item = state.open.find(i=>i.id===itemId); if (!item) return; const newArticle = prompt('Artikelname:', item.article||''); if(newArticle === null) return; item.article = newArticle; save(); renderOpen(); }
 function deleteItem(itemId) { if (!confirm('Artikel löschen?')) return; state.open = state.open.filter(i=>i.id!==itemId); save(); renderOpen(); }
 function editEK(itemId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; const val = prompt('EK Preis (€):', item.purchasePrice||0); if(val === null) return; const price = parseFloat(val.replace(',','.')) || 0; item.instances.forEach(inst => inst.purchasePrice = price); save(); renderOpen(); }
+function editItemImage(itemId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; imagePickCallback = (url) => { if(item.instances[0]) item.instances[0].image = url; save(); renderOpen(); }; openImagePicker(''); }
+function toggleItemProfitshare(itemId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; const newVal = !item.instances.some(x=>x.profitshare); item.instances.forEach(x=>x.profitshare = newVal); save(); renderOpen(); }
+function changeQty(itemId, delta) { const item = state.open.find(i=>i.id===itemId); if(!item) return; if(delta > 0) { item.instances.push({ id: uid(), purchasePrice: item.instances[0]?.purchasePrice||0, profitshare: false, entryDate: today() }); } else if(item.instances.length > 0) { item.instances.pop(); } save(); renderOpen(); }
 
 function editSoldName(id) { const set = state.sold.find(s=>s.id===id); if(!set) return; const val = prompt('Name:', set.setName||''); if(val===null) return; set.setName = val.trim(); save(); renderSold(); }
 function editSoldPrice(id) { const set = state.sold.find(s=>s.id===id); if(!set) return; const val = prompt('Verkaufspreis (EUR):', set.salePrice||0); if(val===null) return; const price = parseFloat(val.replace(',','.')); if(isNaN(price)) return; set.salePrice = price; set.netProfit = price - (set.purchaseTotal||0); save(); renderSold(); }
+function editSoldImage(id) { const set = state.sold.find(s=>s.id===id); if(!set) return; imagePickCallback = (url) => { set.previewImage = url; save(); renderSold(); }; openImagePicker(set.previewImage||''); }
 
 function renderOpen() {
   const oc = g('openContent'); if (!oc) return;
@@ -303,6 +360,13 @@ function renderOpen() {
               <div class="item-footer">
                 <div class="item-actions">
                   <span class="chip" style="cursor:pointer;" onclick="editEK('${firstItem.id}')">EK ${euro(einzel)} ✎</span>
+                  <button class="chip" style="cursor:pointer;border:none" onclick="editItemImage('${firstItem.id}')">🖼 Bild</button>
+                  <button class="chip" style="cursor:pointer;border:none" onclick="toggleItemProfitshare('${firstItem.id}')">${hasPsh?'PS ✓':'PS ✎'}</button>
+                  <span class="chip stack" style="display:inline-flex;gap:3px;align-items:center;padding:0 6px">
+                    <button onclick="changeQty('${firstItem.id}',1)" style="width:16px;height:16px;border-radius:50%;background:#4CAF50;color:white;font-size:10px;border:none;cursor:pointer">+</button>
+                    ${menge}
+                    <button onclick="changeQty('${firstItem.id}',-1)" style="width:16px;height:16px;border-radius:50%;background:#f44336;color:white;font-size:10px;border:none;cursor:pointer">−</button>
+                  </span>
                   <button class="btn-icon-subtle" onclick="editItem('${firstItem.id}')" title="Bearbeiten">✏️</button>
                   <button class="btn-icon-subtle danger" onclick="deleteItem('${firstItem.id}')" title="Löschen">🗑️</button>
                 </div>
@@ -370,6 +434,7 @@ function renderSold() {
           <div style="display:flex; gap:2px; align-items:center;">
             <button class="btn-icon-subtle" onclick="editSoldName('${set.id}')" title="Name bearbeiten">✏️</button>
             <button class="btn-icon-subtle" onclick="editSoldPrice('${set.id}')" title="VK bearbeiten">🏷️</button>
+            <button class="btn-icon-subtle" onclick="editSoldImage('${set.id}')" title="Bild ändern">🖼️</button>
             <button class="btn-icon-subtle danger" onclick="deleteSoldSet('${set.id}')" title="Löschen">🗑️</button>
           </div>
         </div>
@@ -392,7 +457,6 @@ window.onStatsFilterChange = function(type) {
 
 function populateStatsFilters() {
   const grpSel = g('statsFilterGrp'); const typSel = g('statsFilterTyp'); const artSel = g('statsFilterArt'); if (!grpSel) return;
-  
   const curGrp = grpSel.value; const curTyp = typSel.value; const curArt = artSel.value;
   const grps = new Set(), typs = new Set(), arts = new Set();
 
@@ -469,6 +533,15 @@ if(tfrm) { tfrm.addEventListener('submit', e => { e.preventDefault(); const entr
 
 document.addEventListener('click', e => {
   const target = e.target; if (!target) return; const el = target.nodeType === 3 ? target.parentElement : target; if (!el || typeof el.closest !== 'function') return;
+  const rmBtn = el.closest('[data-rm]');
+  if (rmBtn) {
+    const key = rmBtn.dataset.rm; const grp = rmBtn.dataset.grp; const typ = rmBtn.dataset.typ; const idx = rmBtn.dataset.idx;
+    if (key === 'group') { if (state.master.catalog[grp]) delete state.master.catalog[grp]; } 
+    else if (key === 'prodtype') { if (state.master.catalog[grp]) delete state.master.catalog[grp][typ]; } 
+    else { if (state.master.catalog[grp] && state.master.catalog[grp][typ] && state.master.catalog[grp][typ][key]) { state.master.catalog[grp][typ][key].splice(+idx, 1); } }
+    save(); updateMasterForm(); renderAllQuick(); renderMaster(); return;
+  }
+  const imgPickBtn = el.closest('.img-pick'); if(imgPickBtn) { if(imagePickCallback) imagePickCallback(imgPickBtn.dataset.url); closeImagePicker(); return; }
   const tgl = g('themeToggle'); if(tgl && tgl.contains(el)) { document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'); return; }
   const nb = el.closest('[data-page]'); if (nb) { state.page = nb.dataset.page; render(); }
 });
