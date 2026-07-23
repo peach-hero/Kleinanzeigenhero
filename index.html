@@ -102,7 +102,7 @@
     .btn-danger { background: rgba(248, 81, 73, 0.15); color: var(--err); border: 1px solid rgba(248, 81, 73, 0.3); }
 
     /* Chips & Badges */
-    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
     .chip { padding: 2px 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; font-size: var(--text-xs); color: var(--text); }
     .chip.stack { background: rgba(1, 105, 111, 0.15); border-color: var(--primary); color: #23b2b8; font-weight: 700; }
     .chip.ps { background: rgba(210, 153, 34, 0.15); border-color: var(--warn); color: var(--warn); }
@@ -115,27 +115,19 @@
     .qb-chip .qb-rm:hover { color: var(--err); }
     .qb-add { border-style: dashed; }
 
-    /* Items & Tree Lists (Flex Layout) */
+    /* Items & Layout Improvements */
     .group-head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp2) 0; border-bottom: 1px solid var(--divider); }
     .group-title { font-size: var(--text-base); font-weight: 700; display: flex; align-items: center; gap: 6px; }
     
     .item-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); margin-top: var(--sp2); }
-    .item-card-main { display: flex; gap: var(--sp3); align-items: flex-start; width: 100%; }
+    .item-card-main { display: flex; gap: var(--sp3); align-items: flex-start; width: 100%; position: relative; }
     .thumb { width: 56px; height: 56px; border-radius: var(--rad-sm); background: var(--bg); border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.5rem; }
     .thumb img { width: 100%; height: 100%; object-fit: cover; }
     .item-info { flex: 1; min-width: 0; }
     .item-title { font-weight: 700; font-size: var(--text-base); }
-    .item-footer { margin-top: var(--sp3); padding-top: var(--sp2); border-top: 1px solid var(--divider); display: flex; justify-content: space-between; align-items: center; }
-    .item-price-row { font-size: var(--text-xs); color: var(--muted); }
-    .item-actions { display: flex; gap: 6px; }
-
-    /* Stack / Detail Drawer */
-    .stack-toggle { width: 100%; background: var(--surface2); border: none; padding: 6px; font-size: var(--text-xs); color: var(--muted); cursor: pointer; border-radius: var(--rad-sm); margin-top: 8px; }
-    .stack-details { display: none; padding-top: 8px; }
-    .stack-details.open { display: block; }
-    .stack-inst { display: grid; grid-template-columns: 40px 1fr auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--divider); }
-    .inst-thumb { width: 40px; height: 40px; border-radius: 4px; overflow: hidden; background: var(--bg); display: grid; place-items: center; }
-    .inst-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .item-footer { margin-top: var(--sp3); padding-top: var(--sp2); border-top: 1px solid var(--divider); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .item-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-left: auto; }
 
     /* Tables & Stats (Left-Aligned) */
     .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); }
@@ -151,14 +143,9 @@
     .kpi-card .v { font-size: var(--text-base); font-weight: 700; margin: 2px 0; }
     .kpi-card .d { font-size: 10px; color: var(--muted); }
 
-    .month-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); margin-bottom: var(--sp3); }
-    .month-card.current-month { border-color: var(--primary); }
-    .month-items { list-style: none; margin-top: var(--sp2); font-size: var(--text-xs); }
-    .month-items li { padding: 4px 0; border-bottom: 1px dashed var(--divider); }
-
     /* Sold / History Card */
     .sold-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); margin-bottom: var(--sp3); }
-    .sold-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .sold-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
     .sold-thumb { width: 56px; height: 56px; border-radius: var(--rad-sm); background: var(--bg); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.5rem; }
     .sold-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -168,12 +155,10 @@
     .modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-lg); width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: var(--sp4); }
     
     .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .img-card { position: relative; border-radius: var(--rad-sm); overflow: hidden; border: 1px solid var(--border); background: var(--bg); }
-    .img-del { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.7); color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; }
 
-    /* Bottom Navigation Bar */
+    /* Bottom Navigation Bar (Ohne Historie & Statistik) */
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; height: 60px; z-index: 100; }
-    .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: transparent; border: none; color: var(--muted); font-size: 10px; cursor: pointer; }
+    .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: transparent; border: none; color: var(--muted); font-size: 11px; cursor: pointer; }
     .nav-btn .icon { font-size: 1.2rem; }
     .nav-btn.active { color: var(--primary); font-weight: 700; }
 
@@ -209,7 +194,6 @@
         <div class="card-head"><h3 class="card-title">✚ Neuer Artikel</h3></div>
         <div class="card-body">
           <form id="itemForm">
-            <!-- Versteckte Selects für JS-Kompatibilität, Steuerung rein über Chips -->
             <div class="form-group">
               <label class="form-label">Gruppe</label>
               <select id="group" class="select" style="display:none;" onchange="onGroupChange()"></select>
@@ -371,7 +355,7 @@
       <div id="soldContent"></div>
     </section>
 
-    <!-- PAGE: Termine (in 2 Spalten für Abholung & Übergabe) -->
+    <!-- PAGE: Termine (1-Spalten-Layout mit Kalender-Picker & Maps) -->
     <section id="page-termin" class="page">
       <div class="card">
         <div class="card-head"><h3 class="card-title">📅 Neuer Termin</h3></div>
@@ -393,7 +377,7 @@
 
             <div class="grid2">
               <div class="form-group">
-                <label class="form-label">Datum</label>
+                <label class="form-label">Datum (Kalender)</label>
                 <input type="date" id="terminDatum" class="input" required>
               </div>
               <div class="form-group">
@@ -408,8 +392,8 @@
                 <input type="text" id="terminPreis" class="input" placeholder="z.B. 50 €">
               </div>
               <div class="form-group">
-                <label class="form-label">Ort / Adresse</label>
-                <input type="text" id="terminOrt" class="input" placeholder="Ort oder Adresse">
+                <label class="form-label">Ort / Adresse (für Google Maps)</label>
+                <input type="text" id="terminOrt" class="input" placeholder="Strasse 12, Stadt">
               </div>
             </div>
 
@@ -428,15 +412,26 @@
         </div>
       </div>
 
-      <!-- 2-Spalten Kalender-Ansicht -->
-      <div id="terminContent" class="grid2" style="align-items: flex-start;"></div>
+      <div id="terminContent"></div>
     </section>
 
-    <!-- PAGE: Statistiken -->
+    <!-- PAGE: Statistiken mit dynamischem KPI-Filter -->
     <section id="page-stats" class="page">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
         <h2>Statistik</h2>
         <select id="statsYear" class="select" style="width:auto;"></select>
+      </div>
+
+      <!-- KPI Filter für Dynamische Auswertung -->
+      <div class="card" style="margin-bottom:var(--sp3);">
+        <div class="card-head"><h3 class="card-title">🔍 Interaktiver KPI Filter</h3></div>
+        <div class="card-body">
+          <div class="grid3">
+            <select id="statsFilterGrp" class="select" onchange="renderStats()"><option value="">Alle Gruppen</option></select>
+            <select id="statsFilterTyp" class="select" onchange="renderStats()"><option value="">Alle Typen</option></select>
+            <select id="statsFilterArt" class="select" onchange="renderStats()"><option value="">Alle Artikel</option></select>
+          </div>
+        </div>
       </div>
 
       <div id="statsCards" class="grid2" style="margin-bottom:var(--sp3);"></div>
@@ -450,7 +445,6 @@
 
       <div id="top5Cards"></div>
       <div id="kpiCards" style="margin-bottom:var(--sp3);"></div>
-      <div id="monthCards"></div>
     </section>
 
     <!-- PAGE: Stammdaten (Master) -->
@@ -517,7 +511,7 @@
 
   </main>
 
-  <!-- Bottom Navigation Bar -->
+  <!-- Bottom Navigation Bar (Aufgeräumt ohne Historie & Statistik) -->
   <nav class="bottom-nav">
     <button class="nav-btn active" data-page="new">
       <span class="icon">✚</span>
@@ -531,24 +525,16 @@
       <span class="icon">🏷️</span>
       <span>Verkauf</span>
     </button>
-    <button class="nav-btn" data-page="sold">
-      <span class="icon">📜</span>
-      <span>Historie</span>
-    </button>
     <button class="nav-btn" data-page="termin">
       <span class="icon">📅</span>
       <span>Termine</span>
-    </button>
-    <button class="nav-btn" data-page="stats">
-      <span class="icon">📊</span>
-      <span>Statistik</span>
     </button>
   </nav>
 
   <!-- Toast Notification -->
   <div id="toast"></div>
 
-  <!-- Image Picker Modal mit Upload-Option -->
+  <!-- Image Picker Modal -->
   <div id="imagePickerModal" class="modal">
     <div class="modal-content">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
@@ -556,17 +542,6 @@
         <button class="btn btn-ghost" style="width:auto; padding:4px 8px;" onclick="closeImagePicker()">✕</button>
       </div>
       <div id="imagePickerList" class="img-grid"></div>
-    </div>
-  </div>
-
-  <!-- Set Badges Modal -->
-  <div id="setBadgesModal" class="modal">
-    <div class="modal-content">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
-        <h3>Mögliche Sets</h3>
-        <button class="btn btn-ghost" style="width:auto; padding:4px 8px;" onclick="closeSetBadgesModal()">✕</button>
-      </div>
-      <div id="setBadgesContent"></div>
     </div>
   </div>
 
