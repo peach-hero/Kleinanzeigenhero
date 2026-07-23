@@ -1,5 +1,5 @@
 // ==========================================
-// KLEINANZEIGEN HERO - APP.JS (v8.0 Fixed Scope)
+// KLEINANZEIGEN HERO - APP.JS (v9.0 Final Build)
 // ==========================================
 
 const g = id => document.getElementById(id);
@@ -28,10 +28,13 @@ function toast(msg) { const t = g('toast'); if(t) { t.textContent = msg; t.class
 function fillSel(el, vals, ph) { if(!el) return; el.innerHTML = `<option value="">${ph}</option>` + vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join(''); }
 
 const state = {
-  page: 'new', sellCart: [], psManualOverride: false, open: [], openFilters: { text: '', group: '', type: '', article: '', size: '', color: '' }, sold: [], soldFilter: '', termine: [], year: String(new Date().getFullYear()),
+  page: 'new', sellCart: [], psManualOverride: false, open: [], 
+  openFilters: { text: '', group: '', type: '', article: '', size: '', color: '' }, 
+  sold: [], soldFilter: '', termine: [], year: String(new Date().getFullYear()),
   master: { catalog: {}, badgeRules: [], images: [], setImages: [] }, openCollapse: {}, hideZero: true
 };
 
+let globalExpandState = false;
 let db = null; const DB_NAME = 'amp3db', DB_VER = 1, STORE = 'data';
 
 function openDB() { return new Promise((res, rej) => { if (db) { res(db); return; } const req = indexedDB.open(DB_NAME, DB_VER); req.onupgradeneeded = e => e.target.result.createObjectStore(STORE); req.onsuccess = e => { db = e.target.result; res(db); }; req.onerror = e => rej(e.target.error); }); }
@@ -143,11 +146,8 @@ function applyState(d) {
   } catch(e) { console.error(e); }
 }
 
-// ==========================================
-// EXPLIZITE WINDOW-VERKNÜPFUNGEN FÜR SET BADGES
-// ==========================================
+// SET BADGES
 window.currentEditBadgeIndex = null;
-
 window.updateBadgeProdType = function() {
     const grp = gVal('newBadgeGroup'); const ptSel = g('newBadgeProdType'); if(!ptSel) return;
     if(!grp || !state.master.catalog || !state.master.catalog[grp]) { ptSel.innerHTML = '<option value="">– Produkttyp –</option>'; return; }
@@ -382,20 +382,63 @@ window.editItemImage = function(itemId) { const item = state.open.find(i=>i.id==
 window.toggleItemProfitshare = function(itemId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; const newVal = !item.instances.some(x=>x.profitshare); item.instances.forEach(x=>x.profitshare = newVal); save(); renderOpen(); };
 window.changeQty = function(itemId, delta) { const item = state.open.find(i=>i.id===itemId); if(!item) return; if(delta > 0) { item.instances.push({ id: uid(), purchasePrice: item.instances[0]?.purchasePrice||0, profitshare: false, entryDate: today() }); } else if(item.instances.length > 0) { item.instances.pop(); } save(); renderOpen(); };
 
-window.editSoldName = function(id) { const set = state.sold.find(s=>s.id===id); if(!set) return; const val = prompt('Name:', set.setName||''); if(val===null) return; set.setName = val.trim(); save(); renderSold(); };
-window.editSoldPrice = function(id) { const set = state.sold.find(s=>s.id===id); if(!set) return; const val = prompt('Verkaufspreis (EUR):', set.salePrice||0); if(val===null) return; const price = parseFloat(val.replace(',','.')); if(isNaN(price)) return; set.salePrice = price; set.netProfit = price - (set.purchaseTotal||0); save(); renderSold(); };
-window.editSoldImage = function(id) { const set = state.sold.find(s=>s.id===id); if(!set) return; imagePickCallback = (url) => { set.previewImage = url; save(); renderSold(); }; openImagePicker(set.previewImage||''); };
+window.toggleAllGroups = function() { globalExpandState = !globalExpandState; state.openCollapse = {}; renderOpen(); };
+window.toggleZeroFilter = function() { state.hideZero = !state.hideZero; updateZeroToggleUI(); renderOpen(); };
+function updateZeroToggleUI() { const track = g('zeroFilterBtn'); const knob = g('zeroFilterKnob'); if(track) track.style.background = state.hideZero ? 'var(--primary)' : '#ccc'; if(knob) knob.style.left = state.hideZero ? '22px' : '2px'; }
+
+window.updateOpenFilters = function() {
+  state.openFilters.text = gVal('openSearchText').trim();
+  state.openFilters.group = gVal('openSearchGroup');
+  state.openFilters.type = gVal('openSearchType');
+  state.openFilters.article = gVal('openSearchArticle');
+  state.openFilters.size = gVal('openSearchSize');
+  state.openFilters.color = gVal('openSearchColor');
+  renderOpen();
+};
+
+function populateOpenFilterDropdowns() {
+  const grpSel = g('openSearchGroup'); const typSel = g('openSearchType'); const artSel = g('openSearchArticle'); const szSel = g('openSearchSize'); const colSel = g('openSearchColor'); if(!grpSel) return;
+  const grps = new Set(), typs = new Set(), arts = new Set(), sizes = new Set(), colors = new Set();
+  state.open.forEach(i => {
+    if (state.hideZero && (!i.instances || i.instances.length === 0)) return;
+    if(i.group) grps.add(i.group);
+    if(i.productType) typs.add(i.productType);
+    if(i.article) arts.add(i.article);
+    if(i.size) sizes.add(i.size);
+    if(i.color) colors.add(i.color);
+  });
+  const f = state.openFilters;
+  const updateSel = (el, set, currentVal, label) => { if(!el) return; el.innerHTML = `<option value="">${label}</option>` + [...set].sort(sortKeys).map(v => `<option value="${esc(v)}"${v===currentVal?' selected':''}>${esc(v)}</option>`).join(''); };
+  updateSel(grpSel, grps, f.group, 'Gruppe'); updateSel(typSel, typs, f.type, 'Produkttyp'); updateSel(artSel, arts, f.article, 'Artikelname');
+  updateSel(szSel, sizes, f.size, 'Größe'); updateSel(colSel, colors, f.color, 'Farbe');
+}
+
+window.toggleGrp = function(el) {
+  const key = el.dataset.key; const body = document.querySelector(`div[data-body="${key}"]`); if (!body) return;
+  const isCurrentlyOpen = state.openCollapse[key] !== undefined ? state.openCollapse[key] : globalExpandState;
+  const willBeOpen = !isCurrentlyOpen; state.openCollapse[key] = willBeOpen; body.style.display = willBeOpen ? 'block' : 'none';
+  const titleEl = el.querySelector('.group-title'); if(titleEl) { const currentText = titleEl.innerHTML; titleEl.innerHTML = (willBeOpen ? "▼ " : "▶ ") + currentText.replace(/^[▼▶]\s*/, ''); }
+};
 
 function renderOpen() {
+  updateZeroToggleUI();
+  populateOpenFilterDropdowns();
+  const toggleAllBtn = g('toggleAllBtn'); if (toggleAllBtn) { toggleAllBtn.innerHTML = globalExpandState ? '↕ Einklappen' : '↕ Aufklappen'; }
   const oc = g('openContent'); if (!oc) return;
   if (!state.open || !state.open.length) { oc.innerHTML='<div class="empty">Keine offenen Artikel.</div>'; return; }
   
+  const countPcs = arr => arr.reduce((s, i) => s + (i.instances ? i.instances.length : 0), 0);
+  const isOpen = key => state.openCollapse[key] !== undefined ? state.openCollapse[key] : globalExpandState;
+  const hashStr = s => Math.abs(String(s).split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36);
+
   const tree = {}; const f = state.openFilters; const searchTerms = f.text.toLowerCase().split(' ').filter(Boolean);
   state.open.forEach(item => {
     if (state.hideZero && (!item.instances || item.instances.length === 0)) return; 
     if (f.group && item.group !== f.group) return; 
     if (f.type && item.productType !== f.type) return; 
     if (f.article && item.article !== f.article) return;
+    if (f.size && item.size !== f.size) return;
+    if (f.color && item.color !== f.color) return;
     if (searchTerms.length > 0) { const searchStr = `${item.group || ''} ${item.productType || ''} ${item.article || ''} ${item.size || ''} ${item.color || ''}`.toLowerCase(); if (!searchTerms.every(term => searchStr.includes(term))) return; }
     const grp = item.group || '–'; const pt = item.productType || '–'; const art = item.article || ''; const col = item.color || '–';
     if (!tree[grp]) tree[grp] = {}; if (!tree[grp][pt]) tree[grp][pt] = {}; if (!tree[grp][pt][art]) tree[grp][pt][art] = {}; if (!tree[grp][pt][art][col]) tree[grp][pt][art][col] = [];
@@ -404,13 +447,13 @@ function renderOpen() {
   
   let html = '';
   Object.keys(tree).sort(sortKeys).forEach(grp => {
-    let grpHtml = '';
+    let grpHtml = ''; let grpTotal = 0;
     Object.keys(tree[grp]).sort(sortKeys).forEach(pt => {
-      let ptHtml = '';
+      let ptHtml = ''; let ptTotal = 0;
       Object.keys(tree[grp][pt]).sort(sortKeys).forEach(art => {
-        let colHtmlMaster = '';
+        let artTotal = 0; let colHtmlMaster = '';
         Object.keys(tree[grp][pt][art]).sort(sortKeys).forEach(col => {
-          const items = tree[grp][pt][art][col];
+          const items = tree[grp][pt][art][col]; const colTotal = countPcs(items); if (colTotal === 0 && state.hideZero) return; artTotal += colTotal;
           const sizeMap = {}; items.forEach(i => { const sKey = i.size || '–'; if (!sizeMap[sKey]) sizeMap[sKey] = []; sizeMap[sKey].push(i); }); let cardsHtml = '';
           Object.values(sizeMap).forEach(sizeItems => {
             let allInst = []; sizeItems.forEach(sItem => { if(sItem.instances) { sItem.instances.forEach(i => { allInst.push({...i, _itemId:sItem.id}); }); } });
@@ -418,7 +461,6 @@ function renderOpen() {
             const firstItem = sizeItems[0]; 
             let img = allInst.find(n=>n.image)?.image || firstItem._savedImage || '';
             const ekSumme = allInst.reduce((s,i)=>s+(+i.purchasePrice||0),0); const menge = allInst.length; const einzel = menge > 0 ? ekSumme / menge : (+firstItem.purchasePrice || 0); const hasPsh = menge > 0 ? allInst.some(x=>x.profitshare) : firstItem.profitshare;
-            
             const oldestDays = allInst.length ? Math.max(...allInst.map(x => calcDays(x.entryDate, today()))) : 0;
 
             cardsHtml += `<div class="item-card">
@@ -426,12 +468,8 @@ function renderOpen() {
                 <div class="thumb">${img?`<img src="${img}" loading="lazy">` :'📦'}</div>
                 <div class="item-info">
                   <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div>
-                      <div class="item-title">${esc(firstItem.article) || esc(firstItem.productType) || '–'}</div>
-                    </div>
-                    <div style="font-size:var(--text-xs); color:var(--muted); font-weight:bold; text-align:right;">
-                      ${menge} × Ø${euro(einzel)} = <b style="color:var(--text); font-size:var(--text-sm);">${euro(ekSumme)}</b>
-                    </div>
+                    <div><div class="item-title">${esc(firstItem.article) || esc(firstItem.productType) || '–'}</div></div>
+                    <div style="font-size:var(--text-xs); color:var(--muted); font-weight:bold; text-align:right;">${menge} × Ø${euro(einzel)} = <b style="color:var(--text); font-size:var(--text-sm);">${euro(ekSumme)}</b></div>
                   </div>
                   <div class="chips" style="margin-top:6px;">
                     <span class="chip">Gr. ${esc(firstItem.size)||'-'}</span>
@@ -440,7 +478,6 @@ function renderOpen() {
                   </div>
                 </div>
               </div>
-              
               <div class="item-footer">
                 <div class="item-actions">
                   <span class="chip" style="cursor:pointer;" onclick="window.editEK('${firstItem.id}')">EK ${euro(einzel)} ✎</span>
@@ -459,11 +496,20 @@ function renderOpen() {
           });
           if(cardsHtml) colHtmlMaster += `<div style="margin-bottom:var(--sp2); margin-left:var(--sp2);">${cardsHtml}</div>`;
         }); 
-        if (colHtmlMaster) ptHtml += `<div style="margin-bottom:var(--sp3); margin-left:var(--sp2);"><h4 class="group-title">${esc(art)}</h4>${colHtmlMaster}</div>`;
+        if (colHtmlMaster) {
+          ptTotal += artTotal; const aKey = 'a_' + hashStr(grp+pt+art);
+          ptHtml += `<div style="margin-bottom:var(--sp3); margin-left:var(--sp2);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="${aKey}" style="cursor:pointer;"><h4 class="group-title">${isOpen(aKey) ? "▼" : "▶"} ${esc(art)}</h4><span class="chip">${artTotal} Stk</span></div><div class="grp-body" data-body="${aKey}" style="display:${isOpen(aKey) ? "block" : "none"}">${colHtmlMaster}</div></div>`;
+        }
       }); 
-      if (ptHtml) grpHtml += `<div style="margin-bottom:var(--sp4); margin-left:var(--sp2);"><h3 class="group-title" style="font-size:var(--text-sm);color:var(--muted);">${esc(pt)}</h3>${ptHtml}</div>`;
+      if (ptHtml) {
+        grpTotal += ptTotal; const pKey = 'p_' + hashStr(grp+pt);
+        grpHtml += `<div style="margin-bottom:var(--sp4); margin-left:var(--sp2);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="${pKey}" style="cursor:pointer;"><h3 class="group-title" style="font-size:var(--text-sm);color:var(--muted);">${isOpen(pKey) ? "▼" : "▶"} ${esc(pt)}</h3><span class="chip">${ptTotal} Stk</span></div><div class="grp-body" data-body="${pKey}" style="display:${isOpen(pKey) ? "block" : "none"}">${ptHtml}</div></div>`;
+      }
     }); 
-    if (grpHtml) html += `<div style="margin-bottom:var(--sp6);"><h2 class="group-title">${esc(grp)}</h2>${grpHtml}</div>`;
+    if (grpHtml) {
+      const gKey = 'g_' + hashStr(grp);
+      html += `<div style="margin-bottom:var(--sp6);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="${gKey}" style="cursor:pointer;"><h2 class="group-title">${isOpen(gKey) ? "▼" : "▶"} ${esc(grp)}</h2><span class="chip stack">${grpTotal} Stk</span></div><div class="grp-body" data-body="${gKey}" style="display:${isOpen(gKey) ? "block" : "none"}">${grpHtml}</div></div>`;
+    }
   });
   oc.innerHTML = html || '<div class="empty">Keine Treffer.</div>';
 }
@@ -533,7 +579,7 @@ window.deleteSoldSet = function(id) {
   save(); renderSold(); toast('Gelöscht ✓');
 };
 
-// INTELLIGENTE STATISTIK
+// INTELLIGENTE STATISTIK MIT SPEZIFIKATIONEN & TOP 5 RANKING
 window.onStatsFilterChange = function(type) {
   if (type === 'grp') { g('statsFilterTyp').value = ''; g('statsFilterArt').value = ''; }
   else if (type === 'typ') { g('statsFilterArt').value = ''; }
@@ -593,9 +639,8 @@ function renderStats() {
     ].map(c=>`<div class="stat-card"><div class="k">${c.k}</div><div class="v">${c.v}</div></div>`).join('');
   }
 
-  const itemStats = new Map();
-  const groupStats = new Map();
-  const typeStats = new Map();
+  // Präzise Aufschlüsselung nach Spezifikation (Name, Größe, Farbe)
+  const specStats = new Map();
 
   ys.forEach(s => {
     const itemCount = s.items.length || 1;
@@ -604,43 +649,68 @@ function renderStats() {
 
     (s.items||[]).forEach(i => {
       if ((!fGrp || i.group === fGrp) && (!fTyp || i.productType === fTyp) && (!fArt || i.article === fArt)) {
-        const artKey = i.article || i.productType || 'Unbenannt';
-        if (!itemStats.has(artKey)) itemStats.set(artKey, { name: artKey, count: 0, profit: 0, revenue: 0 });
-        const entry = itemStats.get(artKey);
+        // Detaillierte Namensgebung inklusive Größe und Farbe
+        const specName = `${i.productType||''} ${i.article||''} ${i.color||''} ${i.size ? '('+i.size+')' : ''}`.replace(/\s+/g, ' ').trim() || 'Unbenannt';
+        if (!specStats.has(specName)) specStats.set(specName, { name: specName, count: 0, profit: 0, revenue: 0 });
+        const entry = specStats.get(specName);
         const qty = (i.menge || i.quantity || 1);
         entry.count += qty;
         entry.profit += shareProfit * qty;
         entry.revenue += shareRevenue * qty;
-
-        if (i.group) groupStats.set(i.group, (groupStats.get(i.group) || 0) + qty);
-        if (i.productType) typeStats.set(i.productType, (typeStats.get(i.productType) || 0) + qty);
       }
     });
   });
 
-  const sortedByCount = [...itemStats.values()].sort((a,b) => b.count - a.count);
-  const sortedByProfit = [...itemStats.values()].sort((a,b) => b.profit - a.profit);
-  const sortedByRevenue = [...itemStats.values()].sort((a,b) => b.revenue - a.revenue);
+  const sortedSpecsByCount = [...specStats.values()].sort((a,b) => b.count - a.count);
+  const sortedSpecsByProfit = [...specStats.values()].sort((a,b) => b.profit - a.profit);
+  const sortedSpecsByRevenue = [...specStats.values()].sort((a,b) => b.revenue - a.revenue);
 
-  const bestCount = sortedByCount[0];
-  const bestProfit = sortedByProfit[0];
-  const bestRevenue = sortedByRevenue[0];
-  const worstCount = sortedByCount.length > 1 ? sortedByCount[sortedByCount.length - 1] : null;
-  const topType = [...typeStats.entries()].sort((a,b) => b[1] - a[1])[0];
+  const bestCount = sortedSpecsByCount[0];
+  const bestProfit = sortedSpecsByProfit[0];
+  const bestRevenue = sortedSpecsByRevenue[0];
+  const worstCount = sortedSpecsByCount.length > 1 ? sortedSpecsByCount[sortedSpecsByCount.length - 1] : null;
   const avgMargin = totalRevenue > 0 ? Math.round((totalProfit / totalRevenue) * 100) : 0;
 
   const dkContainer = g('dynamicKpis');
   if (dkContainer) {
     dkContainer.innerHTML = `
-      <div class="kpi-card"><div class="k">🏆 Bestseller (Menge)</div><div class="v">${bestCount ? esc(bestCount.name) : '–'}</div><div class="d">${bestCount ? bestCount.count + 'x verkauft' : ''}</div></div>
-      <div class="kpi-card"><div class="k">🎯 Meister Gewinn</div><div class="v">${bestProfit ? esc(bestProfit.name) : '–'}</div><div class="d">${bestProfit ? euro(bestProfit.profit) : ''}</div></div>
-      <div class="kpi-card"><div class="k">💵 Meister Umsatz</div><div class="v">${bestRevenue ? esc(bestRevenue.name) : '–'}</div><div class="d">${bestRevenue ? euro(bestRevenue.revenue) : ''}</div></div>
-      <div class="kpi-card"><div class="k">⚠️ Flop / Geringster Absatz</div><div class="v">${worstCount ? esc(worstCount.name) : '–'}</div><div class="d">${worstCount ? worstCount.count + 'x verkauft' : ''}</div></div>
+      <div class="kpi-card"><div class="k">🏆 Bestseller (Spezifikation)</div><div class="v">${bestCount ? esc(bestCount.name) : '–'}</div><div class="d">${bestCount ? bestCount.count + 'x verkauft' : ''}</div></div>
+      <div class="kpi-card"><div class="k">🎯 Top Gewinnprodukt</div><div class="v">${bestProfit ? esc(bestProfit.name) : '–'}</div><div class="d">${bestProfit ? euro(bestProfit.profit) : ''}</div></div>
+      <div class="kpi-card"><div class="k">💵 Top Umsatzbringer</div><div class="v">${bestRevenue ? esc(bestRevenue.name) : '–'}</div><div class="d">${bestRevenue ? euro(bestRevenue.revenue) : ''}</div></div>
+      <div class="kpi-card"><div class="k">⚠️ Geringster Absatz</div><div class="v">${worstCount ? esc(worstCount.name) : '–'}</div><div class="d">${worstCount ? worstCount.count + 'x verkauft' : ''}</div></div>
       <div class="kpi-card"><div class="k">📈 Ø Marge in %</div><div class="v">${avgMargin} %</div><div class="d">Gewinn vs. Umsatz</div></div>
-      <div class="kpi-card"><div class="k">🏷️ Aktivster Produkttyp</div><div class="v">${topType ? esc(topType[0]) : '–'}</div><div class="d">${topType ? topType[1] + 'x verkauft' : ''}</div></div>
+      <div class="kpi-card"><div class="k">⏳ Rotationsgeschwindigkeit</div><div class="v">${avgDaysOverall} Tage</div><div class="d">Verkaufsdauer im Lager</div></div>
     `;
   }
 
+  // TOP 5 RANKING KARTEN GENERIEREN
+  const trContainer = g('topRankings');
+  if (trContainer) {
+    if (sortedSpecsByCount.length > 0) {
+      const top5 = sortedSpecsByCount.slice(0, 5);
+      trContainer.innerHTML = `
+        <div class="card">
+          <div class="card-head"><h3 class="card-title">🔥 Top 5 meistverkaufte Exemplare (${fGrp || 'Alle'})</h3></div>
+          <div class="card-body" style="padding:0;">
+            <table class="mini-table">
+              <thead><tr><th>Platz</th><th>Spezifikation / Artikel</th><th>Menge</th><th>Gewinn</th></tr></thead>
+              <tbody>
+                ${top5.map((item, idx) => `<tr>
+                  <td><b>#${idx + 1}</b></td>
+                  <td>${esc(item.name)}</td>
+                  <td><b style="color:var(--primary);">${item.count}x</b></td>
+                  <td style="color:var(--success);">${euro(item.profit)}</td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+    } else {
+      trContainer.innerHTML = '';
+    }
+  }
+
+  // Monatsübersicht
   const monthMap = new Map();
   ys.forEach(set => {
     const sDate = set.saleDate || today(); const m = fmtMonth(sDate);
