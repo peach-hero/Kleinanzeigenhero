@@ -63,7 +63,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-    /* Top Navigation Header */
+    /* Header Bar */
     .top-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: var(--sp2) var(--sp4); display: flex; align-items: center; justify-content: space-between; height: 56px; flex-shrink: 0; }
     .brand { font-weight: 700; font-size: var(--text-lg); display: flex; align-items: center; gap: 8px; color: var(--text); }
     .brand-icon { width: 28px; height: 28px; border-radius: var(--rad-sm); object-fit: cover; }
@@ -73,17 +73,17 @@
     .icon-btn:active { background: var(--surface2); }
     .icon-btn.active { border-color: var(--primary); background: rgba(1, 105, 111, 0.15); }
 
-    /* Subtile Icon Buttons für Aktionen ohne Kasten */
+    /* Subtile Icon Buttons (Ohne Rahmen/Kästen) */
     .btn-icon-subtle { background: transparent; border: none; color: var(--muted); padding: 4px 8px; cursor: pointer; font-size: 1.1rem; border-radius: var(--rad-sm); transition: background 0.15s, color 0.15s; }
     .btn-icon-subtle:hover { background: var(--surface2); color: var(--text); }
     .btn-icon-subtle.danger:hover { color: var(--err); background: rgba(248, 81, 73, 0.15); }
 
-    /* Main Scroll Area */
+    /* Scroll Container */
     .scroll-container { flex: 1; overflow-y: auto; padding: var(--sp4); padding-bottom: 80px; }
     .page { display: none; }
     .page.active { display: block; }
 
-    /* Cards & Components */
+    /* Cards */
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); overflow: hidden; margin-bottom: var(--sp4); }
     .card-head { padding: var(--sp3) var(--sp4); background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
     .card-title { font-size: var(--text-base); font-weight: 700; }
@@ -98,16 +98,16 @@
     .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp2); }
     .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--sp2); }
 
-    /* Buttons */
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; border-radius: var(--rad-sm); border: none; font-weight: 600; font-size: var(--text-sm); cursor: pointer; min-height: 42px; width: 100%; transition: background 0.15s; }
-    .btn-primary { background: var(--primary); color: #fff; }
+    /* Buttons Fix: Breiten auf auto umgestellt! */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border-radius: var(--rad-sm); border: none; font-weight: 600; font-size: var(--text-xs); cursor: pointer; min-height: 32px; width: auto; transition: background 0.15s; }
+    .btn-primary { background: var(--primary); color: #fff; width: 100%; min-height: 42px; font-size: var(--text-sm); }
     .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
     .btn-danger { background: rgba(248, 81, 73, 0.15); color: var(--err); border: 1px solid rgba(248, 81, 73, 0.3); }
 
-    /* Chips & Badges */
+    /* Chips */
     .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
     .chip { padding: 2px 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; font-size: var(--text-xs); color: var(--text); }
-    .chip.days { background: rgba(1, 105, 111, 0.2); border-color: var(--primary); color: #23b2b8; font-weight: 700; }
+    .chip.days { background: rgba(1, 105, 111, 0.25); border-color: var(--primary); color: #23b2b8; font-weight: 700; }
     .chip.stack { background: rgba(1, 105, 111, 0.15); border-color: var(--primary); color: #23b2b8; font-weight: 700; }
     .chip.ps { background: rgba(210, 153, 34, 0.15); border-color: var(--warn); color: var(--warn); }
     .chip.profit { background: rgba(46, 160, 67, 0.15); border-color: var(--accent); color: var(--success); font-weight: 700; }
@@ -118,7 +118,7 @@
     .qb-chip .qb-rm { margin-left: 4px; color: var(--muted); font-size: 14px; }
     .qb-add { border-style: dashed; }
 
-    /* Items & Tree Lists */
+    /* Item Card Layouts */
     .group-head { display: flex; align-items: center; justify-content: space-between; padding: var(--sp2) 0; border-bottom: 1px solid var(--divider); }
     .group-title { font-size: var(--text-base); font-weight: 700; display: flex; align-items: center; gap: 6px; }
     
@@ -129,24 +129,15 @@
     .item-info { flex: 1; min-width: 0; }
     .item-title { font-weight: 700; font-size: var(--text-base); }
     
-    .item-footer { margin-top: var(--sp3); padding-top: var(--sp2); border-top: 1px solid var(--divider); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-    .item-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-left: auto; }
-
-    /* Tables & Stats */
-    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); }
-    .stat-card .k { font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; font-weight: 700; }
-    .stat-card .v { font-size: 1.4rem; font-weight: 700; color: var(--primary); margin-top: 2px; }
-    
-    .mini-table { width: 100%; border-collapse: collapse; font-size: var(--text-xs); }
-    .mini-table td, .mini-table th, #monthTable th, #monthTable td { padding: 8px 6px; border-bottom: 1px solid var(--divider); text-align: left !important; }
+    .item-footer { margin-top: var(--sp3); padding-top: var(--sp2); border-top: 1px solid var(--divider); display: flex; justify-content: flex-end; align-items: center; }
+    .item-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 
     .sold-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); margin-bottom: var(--sp3); }
 
-    /* Modals */
+    /* Modal */
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; padding: var(--sp4); }
     .modal.show { display: flex; }
     .modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-lg); width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: var(--sp4); }
-    
     .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 
     /* Bottom Nav Bar */
@@ -163,7 +154,7 @@
 </head>
 <body>
 
-  <!-- Header Bar -->
+  <!-- Top Header Bar -->
   <header class="top-bar">
     <div class="brand">
       <img src="icon-192.png" class="brand-icon" alt="Logo" onerror="this.style.display='none'">
@@ -177,10 +168,9 @@
     </div>
   </header>
 
-  <!-- Main Container -->
   <main class="scroll-container">
 
-    <!-- PAGE: Neu anlegen -->
+    <!-- PAGE: Neu -->
     <section id="page-new" class="page active">
       <div class="card">
         <div class="card-head"><h3 class="card-title">✚ Neuer Artikel</h3></div>
@@ -230,7 +220,7 @@
 
             <div class="form-group">
               <label class="form-label">Bild auswählen</label>
-              <button type="button" class="btn btn-ghost" onclick="openNewImgPicker()" style="justify-content:flex-start;">
+              <button type="button" class="btn btn-ghost" onclick="openNewImgPicker()" style="justify-content:flex-start; width:100%;">
                 <span id="imgPreview">📷</span> <span id="imgLabel">Wählen…</span>
               </button>
               <input type="hidden" id="imgValue">
@@ -254,7 +244,7 @@
       </div>
     </section>
 
-    <!-- PAGE: Offener Bestand -->
+    <!-- PAGE: Bestand -->
     <section id="page-open" class="page">
       <div style="display:flex; gap:8px; margin-bottom:var(--sp3);">
         <input type="text" id="openSearchText" class="input" placeholder="🔍 Suche im Bestand..." oninput="updateOpenFilters()">
@@ -277,7 +267,7 @@
       <div id="openContent"></div>
     </section>
 
-    <!-- PAGE: Verkaufen -->
+    <!-- PAGE: Verkauf -->
     <section id="page-sell" class="page">
       <div class="card">
         <div class="card-head"><h3 class="card-title">🛍 Verkauf erfassen</h3></div>
@@ -338,7 +328,7 @@
       </div>
     </section>
 
-    <!-- PAGE: Verkauft Historie -->
+    <!-- PAGE: Historie -->
     <section id="page-sold" class="page">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
         <input type="text" id="soldSearch" class="input" placeholder="🔍 Verkaufte Durchsuchen..." oninput="renderSold()">
@@ -407,14 +397,14 @@
       <div id="terminContent"></div>
     </section>
 
-    <!-- PAGE: Statistiken mit Interaktivem KPI-Filter -->
+    <!-- PAGE: Statistik -->
     <section id="page-stats" class="page">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
         <h2>Statistik</h2>
         <select id="statsYear" class="select" style="width:auto;"></select>
       </div>
 
-      <!-- Interaktiver KPI Filter -->
+      <!-- KPI Filter -->
       <div class="card" style="margin-bottom:var(--sp3);">
         <div class="card-head"><h3 class="card-title">🔍 Dynamischer KPI Filter</h3></div>
         <div class="card-body">
@@ -473,7 +463,6 @@
         </div>
       </div>
 
-      <!-- Cloud Sync & Backup Card -->
       <div class="card">
         <div class="card-head"><h3 class="card-title">☁️ Cloud Sync & Backup</h3></div>
         <div class="card-body">
@@ -483,11 +472,11 @@
           </div>
           <div class="grid2" style="margin-bottom:var(--sp3);">
             <button class="btn btn-primary" onclick="saveToCloud()">☁️ In Cloud</button>
-            <button class="btn btn-ghost" onclick="loadFromCloud()">⬇️ Aus Cloud</button>
+            <button class="btn btn-ghost" style="width:100%" onclick="loadFromCloud()">⬇️ Aus Cloud</button>
           </div>
           <div class="grid2">
-            <button id="exportBtn" class="btn btn-ghost">💾 JSON Export</button>
-            <label class="btn btn-ghost" style="cursor:pointer; text-align:center;">
+            <button id="exportBtn" class="btn btn-ghost" style="width:100%">💾 JSON Export</button>
+            <label class="btn btn-ghost" style="cursor:pointer; text-align:center; width:100%">
               📂 Import
               <input type="file" style="display:none;" onchange="importData(this.files[0])">
             </label>
@@ -500,7 +489,7 @@
 
   </main>
 
-  <!-- Bottom Navigation Bar -->
+  <!-- Bottom Nav Bar -->
   <nav class="bottom-nav">
     <button class="nav-btn active" data-page="new">
       <span class="icon">✚</span>
@@ -520,7 +509,6 @@
     </button>
   </nav>
 
-  <!-- Toast Notification -->
   <div id="toast"></div>
 
   <!-- Image Picker Modal -->
@@ -534,7 +522,8 @@
     </div>
   </div>
 
-  <script src="./app.js"></script>
+  <!-- BUSTING-VERSION HINZUGEFÜGT! -->
+  <script src="./app.js?v=2.0"></script>
 
 </body>
 </html>
