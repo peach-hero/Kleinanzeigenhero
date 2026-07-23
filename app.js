@@ -1,5 +1,5 @@
 // ==========================================
-// KLEINANZEIGEN HERO - APP.JS (v7.0 Fixed KPIs)
+// KLEINANZEIGEN HERO - APP.JS (v8.0 Fixed Scope)
 // ==========================================
 
 const g = id => document.getElementById(id);
@@ -39,12 +39,12 @@ function save() { const payload = { open:state.open, sold:state.sold, termine:st
 function load() { openDB().then(database => { const tx = database.transaction(STORE, 'readonly'); const req = tx.objectStore(STORE).get('state'); req.onsuccess = e => { const d = e.target.result; if (d) { applyState(d); } else { try { const ls = JSON.parse(localStorage.getItem('amp3') || 'null'); if (ls) { applyState(ls); save(); } } catch(e) {} } initApp(); }; req.onerror = () => fallbackLoad(); }).catch(() => fallbackLoad()); }
 function fallbackLoad() { try { const ls = JSON.parse(localStorage.getItem('amp3') || 'null'); if (ls) applyState(ls); } catch(e) {} initApp(); }
 
-function exportData() {
+window.exportData = function() {
   const data = { open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year }; const json = JSON.stringify(data, null, 2); const filename = `kleinanzeigen-hero-${today()}.json`;
   const blob = new Blob([json], { type:'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); document.body.removeChild(a); }, 1000); toast('Exportiert ✓');
-}
+};
 
-function importData(file) {
+window.importData = function(file) {
   if (!file) return; toast('Lese Datei...'); const reader = new FileReader();
   reader.onload = e => { 
     try { 
@@ -64,18 +64,18 @@ function importData(file) {
     } 
   };
   reader.readAsText(file);
-}
+};
 
-async function saveToCloud() {
+window.saveToCloud = async function() {
   const gasUrl = gVal('gasUrl').trim(); if(!gasUrl) return toast('Bitte Script URL eingeben.'); localStorage.setItem('gasUrl', gasUrl);
   const cloudPayload = { open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year };
   try { toast('Speichere in Cloud...'); const res = await fetch(gasUrl, { method: 'POST', body: JSON.stringify(cloudPayload) }); const text = await res.text(); try { const result = JSON.parse(text); if(result.status === 'success') toast('Sync erfolgreich ✓'); else toast('Fehler: ' + result.message); } catch(err) { alert("Zugriff blockiert."); } } catch(e) { toast('Netzwerkfehler'); }
-}
+};
 
-async function loadFromCloud() {
+window.loadFromCloud = async function() {
   const gasUrl = gVal('gasUrl').trim(); if(!gasUrl) return toast('Bitte URL eingeben.'); localStorage.setItem('gasUrl', gasUrl);
   try { toast('Lade aus Cloud...'); const fetchUrl = gasUrl + (gasUrl.includes('?') ? '&' : '?') + 'nocache=' + new Date().getTime(); const res = await fetch(fetchUrl); const text = await res.text(); try { const data = JSON.parse(text); if(data.error) return toast('Fehler: ' + data.error); applyState(data); save(); updateMasterForm(); renderAllQuick(); renderMaster(); render(); toast('Download erfolgreich ✓'); } catch(err) { alert("Datenfehler."); } } catch(e) { alert('Netzwerkfehler'); }
-}
+};
 
 function compressImage(file, callback) {
     const reader = new FileReader(); reader.onload = e => { const img = new Image(); img.onload = () => { const canvas = document.createElement('canvas'); let w = img.width, h = img.height; const MAX = 800; if (w > h && w > MAX) { h = Math.round(h * MAX / w); w = MAX; } else if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } canvas.width = w; canvas.height = h; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, w, h); callback(canvas.toDataURL('image/jpeg', 0.75)); }; img.src = e.target.result; }; reader.readAsDataURL(file);
@@ -143,7 +143,9 @@ function applyState(d) {
   } catch(e) { console.error(e); }
 }
 
-// SET BADGES LOGIK
+// ==========================================
+// EXPLIZITE WINDOW-VERKNÜPFUNGEN FÜR SET BADGES
+// ==========================================
 window.currentEditBadgeIndex = null;
 
 window.updateBadgeProdType = function() {
@@ -185,7 +187,7 @@ window.cancelEditBadgeRule = function() {
 
 window.deleteBadgeRule = function(idx) { if(!confirm('Regel löschen?')) return; if (Array.isArray(state.master.badgeRules)) { state.master.badgeRules.splice(idx, 1); } if (window.currentEditBadgeIndex === idx) window.cancelEditBadgeRule(); save(); renderMaster(); };
 
-function openSetBadgesModal() {
+window.openSetBadgesModal = function() {
   const content = g('setBadgesContent'); if(!content) return;
   const rules = Array.isArray(state.master.badgeRules) ? state.master.badgeRules : [];
   const badgeResults = {}; const displayOrder = [];
@@ -215,9 +217,9 @@ function openSetBadgesModal() {
   });
   if (!hasAny) html = '<div class="empty">Aktuell können keine Sets aus den definierten Regeln gebildet werden.</div>';
   content.innerHTML = html; const sbm = g('setBadgesModal'); if(sbm) { sbm.style.display = 'flex'; sbm.classList.add('show'); }
-}
+};
 
-function closeSetBadgesModal() { const m = g('setBadgesModal'); if(m) { m.classList.remove('show'); m.style.display = 'none'; } }
+window.closeSetBadgesModal = function() { const m = g('setBadgesModal'); if(m) { m.classList.remove('show'); m.style.display = 'none'; } };
 
 function updateMasterForm() {
   try {
@@ -266,7 +268,7 @@ function renderMaster() {
       html += `<div class="card" style="margin-bottom:var(--sp4);"><div class="card-head"><div style="display:flex;align-items:center;gap:8px;"><h3 class="card-title">🖼 Bilder</h3><span class="chip">${imgs.length}</span></div></div><div class="card-body"><div class="img-grid">${imgs.length ? imgs.map((url,i)=>`<div class="img-card" style="position:relative;"><img src="${url}" loading="lazy" style="width:100%;height:80px;object-fit:cover;"><button class="btn-icon-subtle danger" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.7);padding:2px 6px;" onclick="window.deleteMasterImage(${i})">🗑</button></div>`).join('') : '<div class="empty" style="grid-column:1/-1;">Noch keine Bilder.</div>'}</div></div></div>`;
       
       const safeBadgeRules = Array.isArray(state.master.badgeRules) ? state.master.badgeRules : [];
-      html += `<div class="card" style="margin-bottom:var(--sp4);"><div class="card-head"><h3 class="card-title">🏆 Set Badges (Regeln)</h3></div><div class="card-body"><div id="badgeRulesList" style="margin-bottom:var(--sp3);">${safeBadgeRules.map((r, i) => { const reqsArr = Array.isArray(r.reqs) ? r.reqs : []; return `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--divider); padding:var(--sp2) 0;"><div style="display:flex; gap:12px; align-items:center;">${r.image ? `<img src="${r.image}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border);flex-shrink:0;">` : `<div style="width:40px;height:40px;border-radius:6px;border:1px dashed var(--border);display:grid;place-items:center;color:var(--muted);flex-shrink:0;">📷</div>`}<div><b style="font-size:var(--text-base);">${esc(r.name)}</b> <span style="color:var(--muted); font-size:var(--text-xs);">(${esc(r.group)} · ${esc(r.productType)})</span><br><span style="font-size:var(--text-sm); font-weight:600; color:var(--primary);">${reqsArr.map(req => `${req.qty||1}x Gr. ${esc(req.size)}`).join(', ')}</span></div></div><div style="display:flex; gap:4px;"><button class="btn-icon-subtle" onclick="editBadgeRule(${i})" title="Bearbeiten">✏️</button><button class="btn-icon-subtle danger" onclick="deleteBadgeRule(${i})" title="Löschen">🗑️</button></div></div>`; }).join('') || '<div class="empty">Keine Regeln definiert.</div>'}</div><div style="background:var(--surface2); padding:var(--sp3); border-radius:var(--rad-md); border:1px solid var(--border);"><h4 id="badgeFormTitle" style="font-size:var(--text-sm); margin:0 0 var(--sp2);">Neue Regel erstellen</h4><div class="grid2" style="gap:8px;"><input type="text" class="input" id="newBadgeName" placeholder="Name (z.B. TV 180)"><select class="select" id="newBadgeGroup" onchange="updateBadgeProdType()"><option value="">– Gruppe wählen –</option>${groups.map(grp => `<option value="${esc(grp)}">${esc(grp)}</option>`).join('')}</select><select class="select" id="newBadgeProdType"><option value="">– Produkttyp –</option></select><input type="text" class="input" id="newBadgeReqs" placeholder="Bedarf (z.B. 64x2, 38x1)"></div><div style="display:flex; gap:8px; margin-top:8px; align-items:center;"><button type="button" class="btn btn-ghost" style="padding:4px 10px; min-height:32px; font-size:var(--text-xs);" onclick="openBadgeImgPicker()"><span id="badgeImgPreview">📷</span> Bild (optional)</button><input type="hidden" id="newBadgeImg"></div><div style="display:flex; gap:8px; margin-top:var(--sp3);"><button id="saveBadgeBtn" class="btn btn-primary" style="flex:1;" onclick="addBadgeRule()">✚ Regel speichern</button><button id="cancelBadgeBtn" class="btn btn-ghost" style="display:none;" onclick="cancelEditBadgeRule()">Abbrechen</button></div></div></div></div>`;
+      html += `<div class="card" style="margin-bottom:var(--sp4);"><div class="card-head"><h3 class="card-title">🏆 Set Badges (Regeln)</h3></div><div class="card-body"><div id="badgeRulesList" style="margin-bottom:var(--sp3);">${safeBadgeRules.map((r, i) => { const reqsArr = Array.isArray(r.reqs) ? r.reqs : []; return `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--divider); padding:var(--sp2) 0;"><div style="display:flex; gap:12px; align-items:center;">${r.image ? `<img src="${r.image}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border);flex-shrink:0;">` : `<div style="width:40px;height:40px;border-radius:6px;border:1px dashed var(--border);display:grid;place-items:center;color:var(--muted);flex-shrink:0;">📷</div>`}<div><b style="font-size:var(--text-base);">${esc(r.name)}</b> <span style="color:var(--muted); font-size:var(--text-xs);">(${esc(r.group)} · ${esc(r.productType)})</span><br><span style="font-size:var(--text-sm); font-weight:600; color:var(--primary);">${reqsArr.map(req => `${req.qty||1}x Gr. ${esc(req.size)}`).join(', ')}</span></div></div><div style="display:flex; gap:4px;"><button class="btn-icon-subtle" onclick="window.editBadgeRule(${i})" title="Bearbeiten">✏️</button><button class="btn-icon-subtle danger" onclick="window.deleteBadgeRule(${i})" title="Löschen">🗑️</button></div></div>`; }).join('') || '<div class="empty">Keine Regeln definiert.</div>'}</div><div style="background:var(--surface2); padding:var(--sp3); border-radius:var(--rad-md); border:1px solid var(--border);"><h4 id="badgeFormTitle" style="font-size:var(--text-sm); margin:0 0 var(--sp2);">Neue Regel erstellen</h4><div class="grid2" style="gap:8px;"><input type="text" class="input" id="newBadgeName" placeholder="Name (z.B. TV 180)"><select class="select" id="newBadgeGroup" onchange="window.updateBadgeProdType()"><option value="">– Gruppe wählen –</option>${groups.map(grp => `<option value="${esc(grp)}">${esc(grp)}</option>`).join('')}</select><select class="select" id="newBadgeProdType"><option value="">– Produkttyp –</option></select><input type="text" class="input" id="newBadgeReqs" placeholder="Bedarf (z.B. 64x2, 38x1)"></div><div style="display:flex; gap:8px; margin-top:8px; align-items:center;"><button type="button" class="btn btn-ghost" style="padding:4px 10px; min-height:32px; font-size:var(--text-xs);" onclick="window.openBadgeImgPicker()"><span id="badgeImgPreview">📷</span> Bild (optional)</button><input type="hidden" id="newBadgeImg"></div><div style="display:flex; gap:8px; margin-top:var(--sp3);"><button id="saveBadgeBtn" class="btn btn-primary" style="flex:1;" onclick="window.addBadgeRule()">✚ Regel speichern</button><button id="cancelBadgeBtn" class="btn btn-ghost" style="display:none;" onclick="window.cancelEditBadgeRule()">Abbrechen</button></div></div></div></div>`;
 
       const mc = g('masterContent'); if (mc) mc.innerHTML = html;
   } catch (err) {}
@@ -313,7 +315,7 @@ function renderQChips(type, items, currentVal) {
     const safeItems = Array.isArray(items) ? items : [];
     let h = safeItems.map(val => {
         if(val == null) return ''; const strVal = String(val); const isActive = (strVal === String(currentVal||'')); const safeVal = strVal.replace(/'/g,"\\'").replace(/"/g,"&quot;");
-        return `<div class="qb-chip ${isActive ? 'active' : ''}" onclick="handleQuickSelect('${type}', '${safeVal}')"><span>${esc(strVal)}</span><span class="qb-rm" onclick="event.stopPropagation(); window.removeQuick('${type}', '${safeVal}')">×</span></div>`;
+        return `<div class="qb-chip ${isActive ? 'active' : ''}" onclick="window.handleQuickSelect('${type}', '${safeVal}')"><span>${esc(strVal)}</span><span class="qb-rm" onclick="event.stopPropagation(); window.removeQuick('${type}', '${safeVal}')">×</span></div>`;
     }).join('');
     h += `<button type="button" class="qb-chip qb-add" onclick="window.addQuick('${type}')">✚ Neu</button>`; c.innerHTML = h;
 }
@@ -351,17 +353,17 @@ if(ifrm) {
 function addOrStack(item) { const key = stackKey(item); const ex = state.open.find(i=>stackKey(i)===key); const inst = { id:uid(), image:item.image, comment:item.comment, defect:item.defect, entryDate:item.entryDate, profitshare:item.profitshare, purchasePrice:item.purchasePrice }; if (ex) { ex.instances.push(inst); } else { state.open.unshift({ id:uid(), group:item.group, productType:item.productType, article:item.article, size:item.size, color:item.color, purchasePrice:item.purchasePrice, profitshare:item.profitshare, instances:[inst] }); } }
 
 let imagePickCallback = null;
-function openNewImgPicker() { imagePickCallback = (url) => { const iv = g('imgValue'); if(iv) iv.value = url; const prev = g('imgPreview'); const lbl = g('imgLabel'); if(prev) prev.innerHTML = url ? `<img src="${url}" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">` : '🖼'; if(lbl) lbl.textContent = url ? 'Bild gewählt ✓' : 'Wählen…'; }; const iv = g('imgValue'); openImagePicker(iv ? iv.value : ''); }
+window.openNewImgPicker = function() { imagePickCallback = (url) => { const iv = g('imgValue'); if(iv) iv.value = url; const prev = g('imgPreview'); const lbl = g('imgLabel'); if(prev) prev.innerHTML = url ? `<img src="${url}" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">` : '🖼'; if(lbl) lbl.textContent = url ? 'Bild gewählt ✓' : 'Wählen…'; }; const iv = g('imgValue'); openImagePicker(iv ? iv.value : ''); };
 
 function openImagePicker(currentUrl='') {
   const modal = g('imagePickerModal'); const list = g('imagePickerList'); if(!modal || !list) return;
   const catImgs = (gVal('group') && gVal('productType') && state.master.catalog[gVal('group')]?.[gVal('productType')]?.images) || [];
   const allImgs = [...new Set([...catImgs, ...(state.master.images||[])])];
-  const uploadTile = `<label class="img-pick-upload" style="border:2px dashed var(--primary); display:flex; flex-direction:column; align-items:center; justify-content:center; height:100px; border-radius:8px; cursor:pointer; background:var(--surface2); color:var(--primary); font-weight:bold; font-size:var(--text-xs);"><span style="font-size:1.5rem;">✚</span><span>Upload</span><input type="file" accept="image/*" style="display:none;" onchange="handleModalImageUpload(this.files[0])"></label>`;
+  const uploadTile = `<label class="img-pick-upload" style="border:2px dashed var(--primary); display:flex; flex-direction:column; align-items:center; justify-content:center; height:100px; border-radius:8px; cursor:pointer; background:var(--surface2); color:var(--primary); font-weight:bold; font-size:var(--text-xs);"><span style="font-size:1.5rem;">✚</span><span>Upload</span><input type="file" accept="image/*" style="display:none;" onchange="window.handleModalImageUpload(this.files[0])"></label>`;
   list.innerHTML = uploadTile + (allImgs.length ? allImgs.map(u => `<button type="button" class="img-pick" data-url="${u.replace(/"/g,'&quot;')}" style="border:2px solid ${u===currentUrl?'#4caf50':'transparent'}"><img src="${u}" loading="lazy" style="width:100%;height:100px;object-fit:cover;border-radius:8px;"></button>`).join('') : '');
   modal.style.display='flex'; modal.classList.add('show');
 }
-function closeImagePicker() { const modal = g('imagePickerModal'); if(modal){ modal.classList.remove('show'); modal.style.display='none'; } }
+window.closeImagePicker = function() { const modal = g('imagePickerModal'); if(modal){ modal.classList.remove('show'); modal.style.display='none'; } };
 
 window.handleModalImageUpload = function(file) {
   if (!file) return;
@@ -369,20 +371,20 @@ window.handleModalImageUpload = function(file) {
     if (!Array.isArray(state.master.images)) state.master.images = [];
     state.master.images.unshift(url); save();
     if (imagePickCallback) imagePickCallback(url);
-    closeImagePicker(); toast('Bild hochgeladen ✓');
+    window.closeImagePicker(); toast('Bild hochgeladen ✓');
   });
 };
 
-function editItem(itemId) { const item = state.open.find(i=>i.id===itemId); if (!item) return; const newArticle = prompt('Artikelname:', item.article||''); if(newArticle === null) return; item.article = newArticle; save(); renderOpen(); }
-function deleteItem(itemId) { if (!confirm('Artikel löschen?')) return; state.open = state.open.filter(i=>i.id!==itemId); save(); renderOpen(); }
-function editEK(itemId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; const val = prompt('EK Preis (€):', item.purchasePrice||0); if(val === null) return; const price = parseFloat(val.replace(',','.')) || 0; item.instances.forEach(inst => inst.purchasePrice = price); save(); renderOpen(); }
-function editItemImage(itemId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; imagePickCallback = (url) => { if(item.instances[0]) item.instances[0].image = url; save(); renderOpen(); }; openImagePicker(''); }
-function toggleItemProfitshare(itemId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; const newVal = !item.instances.some(x=>x.profitshare); item.instances.forEach(x=>x.profitshare = newVal); save(); renderOpen(); }
-function changeQty(itemId, delta) { const item = state.open.find(i=>i.id===itemId); if(!item) return; if(delta > 0) { item.instances.push({ id: uid(), purchasePrice: item.instances[0]?.purchasePrice||0, profitshare: false, entryDate: today() }); } else if(item.instances.length > 0) { item.instances.pop(); } save(); renderOpen(); }
+window.editItem = function(itemId) { const item = state.open.find(i=>i.id===itemId); if (!item) return; const newArticle = prompt('Artikelname:', item.article||''); if(newArticle === null) return; item.article = newArticle; save(); renderOpen(); };
+window.deleteItem = function(itemId) { if (!confirm('Artikel löschen?')) return; state.open = state.open.filter(i=>i.id!==itemId); save(); renderOpen(); };
+window.editEK = function(itemId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; const val = prompt('EK Preis (€):', item.purchasePrice||0); if(val === null) return; const price = parseFloat(val.replace(',','.')) || 0; item.instances.forEach(inst => inst.purchasePrice = price); save(); renderOpen(); };
+window.editItemImage = function(itemId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; imagePickCallback = (url) => { if(item.instances[0]) item.instances[0].image = url; save(); renderOpen(); }; openImagePicker(''); };
+window.toggleItemProfitshare = function(itemId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; const newVal = !item.instances.some(x=>x.profitshare); item.instances.forEach(x=>x.profitshare = newVal); save(); renderOpen(); };
+window.changeQty = function(itemId, delta) { const item = state.open.find(i=>i.id===itemId); if(!item) return; if(delta > 0) { item.instances.push({ id: uid(), purchasePrice: item.instances[0]?.purchasePrice||0, profitshare: false, entryDate: today() }); } else if(item.instances.length > 0) { item.instances.pop(); } save(); renderOpen(); };
 
-function editSoldName(id) { const set = state.sold.find(s=>s.id===id); if(!set) return; const val = prompt('Name:', set.setName||''); if(val===null) return; set.setName = val.trim(); save(); renderSold(); }
-function editSoldPrice(id) { const set = state.sold.find(s=>s.id===id); if(!set) return; const val = prompt('Verkaufspreis (EUR):', set.salePrice||0); if(val===null) return; const price = parseFloat(val.replace(',','.')); if(isNaN(price)) return; set.salePrice = price; set.netProfit = price - (set.purchaseTotal||0); save(); renderSold(); }
-function editSoldImage(id) { const set = state.sold.find(s=>s.id===id); if(!set) return; imagePickCallback = (url) => { set.previewImage = url; save(); renderSold(); }; openImagePicker(set.previewImage||''); }
+window.editSoldName = function(id) { const set = state.sold.find(s=>s.id===id); if(!set) return; const val = prompt('Name:', set.setName||''); if(val===null) return; set.setName = val.trim(); save(); renderSold(); };
+window.editSoldPrice = function(id) { const set = state.sold.find(s=>s.id===id); if(!set) return; const val = prompt('Verkaufspreis (EUR):', set.salePrice||0); if(val===null) return; const price = parseFloat(val.replace(',','.')); if(isNaN(price)) return; set.salePrice = price; set.netProfit = price - (set.purchaseTotal||0); save(); renderSold(); };
+window.editSoldImage = function(id) { const set = state.sold.find(s=>s.id===id); if(!set) return; imagePickCallback = (url) => { set.previewImage = url; save(); renderSold(); }; openImagePicker(set.previewImage||''); };
 
 function renderOpen() {
   const oc = g('openContent'); if (!oc) return;
@@ -441,16 +443,16 @@ function renderOpen() {
               
               <div class="item-footer">
                 <div class="item-actions">
-                  <span class="chip" style="cursor:pointer;" onclick="editEK('${firstItem.id}')">EK ${euro(einzel)} ✎</span>
-                  <button class="chip" style="cursor:pointer;border:none" onclick="editItemImage('${firstItem.id}')">🖼 Bild</button>
-                  <button class="chip" style="cursor:pointer;border:none" onclick="toggleItemProfitshare('${firstItem.id}')">${hasPsh?'PS ✓':'PS ✎'}</button>
+                  <span class="chip" style="cursor:pointer;" onclick="window.editEK('${firstItem.id}')">EK ${euro(einzel)} ✎</span>
+                  <button class="chip" style="cursor:pointer;border:none" onclick="window.editItemImage('${firstItem.id}')">🖼 Bild</button>
+                  <button class="chip" style="cursor:pointer;border:none" onclick="window.toggleItemProfitshare('${firstItem.id}')">${hasPsh?'PS ✓':'PS ✎'}</button>
                   <span class="chip stack" style="display:inline-flex;gap:3px;align-items:center;padding:0 6px">
-                    <button onclick="changeQty('${firstItem.id}',1)" style="width:16px;height:16px;border-radius:50%;background:#4CAF50;color:white;font-size:10px;border:none;cursor:pointer">+</button>
+                    <button onclick="window.changeQty('${firstItem.id}',1)" style="width:16px;height:16px;border-radius:50%;background:#4CAF50;color:white;font-size:10px;border:none;cursor:pointer">+</button>
                     ${menge}
-                    <button onclick="changeQty('${firstItem.id}',-1)" style="width:16px;height:16px;border-radius:50%;background:#f44336;color:white;font-size:10px;border:none;cursor:pointer">−</button>
+                    <button onclick="window.changeQty('${firstItem.id}',-1)" style="width:16px;height:16px;border-radius:50%;background:#f44336;color:white;font-size:10px;border:none;cursor:pointer">−</button>
                   </span>
-                  <button class="btn-icon-subtle" onclick="editItem('${firstItem.id}')" title="Bearbeiten">✏️</button>
-                  <button class="btn-icon-subtle danger" onclick="deleteItem('${firstItem.id}')" title="Löschen">🗑️</button>
+                  <button class="btn-icon-subtle" onclick="window.editItem('${firstItem.id}')" title="Bearbeiten">✏️</button>
+                  <button class="btn-icon-subtle danger" onclick="window.deleteItem('${firstItem.id}')" title="Löschen">🗑️</button>
                 </div>
               </div>
             </div>`;
@@ -514,10 +516,10 @@ function renderSold() {
             VK ${euro(set.salePrice)} · EK ${euro(set.purchaseTotal)}
           </div>
           <div style="display:flex; gap:2px; align-items:center;">
-            <button class="btn-icon-subtle" onclick="editSoldName('${set.id}')" title="Name bearbeiten">✏️</button>
-            <button class="btn-icon-subtle" onclick="editSoldPrice('${set.id}')" title="VK bearbeiten">🏷️</button>
-            <button class="btn-icon-subtle" onclick="editSoldImage('${set.id}')" title="Bild ändern">🖼️</button>
-            <button class="btn-icon-subtle danger" onclick="deleteSoldSet('${set.id}')" title="Löschen">🗑️</button>
+            <button class="btn-icon-subtle" onclick="window.editSoldName('${set.id}')" title="Name bearbeiten">✏️</button>
+            <button class="btn-icon-subtle" onclick="window.editSoldPrice('${set.id}')" title="VK bearbeiten">🏷️</button>
+            <button class="btn-icon-subtle" onclick="window.editSoldImage('${set.id}')" title="Bild ändern">🖼️</button>
+            <button class="btn-icon-subtle danger" onclick="window.deleteSoldSet('${set.id}')" title="Löschen">🗑️</button>
           </div>
         </div>
       </div>
@@ -525,13 +527,13 @@ function renderSold() {
   }).join('');
 }
 
-function deleteSoldSet(id) {
+window.deleteSoldSet = function(id) {
   if (!confirm('Verkaufte Position löschen?')) return;
   state.sold = state.sold.filter(s => s.id !== id);
   save(); renderSold(); toast('Gelöscht ✓');
-}
+};
 
-// INTELLIGENTE STATISTIK & DYNAMISCHE KPIS
+// INTELLIGENTE STATISTIK
 window.onStatsFilterChange = function(type) {
   if (type === 'grp') { g('statsFilterTyp').value = ''; g('statsFilterArt').value = ''; }
   else if (type === 'typ') { g('statsFilterArt').value = ''; }
@@ -568,11 +570,9 @@ function renderStats() {
   if (years.length > 0 && !years.includes(state.year)) state.year = years[0];
   const sy = g('statsYear'); if(sy) sy.innerHTML = (years.length ? years : [state.year]).map(y=>`<option value="${y}" ${y===state.year?'selected':''}>${y}</option>`).join('');
   
-  // Basismenge: Verkäufe des gewählten Jahres (oder alle falls keine für das Jahr existieren)
   let ys = state.sold.filter(s=>(s.saleDate||today()).startsWith(state.year));
   if (ys.length === 0 && state.sold.length > 0) ys = state.sold;
 
-  // Anwenden der dynamischen Filter
   if (fGrp || fTyp || fArt) {
     ys = ys.filter(s => (s.items||[]).some(i => (!fGrp || i.group === fGrp) && (!fTyp || i.productType === fTyp) && (!fArt || i.article === fArt)));
   }
@@ -583,7 +583,6 @@ function renderStats() {
   const totalDaysAll = ys.reduce((s,set) => s + (set.avgDaysInStock || 0), 0);
   const avgDaysOverall = totalSets ? Math.round(totalDaysAll / totalSets) : 0;
 
-  // 1. Haupt-KPI-Karten
   const sc = g('statsCards'); 
   if (sc) {
     sc.innerHTML = [
@@ -594,7 +593,6 @@ function renderStats() {
     ].map(c=>`<div class="stat-card"><div class="k">${c.k}</div><div class="v">${c.v}</div></div>`).join('');
   }
 
-  // 2. Intelligente Detail-KPIs für Gruppen, Produkttypen und Artikel
   const itemStats = new Map();
   const groupStats = new Map();
   const typeStats = new Map();
@@ -614,12 +612,8 @@ function renderStats() {
         entry.profit += shareProfit * qty;
         entry.revenue += shareRevenue * qty;
 
-        if (i.group) {
-          groupStats.set(i.group, (groupStats.get(i.group) || 0) + qty);
-        }
-        if (i.productType) {
-          typeStats.set(i.productType, (typeStats.get(i.productType) || 0) + qty);
-        }
+        if (i.group) groupStats.set(i.group, (groupStats.get(i.group) || 0) + qty);
+        if (i.productType) typeStats.set(i.productType, (typeStats.get(i.productType) || 0) + qty);
       }
     });
   });
@@ -632,10 +626,7 @@ function renderStats() {
   const bestProfit = sortedByProfit[0];
   const bestRevenue = sortedByRevenue[0];
   const worstCount = sortedByCount.length > 1 ? sortedByCount[sortedByCount.length - 1] : null;
-  
-  const topGroup = [...groupStats.entries()].sort((a,b) => b[1] - a[1])[0];
   const topType = [...typeStats.entries()].sort((a,b) => b[1] - a[1])[0];
-
   const avgMargin = totalRevenue > 0 ? Math.round((totalProfit / totalRevenue) * 100) : 0;
 
   const dkContainer = g('dynamicKpis');
@@ -650,7 +641,6 @@ function renderStats() {
     `;
   }
 
-  // Monatsübersicht mit PS
   const monthMap = new Map();
   ys.forEach(set => {
     const sDate = set.saleDate || today(); const m = fmtMonth(sDate);
@@ -660,7 +650,6 @@ function renderStats() {
     e.revenue += (set.salePrice || 0); 
     e.sets += 1;
     if(set.items) e.artUnits += set.items.reduce((a,i)=>a+((i.menge||i.quantity)||1), 0);
-    
     if (set.hasProfitshare) {
       e.psProfit += (set.netProfit || 0);
       e.psRevenue += (set.salePrice || 0);
@@ -710,11 +699,11 @@ function renderTermine() {
       const color = isAbholung ? 'var(--err)' : 'var(--success)';
       const mapsUrl = t.ort ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(t.ort)}` : null;
 
-      return `<div class="card" style="margin-bottom:var(--sp3); border-left:4px solid ${color};"><div class="card-body" style="padding:var(--sp3);"><div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:var(--sp2);"><div><div style="font-size:var(--text-xs); color:${color}; font-weight:700;">${t.art}</div><h4 style="margin:2px 0 0; font-size:var(--text-base);">${esc(t.name)}</h4></div><div style="text-align:right;"><div style="font-weight:700;">${fmtDate(t.datum)}</div><div style="color:var(--muted); font-size:var(--text-sm);">${t.uhrzeit} Uhr</div></div></div><div class="chips" style="margin-bottom:var(--sp3);">${t.preis ? `<span class="chip">💰 ${esc(t.preis)}</span>` : ''}${mapsUrl ? `<a href="${mapsUrl}" target="_blank" class="chip" style="color:var(--primary); font-weight:700; text-decoration:underline;">📍 ${esc(t.ort)}</a>` : ''}${t.user ? `<span class="chip">👤 ${esc(t.user)}</span>` : ''}</div><button class="btn btn-danger" style="min-height:30px; padding:0; width:100%" onclick="deleteTermin('${t.id}')">🗑 Löschen</button></div></div>`;
+      return `<div class="card" style="margin-bottom:var(--sp3); border-left:4px solid ${color};"><div class="card-body" style="padding:var(--sp3);"><div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:var(--sp2);"><div><div style="font-size:var(--text-xs); color:${color}; font-weight:700;">${t.art}</div><h4 style="margin:2px 0 0; font-size:var(--text-base);">${esc(t.name)}</h4></div><div style="text-align:right;"><div style="font-weight:700;">${fmtDate(t.datum)}</div><div style="color:var(--muted); font-size:var(--text-sm);">${t.uhrzeit} Uhr</div></div></div><div class="chips" style="margin-bottom:var(--sp3);">${t.preis ? `<span class="chip">💰 ${esc(t.preis)}</span>` : ''}${mapsUrl ? `<a href="${mapsUrl}" target="_blank" class="chip" style="color:var(--primary); font-weight:700; text-decoration:underline;">📍 ${esc(t.ort)}</a>` : ''}${t.user ? `<span class="chip">👤 ${esc(t.user)}</span>` : ''}</div><button class="btn btn-danger" style="min-height:30px; padding:0; width:100%" onclick="window.deleteTermin('${t.id}')">🗑 Löschen</button></div></div>`;
     }).join('');
 }
 
-function deleteTermin(id) { if(!confirm('Termin löschen?')) return; state.termine = state.termine.filter(t => t.id !== id); save(); renderTermine(); }
+window.deleteTermin = function(id) { if(!confirm('Termin löschen?')) return; state.termine = state.termine.filter(t => t.id !== id); save(); renderTermine(); };
 function populateUhrzeit() { const sel = g('terminUhrzeit'); if (!sel) return; let html = '<option value="" disabled selected>Zeit wählen</option>'; for(let i=9; i<=23; i++) { let hour = i < 10 ? '0'+i : i; html += `<option value="${hour}:00">${hour}:00</option><option value="${hour}:30">${hour}:30</option>`; } sel.innerHTML = html; }
 
 const tfrm = g('terminForm');
@@ -730,13 +719,13 @@ document.addEventListener('click', e => {
     else { if (state.master.catalog[grp] && state.master.catalog[grp][typ] && state.master.catalog[grp][typ][key]) { state.master.catalog[grp][typ][key].splice(+idx, 1); } }
     save(); updateMasterForm(); renderAllQuick(); renderMaster(); return;
   }
-  const imgPickBtn = el.closest('.img-pick'); if(imgPickBtn) { if(imagePickCallback) imagePickCallback(imgPickBtn.dataset.url); closeImagePicker(); return; }
+  const imgPickBtn = el.closest('.img-pick'); if(imgPickBtn) { if(imagePickCallback) imagePickCallback(imgPickBtn.dataset.url); window.closeImagePicker(); return; }
   const tgl = g('themeToggle'); if(tgl && tgl.contains(el)) { document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'); return; }
   const nb = el.closest('[data-page]'); if (nb) { state.page = nb.dataset.page; render(); }
 });
 
 const sy = g('statsYear'); if (sy) { sy.addEventListener('change', e=>{ state.year=e.target.value; renderStats(); }); }
-const expBtn = g('exportBtn'); if(expBtn) expBtn.addEventListener('click', exportData);
+const expBtn = g('exportBtn'); if(expBtn) expBtn.addEventListener('click', window.exportData);
 
 document.querySelectorAll('.bottom-nav, .header-actions').forEach(container => { 
   container.addEventListener('click', e => { 
