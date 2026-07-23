@@ -1,5 +1,5 @@
 // ==========================================
-// KLEINANZEIGEN HERO - APP.JS (v4.0 Full Fix)
+// KLEINANZEIGEN HERO - APP.JS (v7.0 Fixed KPIs)
 // ==========================================
 
 const g = id => document.getElementById(id);
@@ -103,6 +103,7 @@ function applyState(d) {
     if (d.master) { 
       if (Array.isArray(d.master.images)) state.master.images = d.master.images; 
       if (Array.isArray(d.master.setImages)) state.master.setImages = d.master.setImages; 
+      if (Array.isArray(d.master.badgeRules)) state.master.badgeRules = d.master.badgeRules;
     }
     if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
 
@@ -141,6 +142,82 @@ function applyState(d) {
     });
   } catch(e) { console.error(e); }
 }
+
+// SET BADGES LOGIK
+window.currentEditBadgeIndex = null;
+
+window.updateBadgeProdType = function() {
+    const grp = gVal('newBadgeGroup'); const ptSel = g('newBadgeProdType'); if(!ptSel) return;
+    if(!grp || !state.master.catalog || !state.master.catalog[grp]) { ptSel.innerHTML = '<option value="">– Produkttyp –</option>'; return; }
+    const typs = Object.keys(state.master.catalog[grp]).sort(sortKeys); const currentVal = ptSel.value;
+    ptSel.innerHTML = '<option value="">– Produkttyp –</option>' + typs.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+    if (typs.includes(currentVal)) ptSel.value = currentVal;
+};
+
+window.openBadgeImgPicker = function() { imagePickCallback = (url) => { const nbi = g('newBadgeImg'); if(nbi) nbi.value = url; const bip = g('badgeImgPreview'); if(bip) bip.innerHTML = url ? `<img src="${url}" style="width:16px;height:16px;object-fit:cover;border-radius:4px;vertical-align:middle;">` : '📷'; }; const nbi = g('newBadgeImg'); openImagePicker(nbi ? nbi.value : ''); };
+
+window.addBadgeRule = function() {
+    const name = gVal('newBadgeName').trim(); const grp = gVal('newBadgeGroup'); const pt = gVal('newBadgeProdType'); const reqsStr = gVal('newBadgeReqs').trim(); const image = gVal('newBadgeImg');
+    if(!name || !grp || !pt || !reqsStr) return alert('Bitte alle Pflichtfelder ausfüllen.');
+    const reqs = reqsStr.split(',').map(s => { const parts = s.toLowerCase().split('x'); if(parts.length !== 2) return null; const size = parts[0].trim(); const qty = parseInt(parts[1].trim()); if(!size || isNaN(qty)) return null; return {size, qty}; }).filter(Boolean);
+    if(reqs.length === 0) return alert('Ungültiges Bedarfs-Format. Bitte z.B. 64x2 eingeben.');
+    if(!Array.isArray(state.master.badgeRules)) state.master.badgeRules = [];
+    if (window.currentEditBadgeIndex !== null && window.currentEditBadgeIndex >= 0) { state.master.badgeRules[window.currentEditBadgeIndex] = { name, group: grp, productType: pt, reqs, image }; window.currentEditBadgeIndex = null; toast('Regel aktualisiert ✓'); } else { state.master.badgeRules.push({ name, group: grp, productType: pt, reqs, image }); toast('Regel hinzugefügt ✓'); }
+    const nbi = g('newBadgeImg'); if(nbi) nbi.value = ''; const bip = g('badgeImgPreview'); if(bip) bip.innerHTML = '📷'; save(); renderMaster();
+};
+
+window.editBadgeRule = function(idx) {
+    if (!Array.isArray(state.master.badgeRules) || !state.master.badgeRules[idx]) return; const rule = state.master.badgeRules[idx];
+    const nbn = g('newBadgeName'); if(nbn) nbn.value = rule.name || ''; const nbg = g('newBadgeGroup'); if(nbg) nbg.value = rule.group || ''; window.updateBadgeProdType(); const nbpt = g('newBadgeProdType'); if(nbpt) nbpt.value = rule.productType || '';
+    const reqsArr = Array.isArray(rule.reqs) ? rule.reqs : []; const nbreqs = g('newBadgeReqs'); if(nbreqs) nbreqs.value = reqsArr.map(r => `${r.size}x${r.qty}`).join(', ');
+    const nbi = g('newBadgeImg'); if(nbi) nbi.value = rule.image || ''; const bip = g('badgeImgPreview'); if(bip) bip.innerHTML = rule.image ? `<img src="${rule.image}" style="width:16px;height:16px;object-fit:cover;border-radius:4px;vertical-align:middle;">` : '📷';
+    window.currentEditBadgeIndex = idx; const bft = g('badgeFormTitle'); if(bft) bft.textContent = 'Regel bearbeiten'; const sbb = g('saveBadgeBtn'); if(sbb) sbb.innerHTML = '✓ Aktualisieren'; const cbb = g('cancelBadgeBtn'); if(cbb) cbb.style.display = 'inline-flex';
+};
+
+window.cancelEditBadgeRule = function() {
+    window.currentEditBadgeIndex = null; ['newBadgeName', 'newBadgeGroup', 'newBadgeReqs', 'newBadgeImg'].forEach(id => { const el = g(id); if(el) el.value = ''; });
+    const nbpt = g('newBadgeProdType'); if(nbpt) nbpt.innerHTML = '<option value="">– Produkttyp –</option>';
+    const bip = g('badgeImgPreview'); if(bip) bip.innerHTML = '📷';
+    const bft = g('badgeFormTitle'); if(bft) bft.textContent = 'Neue Regel erstellen';
+    const sbb = g('saveBadgeBtn'); if(sbb) sbb.innerHTML = '✚ Regel speichern';
+    const cbb = g('cancelBadgeBtn'); if(cbb) cbb.style.display = 'none';
+};
+
+window.deleteBadgeRule = function(idx) { if(!confirm('Regel löschen?')) return; if (Array.isArray(state.master.badgeRules)) { state.master.badgeRules.splice(idx, 1); } if (window.currentEditBadgeIndex === idx) window.cancelEditBadgeRule(); save(); renderMaster(); };
+
+function openSetBadgesModal() {
+  const content = g('setBadgesContent'); if(!content) return;
+  const rules = Array.isArray(state.master.badgeRules) ? state.master.badgeRules : [];
+  const badgeResults = {}; const displayOrder = [];
+  rules.forEach(r => { if(r && r.name && !badgeResults[r.name]) { badgeResults[r.name] = {items: [], image: r.image || ''}; displayOrder.push(r.name); } });
+  const inventory = {};
+  state.open.forEach(item => {
+    if (!item.instances || item.instances.length === 0) return; 
+    const key = (item.group||'–') + '::' + (item.productType||'–') + '::' + (item.article||'–') + '::' + (item.color||'–');
+    if (!inventory[key]) inventory[key] = { grp: item.group||'–', pt: item.productType||'–', art: item.article||'–', col: item.color||'–', counts: {} };
+    const size = item.size || '–'; if (!inventory[key].counts[size]) inventory[key].counts[size] = 0; inventory[key].counts[size] += item.instances.length;
+  });
+  Object.values(inventory).forEach(inv => {
+     const label = `${inv.art} ${inv.col}`;
+     rules.forEach(rule => {
+        if (!rule || inv.grp !== rule.group || inv.pt !== rule.productType) return;
+        let pass = true; const reqs = Array.isArray(rule.reqs) ? rule.reqs : [];
+        for (let req of reqs) { if ((inv.counts[req.size] || 0) < req.qty) { pass = false; break; } }
+        if (pass && reqs.length > 0) { if(badgeResults[rule.name] && !badgeResults[rule.name].items.includes(label)) badgeResults[rule.name].items.push(label); }
+     });
+  });
+  let html = ''; let hasAny = false;
+  displayOrder.forEach(badgeName => {
+    const data = badgeResults[badgeName];
+    if (data && data.items.length > 0) {
+      hasAny = true; html += `<div style="padding:var(--sp2) 0; border-bottom:1px solid var(--divider); display:flex; gap:12px; align-items:center;">${data.image ? `<img src="${data.image}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border);flex-shrink:0;">` : `<div style="width:40px;height:40px;border-radius:6px;border:1px dashed var(--border);display:grid;place-items:center;color:var(--muted);flex-shrink:0;">📷</div>`}<div style="line-height:1.4;"><strong style="display:block; color:var(--primary);">${esc(badgeName)}</strong><span style="color:var(--text);font-size:var(--text-sm);">${data.items.map(esc).join(' <span style="color:var(--muted); margin:0 4px;">|</span> ')}</span></div></div>`;
+    }
+  });
+  if (!hasAny) html = '<div class="empty">Aktuell können keine Sets aus den definierten Regeln gebildet werden.</div>';
+  content.innerHTML = html; const sbm = g('setBadgesModal'); if(sbm) { sbm.style.display = 'flex'; sbm.classList.add('show'); }
+}
+
+function closeSetBadgesModal() { const m = g('setBadgesModal'); if(m) { m.classList.remove('show'); m.style.display = 'none'; } }
 
 function updateMasterForm() {
   try {
@@ -184,8 +261,13 @@ function renderMaster() {
           html += `</div></div>`;
         });
       } else { html += `<div class="empty">Noch keine Gruppen angelegt.</div>`; }
+      
       const imgs = Array.isArray(state.master.images) ? state.master.images : [];
-      html += `<div class="card"><div class="card-head"><div style="display:flex;align-items:center;gap:8px;"><h3 class="card-title">🖼 Bilder</h3><span class="chip">${imgs.length}</span></div></div><div class="card-body"><div class="img-grid">${imgs.length ? imgs.map((url,i)=>`<div class="img-card" style="position:relative;"><img src="${url}" loading="lazy" style="width:100%;height:80px;object-fit:cover;"><button class="btn-icon-subtle danger" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.7);padding:2px 6px;" onclick="window.deleteMasterImage(${i})">🗑</button></div>`).join('') : '<div class="empty" style="grid-column:1/-1;">Noch keine Bilder.</div>'}</div></div></div>`;
+      html += `<div class="card" style="margin-bottom:var(--sp4);"><div class="card-head"><div style="display:flex;align-items:center;gap:8px;"><h3 class="card-title">🖼 Bilder</h3><span class="chip">${imgs.length}</span></div></div><div class="card-body"><div class="img-grid">${imgs.length ? imgs.map((url,i)=>`<div class="img-card" style="position:relative;"><img src="${url}" loading="lazy" style="width:100%;height:80px;object-fit:cover;"><button class="btn-icon-subtle danger" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.7);padding:2px 6px;" onclick="window.deleteMasterImage(${i})">🗑</button></div>`).join('') : '<div class="empty" style="grid-column:1/-1;">Noch keine Bilder.</div>'}</div></div></div>`;
+      
+      const safeBadgeRules = Array.isArray(state.master.badgeRules) ? state.master.badgeRules : [];
+      html += `<div class="card" style="margin-bottom:var(--sp4);"><div class="card-head"><h3 class="card-title">🏆 Set Badges (Regeln)</h3></div><div class="card-body"><div id="badgeRulesList" style="margin-bottom:var(--sp3);">${safeBadgeRules.map((r, i) => { const reqsArr = Array.isArray(r.reqs) ? r.reqs : []; return `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--divider); padding:var(--sp2) 0;"><div style="display:flex; gap:12px; align-items:center;">${r.image ? `<img src="${r.image}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border);flex-shrink:0;">` : `<div style="width:40px;height:40px;border-radius:6px;border:1px dashed var(--border);display:grid;place-items:center;color:var(--muted);flex-shrink:0;">📷</div>`}<div><b style="font-size:var(--text-base);">${esc(r.name)}</b> <span style="color:var(--muted); font-size:var(--text-xs);">(${esc(r.group)} · ${esc(r.productType)})</span><br><span style="font-size:var(--text-sm); font-weight:600; color:var(--primary);">${reqsArr.map(req => `${req.qty||1}x Gr. ${esc(req.size)}`).join(', ')}</span></div></div><div style="display:flex; gap:4px;"><button class="btn-icon-subtle" onclick="editBadgeRule(${i})" title="Bearbeiten">✏️</button><button class="btn-icon-subtle danger" onclick="deleteBadgeRule(${i})" title="Löschen">🗑️</button></div></div>`; }).join('') || '<div class="empty">Keine Regeln definiert.</div>'}</div><div style="background:var(--surface2); padding:var(--sp3); border-radius:var(--rad-md); border:1px solid var(--border);"><h4 id="badgeFormTitle" style="font-size:var(--text-sm); margin:0 0 var(--sp2);">Neue Regel erstellen</h4><div class="grid2" style="gap:8px;"><input type="text" class="input" id="newBadgeName" placeholder="Name (z.B. TV 180)"><select class="select" id="newBadgeGroup" onchange="updateBadgeProdType()"><option value="">– Gruppe wählen –</option>${groups.map(grp => `<option value="${esc(grp)}">${esc(grp)}</option>`).join('')}</select><select class="select" id="newBadgeProdType"><option value="">– Produkttyp –</option></select><input type="text" class="input" id="newBadgeReqs" placeholder="Bedarf (z.B. 64x2, 38x1)"></div><div style="display:flex; gap:8px; margin-top:8px; align-items:center;"><button type="button" class="btn btn-ghost" style="padding:4px 10px; min-height:32px; font-size:var(--text-xs);" onclick="openBadgeImgPicker()"><span id="badgeImgPreview">📷</span> Bild (optional)</button><input type="hidden" id="newBadgeImg"></div><div style="display:flex; gap:8px; margin-top:var(--sp3);"><button id="saveBadgeBtn" class="btn btn-primary" style="flex:1;" onclick="addBadgeRule()">✚ Regel speichern</button><button id="cancelBadgeBtn" class="btn btn-ghost" style="display:none;" onclick="cancelEditBadgeRule()">Abbrechen</button></div></div></div></div>`;
+
       const mc = g('masterContent'); if (mc) mc.innerHTML = html;
   } catch (err) {}
 }
@@ -449,6 +531,7 @@ function deleteSoldSet(id) {
   save(); renderSold(); toast('Gelöscht ✓');
 }
 
+// INTELLIGENTE STATISTIK & DYNAMISCHE KPIS
 window.onStatsFilterChange = function(type) {
   if (type === 'grp') { g('statsFilterTyp').value = ''; g('statsFilterArt').value = ''; }
   else if (type === 'typ') { g('statsFilterArt').value = ''; }
@@ -480,36 +563,142 @@ function populateStatsFilters() {
 function renderStats() {
   populateStatsFilters();
   const fGrp = gVal('statsFilterGrp'); const fTyp = gVal('statsFilterTyp'); const fArt = gVal('statsFilterArt');
-  const years = [...new Set(state.sold.map(s=>(s.saleDate||today()).slice(0,4)))].sort((a,b)=>b-a);
-  if (!years.length) years.push(state.year); if (!years.includes(state.year)) state.year = years[0];
-  const sy = g('statsYear'); if(sy) sy.innerHTML = years.map(y=>`<option value="${y}" ${y===state.year?'selected':''}>${y}</option>`).join('');
   
+  const years = [...new Set(state.sold.map(s=>(s.saleDate||today()).slice(0,4)))].sort((a,b)=>b-a);
+  if (years.length > 0 && !years.includes(state.year)) state.year = years[0];
+  const sy = g('statsYear'); if(sy) sy.innerHTML = (years.length ? years : [state.year]).map(y=>`<option value="${y}" ${y===state.year?'selected':''}>${y}</option>`).join('');
+  
+  // Basismenge: Verkäufe des gewählten Jahres (oder alle falls keine für das Jahr existieren)
   let ys = state.sold.filter(s=>(s.saleDate||today()).startsWith(state.year));
+  if (ys.length === 0 && state.sold.length > 0) ys = state.sold;
+
+  // Anwenden der dynamischen Filter
   if (fGrp || fTyp || fArt) {
     ys = ys.filter(s => (s.items||[]).some(i => (!fGrp || i.group === fGrp) && (!fTyp || i.productType === fTyp) && (!fArt || i.article === fArt)));
   }
 
-  const totalSets = ys.length; const totalProfit = ys.reduce((s,set)=>s+(set.netProfit||0),0); const totalRevenue = ys.reduce((s,set)=>s+(set.salePrice||0),0);
+  const totalSets = ys.length; 
+  const totalProfit = ys.reduce((s,set)=>s+(set.netProfit||0),0); 
+  const totalRevenue = ys.reduce((s,set)=>s+(set.salePrice||0),0);
   const totalDaysAll = ys.reduce((s,set) => s + (set.avgDaysInStock || 0), 0);
   const avgDaysOverall = totalSets ? Math.round(totalDaysAll / totalSets) : 0;
 
-  const sc = g('statsCards'); if(sc) sc.innerHTML = [
-    {k:'Verkäufe (Gefiltert)', v:totalSets}, 
-    {k:'Gewinn', v:euro(totalProfit)}, 
-    {k:'Umsatz', v:euro(totalRevenue)}, 
-    {k:'Ø Standzeit', v:`${avgDaysOverall} Tage`}
-  ].map(c=>`<div class="stat-card"><div class="k">${c.k}</div><div class="v">${c.v}</div></div>`).join('');
+  // 1. Haupt-KPI-Karten
+  const sc = g('statsCards'); 
+  if (sc) {
+    sc.innerHTML = [
+      {k:'Gefilterte Sets', v:totalSets}, 
+      {k:'Gewinn', v:euro(totalProfit)}, 
+      {k:'Umsatz', v:euro(totalRevenue)}, 
+      {k:'Ø Standzeit', v:`${avgDaysOverall} Tage`}
+    ].map(c=>`<div class="stat-card"><div class="k">${c.k}</div><div class="v">${c.v}</div></div>`).join('');
+  }
 
-  const monthMap = new Map();
-  ys.forEach(set=>{
-    const sDate = set.saleDate || today(); const m = fmtMonth(sDate);
-    if(!monthMap.has(m)) monthMap.set(m,{profit:0,revenue:0,sets:0,artUnits:0,key:sDate.slice(0,7)});
-    const e=monthMap.get(m); e.profit += (set.netProfit||0); e.revenue += (set.salePrice||0); e.sets += 1;
-    if(set.items) e.artUnits += set.items.reduce((a,i)=>a+((i.menge||i.quantity)||1),0);
+  // 2. Intelligente Detail-KPIs für Gruppen, Produkttypen und Artikel
+  const itemStats = new Map();
+  const groupStats = new Map();
+  const typeStats = new Map();
+
+  ys.forEach(s => {
+    const itemCount = s.items.length || 1;
+    const shareProfit = (s.netProfit || 0) / itemCount;
+    const shareRevenue = (s.salePrice || 0) / itemCount;
+
+    (s.items||[]).forEach(i => {
+      if ((!fGrp || i.group === fGrp) && (!fTyp || i.productType === fTyp) && (!fArt || i.article === fArt)) {
+        const artKey = i.article || i.productType || 'Unbenannt';
+        if (!itemStats.has(artKey)) itemStats.set(artKey, { name: artKey, count: 0, profit: 0, revenue: 0 });
+        const entry = itemStats.get(artKey);
+        const qty = (i.menge || i.quantity || 1);
+        entry.count += qty;
+        entry.profit += shareProfit * qty;
+        entry.revenue += shareRevenue * qty;
+
+        if (i.group) {
+          groupStats.set(i.group, (groupStats.get(i.group) || 0) + qty);
+        }
+        if (i.productType) {
+          typeStats.set(i.productType, (typeStats.get(i.productType) || 0) + qty);
+        }
+      }
+    });
   });
-  const months = [...monthMap.entries()].sort((a,b)=>b[1].key.localeCompare(a[1].key));
 
-  const mt = g('monthTable'); if(mt) mt.innerHTML = months.length ? `<thead><tr><th>Monat</th><th>Jahr</th><th>Sets</th><th>Art.</th><th>Gewinn</th><th>Umsatz</th></tr></thead><tbody>${months.map(([m,d])=>{ const [mon,yr] = m.split(' '); return `<tr><td>${mon}</td><td>${yr}</td><td>${d.sets}</td><td>${d.artUnits}</td><td>${euro(d.profit)}</td><td>${euro(d.revenue)}</td></tr>`; }).join('')}</tbody>` : '<tbody><tr><td colspan="6">Keine Verkäufe im Filter.</td></tr></tbody>';
+  const sortedByCount = [...itemStats.values()].sort((a,b) => b.count - a.count);
+  const sortedByProfit = [...itemStats.values()].sort((a,b) => b.profit - a.profit);
+  const sortedByRevenue = [...itemStats.values()].sort((a,b) => b.revenue - a.revenue);
+
+  const bestCount = sortedByCount[0];
+  const bestProfit = sortedByProfit[0];
+  const bestRevenue = sortedByRevenue[0];
+  const worstCount = sortedByCount.length > 1 ? sortedByCount[sortedByCount.length - 1] : null;
+  
+  const topGroup = [...groupStats.entries()].sort((a,b) => b[1] - a[1])[0];
+  const topType = [...typeStats.entries()].sort((a,b) => b[1] - a[1])[0];
+
+  const avgMargin = totalRevenue > 0 ? Math.round((totalProfit / totalRevenue) * 100) : 0;
+
+  const dkContainer = g('dynamicKpis');
+  if (dkContainer) {
+    dkContainer.innerHTML = `
+      <div class="kpi-card"><div class="k">🏆 Bestseller (Menge)</div><div class="v">${bestCount ? esc(bestCount.name) : '–'}</div><div class="d">${bestCount ? bestCount.count + 'x verkauft' : ''}</div></div>
+      <div class="kpi-card"><div class="k">🎯 Meister Gewinn</div><div class="v">${bestProfit ? esc(bestProfit.name) : '–'}</div><div class="d">${bestProfit ? euro(bestProfit.profit) : ''}</div></div>
+      <div class="kpi-card"><div class="k">💵 Meister Umsatz</div><div class="v">${bestRevenue ? esc(bestRevenue.name) : '–'}</div><div class="d">${bestRevenue ? euro(bestRevenue.revenue) : ''}</div></div>
+      <div class="kpi-card"><div class="k">⚠️ Flop / Geringster Absatz</div><div class="v">${worstCount ? esc(worstCount.name) : '–'}</div><div class="d">${worstCount ? worstCount.count + 'x verkauft' : ''}</div></div>
+      <div class="kpi-card"><div class="k">📈 Ø Marge in %</div><div class="v">${avgMargin} %</div><div class="d">Gewinn vs. Umsatz</div></div>
+      <div class="kpi-card"><div class="k">🏷️ Aktivster Produkttyp</div><div class="v">${topType ? esc(topType[0]) : '–'}</div><div class="d">${topType ? topType[1] + 'x verkauft' : ''}</div></div>
+    `;
+  }
+
+  // Monatsübersicht mit PS
+  const monthMap = new Map();
+  ys.forEach(set => {
+    const sDate = set.saleDate || today(); const m = fmtMonth(sDate);
+    if(!monthMap.has(m)) monthMap.set(m, { profit: 0, revenue: 0, sets: 0, artUnits: 0, psProfit: 0, psRevenue: 0, key: sDate.slice(0,7) });
+    const e = monthMap.get(m); 
+    e.profit += (set.netProfit || 0); 
+    e.revenue += (set.salePrice || 0); 
+    e.sets += 1;
+    if(set.items) e.artUnits += set.items.reduce((a,i)=>a+((i.menge||i.quantity)||1), 0);
+    
+    if (set.hasProfitshare) {
+      e.psProfit += (set.netProfit || 0);
+      e.psRevenue += (set.salePrice || 0);
+    }
+  });
+  const months = [...monthMap.entries()].sort((a,b) => b[1].key.localeCompare(a[1].key));
+
+  const mt = g('monthTable'); 
+  if (mt) {
+    mt.innerHTML = months.length ? `
+      <thead>
+        <tr>
+          <th>Monat</th>
+          <th>Jahr</th>
+          <th>Sets</th>
+          <th>Art.</th>
+          <th>Gewinn</th>
+          <th>Umsatz</th>
+          <th>PS-Gewinn</th>
+          <th>PS-Umsatz</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${months.map(([m, d]) => {
+          const [mon, yr] = m.split(' ');
+          return `<tr>
+            <td><b>${mon}</b></td>
+            <td>${yr}</td>
+            <td>${d.sets}</td>
+            <td>${d.artUnits}</td>
+            <td style="color:var(--success); font-weight:bold;">${euro(d.profit)}</td>
+            <td>${euro(d.revenue)}</td>
+            <td style="color:var(--warn); font-weight:600;">${euro(d.psProfit)}</td>
+            <td>${euro(d.psRevenue)}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>` : '<tbody><tr><td colspan="8" class="empty">Keine Verkäufe im Filter.</td></tr></tbody>';
+  }
 }
 
 function renderTermine() {
