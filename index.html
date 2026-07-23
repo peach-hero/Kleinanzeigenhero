@@ -63,7 +63,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-    /* Header Bar */
+    /* Top Navigation Header */
     .top-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: var(--sp2) var(--sp4); display: flex; align-items: center; justify-content: space-between; height: 56px; flex-shrink: 0; }
     .brand { font-weight: 700; font-size: var(--text-lg); display: flex; align-items: center; gap: 8px; color: var(--text); }
     .brand-icon { width: 28px; height: 28px; border-radius: var(--rad-sm); object-fit: cover; }
@@ -131,12 +131,11 @@
 
     .sold-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); margin-bottom: var(--sp3); }
 
-    /* Tabelle Entzerrung (Monatsübersicht) */
+    /* Tabelle Entzerrung */
     .mini-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
     .mini-table th, .mini-table td { padding: 12px 14px !important; border-bottom: 1px solid var(--divider); text-align: left !important; white-space: nowrap; }
     .mini-table th { background: var(--surface2); font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; }
 
-    /* Prominente KPI-Karten */
     .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); }
     .stat-card .k { font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; font-weight: 700; }
     .stat-card .v { font-size: 1.3rem; font-weight: 800; color: var(--primary); margin-top: 2px; }
@@ -167,7 +166,7 @@
 </head>
 <body>
 
-  <!-- Header Bar -->
+  <!-- Top Header Bar -->
   <header class="top-bar">
     <div class="brand">
       <img src="icon-192.png" class="brand-icon" alt="Logo" onerror="this.style.display='none'">
@@ -261,7 +260,7 @@
     <section id="page-open" class="page">
       <div style="display:flex; gap:8px; margin-bottom:var(--sp3);">
         <input type="text" id="openSearchText" class="input" placeholder="🔍 Suche im Bestand..." oninput="updateOpenFilters()">
-        <button class="btn btn-ghost" style="width:auto; white-space:nowrap;" onclick="openSetBadgesModal()">🏆 Mögliche Sets</button>
+        <button class="btn btn-ghost" style="width:auto; white-space:nowrap;" onclick="window.openSetBadgesModal()">🏆 Mögliche Sets</button>
       </div>
 
       <div class="grid3" style="margin-bottom:var(--sp3);">
@@ -410,32 +409,27 @@
       <div id="terminContent"></div>
     </section>
 
-    <!-- PAGE: Statistik mit Prominenten KPIs -->
+    <!-- PAGE: Statistik -->
     <section id="page-stats" class="page">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
         <h2>Statistik</h2>
         <select id="statsYear" class="select" style="width:auto;"></select>
       </div>
 
-      <!-- Dynamischer Filter -->
       <div class="card" style="margin-bottom:var(--sp3);">
         <div class="card-head"><h3 class="card-title">🔍 Dynamischer KPI Filter</h3></div>
         <div class="card-body">
           <div class="grid3">
-            <select id="statsFilterGrp" class="select" onchange="onStatsFilterChange('grp')"><option value="">Alle Gruppen</option></select>
-            <select id="statsFilterTyp" class="select" onchange="onStatsFilterChange('typ')"><option value="">Alle Typen</option></select>
-            <select id="statsFilterArt" class="select" onchange="onStatsFilterChange('art')"><option value="">Alle Artikel</option></select>
+            <select id="statsFilterGrp" class="select" onchange="window.onStatsFilterChange('grp')"><option value="">Alle Gruppen</option></select>
+            <select id="statsFilterTyp" class="select" onchange="window.onStatsFilterChange('typ')"><option value="">Alle Typen</option></select>
+            <select id="statsFilterArt" class="select" onchange="window.onStatsFilterChange('art')"><option value="">Alle Artikel</option></select>
           </div>
         </div>
       </div>
 
-      <!-- Haupt-KPIs (Verkäufe, Gewinn, Umsatz, Standzeit) -->
       <div id="statsCards" class="grid2" style="margin-bottom:var(--sp3);"></div>
-
-      <!-- Intelligente Detail-KPIs -->
       <div id="dynamicKpis" class="kpi-grid" style="margin-bottom:var(--sp4);"></div>
 
-      <!-- Monatsübersicht Card -->
       <div class="card" style="margin-bottom:var(--sp3);">
         <div class="card-head"><h3 class="card-title">Monatsübersicht</h3></div>
         <div class="card-body" style="padding:0; overflow-x:auto;">
@@ -542,13 +536,13 @@
     <div class="modal-content">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
         <h3>🏆 Baubare Sets im Bestand</h3>
-        <button class="btn btn-ghost" style="width:auto; padding:4px 8px;" onclick="closeSetBadgesModal()">✕</button>
+        <button class="btn btn-ghost" style="width:auto; padding:4px 8px;" onclick="window.closeSetBadgesModal()">✕</button>
       </div>
       <div id="setBadgesContent"></div>
     </div>
   </div>
 
-  <script src="./app.js?v=7.0"></script>
+  <script src="./app.js?v=8.0"></script>
 
 </body>
 </html>
