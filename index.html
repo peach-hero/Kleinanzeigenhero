@@ -157,7 +157,7 @@
     .modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-lg); width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: var(--sp4); }
     .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 
-    #toast { position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%) translateY(20px); background: #323232; color: #fff; padding: 8px 16px; border-radius: 20px; font-size: var(--text-xs); opacity: 0; transition: all 0.2s; pointer-events: none; z-index: 2000; }
+    #toast { position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%) translateY(20px); background: #323232; color: #fff; padding: 8px 16px; border-radius: 20px; font-size: var(--text-xs); opacity: 0; transition: all 0.2s; pointer-events: none; z-index: 2000; white-space: nowrap; }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     .empty { text-align: center; color: var(--muted); padding: var(--sp6) var(--sp4); font-size: var(--text-sm); }
@@ -263,7 +263,6 @@
         <button class="btn btn-ghost" style="width:auto; white-space:nowrap;" onclick="window.openSetBadgesModal()">🏆 Mögliche Sets</button>
       </div>
 
-      <!-- 5 Ausführliche Filter-Dropdowns -->
       <div class="grid3" style="margin-bottom:6px;">
         <select id="openSearchGroup" class="select" onchange="window.updateOpenFilters()"><option value="">Gruppe</option></select>
         <select id="openSearchType" class="select" onchange="window.updateOpenFilters()"><option value="">Produkttyp</option></select>
@@ -414,7 +413,7 @@
       <div id="terminContent"></div>
     </section>
 
-    <!-- PAGE: Statistik (Mit 5-stufigem Filter & Spezifikationen) -->
+    <!-- PAGE: Statistik -->
     <section id="page-stats" class="page">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
         <h2>Statistik</h2>
@@ -533,12 +532,19 @@
 
   <div id="toast"></div>
 
+  <!-- Image Picker Modal -->
   <div id="imagePickerModal" class="modal">
     <div class="modal-content">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
         <h3>Bild auswählen</h3>
-        <button class="btn btn-ghost" style="width:auto; padding:4px 8px;" onclick="closeImagePicker()">✕</button>
+        <button class="btn btn-ghost" style="width:auto; padding:4px 8px;" onclick="window.closeImagePicker()">✕</button>
       </div>
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:var(--sp3);">
+        <button type="button" class="btn btn-ghost" style="font-size:var(--text-xs);" onclick="window.searchGoogleImages()">🔍 Google Suche</button>
+        <button type="button" class="btn btn-ghost" style="font-size:var(--text-xs);" onclick="window.pasteImageUrl()">🔗 URL einfügen</button>
+      </div>
+
       <div id="imagePickerList" class="img-grid"></div>
     </div>
   </div>
@@ -553,7 +559,7 @@
     </div>
   </div>
 
-  <script src="./app.js?v=10.0"></script>
+  <script src="./app.js?v=13.0"></script>
 
 </body>
 </html>

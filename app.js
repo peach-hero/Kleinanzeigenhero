@@ -1,5 +1,5 @@
 // ==========================================
-// KLEINANZEIGEN HERO - APP.JS (v10.0 Global Fixed)
+// KLEINANZEIGEN HERO - APP.JS (v13.0 High-Compression & Direct Google Calendar)
 // ==========================================
 
 const g = id => document.getElementById(id);
@@ -24,7 +24,7 @@ const fmtMonth = d => { if(!d) return '-'; const dt = new Date(d); return isNaN(
 const stackKey = i => `${i.group}||${i.productType||''}||${i.article}||${i.size}||${i.color}`; 
 const uid = () => 'xxxx-xxxx-4xxx-yxxx-xxxx'.replace(/[xy]/g, c => { var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
 
-function toast(msg) { const t = g('toast'); if(t) { t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); } }
+function toast(msg) { const t = g('toast'); if(t) { t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); } }
 function fillSel(el, vals, ph) { if(!el) return; el.innerHTML = `<option value="">${ph}</option>` + vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join(''); }
 
 const state = {
@@ -38,9 +38,84 @@ let globalExpandState = false;
 let db = null; const DB_NAME = 'amp3db', DB_VER = 1, STORE = 'data';
 
 function openDB() { return new Promise((res, rej) => { if (db) { res(db); return; } const req = indexedDB.open(DB_NAME, DB_VER); req.onupgradeneeded = e => e.target.result.createObjectStore(STORE); req.onsuccess = e => { db = e.target.result; res(db); }; req.onerror = e => rej(e.target.error); }); }
-function save() { const payload = { open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year }; try { localStorage.setItem('amp3', JSON.stringify(payload)); } catch(e) {} openDB().then(database => { const tx = database.transaction(STORE, 'readwrite'); tx.objectStore(STORE).put(payload, 'state'); }); }
-function load() { openDB().then(database => { const tx = database.transaction(STORE, 'readonly'); const req = tx.objectStore(STORE).get('state'); req.onsuccess = e => { const d = e.target.result; if (d) { applyState(d); } else { try { const ls = JSON.parse(localStorage.getItem('amp3') || 'null'); if (ls) { applyState(ls); save(); } } catch(e) {} } initApp(); }; req.onerror = () => fallbackLoad(); }).catch(() => fallbackLoad()); }
+function save() { 
+  const payload = { open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year }; 
+  try { localStorage.setItem('amp3', JSON.stringify(payload)); } catch(e) {} 
+  openDB().then(database => { const tx = database.transaction(STORE, 'readwrite'); tx.objectStore(STORE).put(payload, 'state'); });
+}
+
+function load() { 
+  openDB().then(database => { 
+    const tx = database.transaction(STORE, 'readonly'); 
+    const req = tx.objectStore(STORE).get('state'); 
+    req.onsuccess = e => { 
+      const d = e.target.result; 
+      if (d) applyState(d); 
+      else { 
+        try { const ls = JSON.parse(localStorage.getItem('amp3') || 'null'); if (ls) applyState(ls); } catch(e) {} 
+      } 
+      initApp(); 
+    }; 
+    req.onerror = () => fallbackLoad(); 
+  }).catch(() => fallbackLoad()); 
+}
 function fallbackLoad() { try { const ls = JSON.parse(localStorage.getItem('amp3') || 'null'); if (ls) applyState(ls); } catch(e) {} initApp(); }
+
+// STÄRKERE BILD-KOMPRESSION FÜR COMPATIBILITÄT MIT GOOGLE SHEETS LIMIT (50.000 CHARS)
+function compressImage(file, callback) {
+    const reader = new FileReader(); 
+    reader.onload = e => { 
+      const img = new Image(); 
+      img.onload = () => { 
+        const canvas = document.createElement('canvas'); 
+        let w = img.width, h = img.height; 
+        const MAX = 300; // Verkleinert auf 300px für leichte Sync-Menge
+        if (w > h && w > MAX) { h = Math.round(h * MAX / w); w = MAX; } 
+        else if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } 
+        canvas.width = w; canvas.height = h; 
+        const ctx = canvas.getContext('2d'); 
+        ctx.drawImage(img, 0, 0, w, h); 
+        callback(canvas.toDataURL('image/jpeg', 0.5)); 
+      }; 
+      img.src = e.target.result; 
+    }; 
+    reader.readAsDataURL(file);
+}
+
+// AUTOMATISCHER CLOUD SYNC MIT STATUSBENACHRICHTIGUNG
+async function autoLoadFromCloud() {
+  const gasUrl = localStorage.getItem('gasUrl') || gVal('gasUrl');
+  if (!gasUrl) return;
+  try {
+    const fetchUrl = gasUrl + (gasUrl.includes('?') ? '&' : '?') + 'nocache=' + Date.now();
+    const res = await fetch(fetchUrl);
+    const data = await res.json();
+    if (data && !data.error) {
+      applyState(data);
+      save();
+      updateMasterForm();
+      renderAllQuick();
+      renderMaster();
+      render();
+      const timeStr = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+      toast(`☁️ Cloud Sync geladen (${timeStr} Uhr) ✓`);
+    }
+  } catch(e) { console.log('Auto-Sync Offline'); }
+}
+
+window.autoSaveToCloud = function() {
+  const gasUrl = localStorage.getItem('gasUrl') || gVal('gasUrl');
+  if (!gasUrl) return;
+  const cloudPayload = JSON.stringify({ open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year });
+  if (navigator.sendBeacon) {
+    navigator.sendBeacon(gasUrl, cloudPayload);
+  } else {
+    fetch(gasUrl, { method: 'POST', body: cloudPayload, keepalive: true }).catch(() => {});
+  }
+};
+
+window.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') window.autoSaveToCloud(); });
+window.addEventListener('pagehide', () => window.autoSaveToCloud());
 
 window.exportData = function() {
   const data = { open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year }; const json = JSON.stringify(data, null, 2); const filename = `kleinanzeigen-hero-${today()}.json`;
@@ -62,9 +137,7 @@ window.importData = function(file) {
       renderMaster(); 
       render(); 
       toast('Import erfolgreich ✓'); 
-    } catch(err) { 
-      alert('Fehler beim Importieren: ' + err.message); 
-    } 
+    } catch(err) { alert('Fehler beim Importieren: ' + err.message); } 
   };
   reader.readAsText(file);
 };
@@ -77,12 +150,8 @@ window.saveToCloud = async function() {
 
 window.loadFromCloud = async function() {
   const gasUrl = gVal('gasUrl').trim(); if(!gasUrl) return toast('Bitte URL eingeben.'); localStorage.setItem('gasUrl', gasUrl);
-  try { toast('Lade aus Cloud...'); const fetchUrl = gasUrl + (gasUrl.includes('?') ? '&' : '?') + 'nocache=' + new Date().getTime(); const res = await fetch(fetchUrl); const text = await res.text(); try { const data = JSON.parse(text); if(data.error) return toast('Fehler: ' + data.error); applyState(data); save(); updateMasterForm(); renderAllQuick(); renderMaster(); render(); toast('Download erfolgreich ✓'); } catch(err) { alert("Datenfehler."); } } catch(e) { alert('Netzwerkfehler'); }
+  try { toast('Lade aus Cloud...'); const fetchUrl = gasUrl + (gasUrl.includes('?') ? '&' : '?') + 'nocache=' + Date.now(); const res = await fetch(fetchUrl); const text = await res.text(); try { const data = JSON.parse(text); if(data.error) return toast('Fehler: ' + data.error); applyState(data); save(); updateMasterForm(); renderAllQuick(); renderMaster(); render(); toast('Download erfolgreich ✓'); } catch(err) { alert("Datenfehler."); } } catch(e) { alert('Netzwerkfehler'); }
 };
-
-function compressImage(file, callback) {
-    const reader = new FileReader(); reader.onload = e => { const img = new Image(); img.onload = () => { const canvas = document.createElement('canvas'); let w = img.width, h = img.height; const MAX = 800; if (w > h && w > MAX) { h = Math.round(h * MAX / w); w = MAX; } else if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } canvas.width = w; canvas.height = h; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, w, h); callback(canvas.toDataURL('image/jpeg', 0.75)); }; img.src = e.target.result; }; reader.readAsDataURL(file);
-}
 
 function initApp() { 
   updateMasterForm(); 
@@ -91,8 +160,10 @@ function initApp() {
   const gasUrl = g('gasUrl'); if(gasUrl) gasUrl.value = localStorage.getItem('gasUrl') || ''; 
   const td = g('terminDatum'); if(td) td.value = today();
   render(); 
+  autoLoadFromCloud();
 }
 
+// STRIKTE DATEN-ÜBERNAHME OHNE UNGEFRAGTE autoAdd-REANIMIERUNG DER STAMMDATEN
 function applyState(d) {
   try {
     state.open = Array.isArray(d.open) ? d.open.filter(Boolean) : [];
@@ -109,22 +180,6 @@ function applyState(d) {
       if (Array.isArray(d.master.badgeRules)) state.master.badgeRules = d.master.badgeRules;
     }
     if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
-
-    const autoAdd = (grPrm, ptPrm, a, s, c) => {
-        if (!grPrm) return; const grp = String(grPrm).trim(); if (!grp) return; const typ = ptPrm ? String(ptPrm).trim() : 'Standardtyp';
-        if (!state.master.catalog[grp]) state.master.catalog[grp] = {}; 
-        if (!state.master.catalog[grp][typ]) state.master.catalog[grp][typ] = { articles: [], sizes: [], colors: [], images: [] };
-        const target = state.master.catalog[grp][typ];
-        if (!Array.isArray(target.articles)) target.articles = []; 
-        if (!Array.isArray(target.sizes)) target.sizes = []; 
-        if (!Array.isArray(target.colors)) target.colors = [];
-        if (a && !target.articles.includes(String(a).trim())) target.articles.push(String(a).trim());
-        if (s && !target.sizes.includes(String(s).trim())) target.sizes.push(String(s).trim());
-        if (c && !target.colors.includes(String(c).trim())) target.colors.push(String(c).trim());
-    };
-
-    state.open.forEach(item => autoAdd(item.group, item.productType, item.article, item.size, item.color));
-    state.sold.forEach(set => { (set.items || []).forEach(item => autoAdd(item.group, item.productType, item.article, item.size, item.color)); });
 
     let newOpen = [];
     for (let i=0; i < state.open.length; i++) {
@@ -145,6 +200,50 @@ function applyState(d) {
     });
   } catch(e) { console.error(e); }
 }
+
+// BILDER & GOOGLE BILDERSUCHE / URL EINFÜGEN
+window.searchGoogleImages = function() {
+  const grp = gVal('group');
+  const typ = gVal('productType');
+  const art = gVal('article');
+  const query = [grp, typ, art].filter(Boolean).join(' ') || 'IKEA Besta';
+  window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(query)}`, '_blank');
+};
+
+window.pasteImageUrl = function() {
+  const url = prompt('Bild-URL einfügen (z.B. https://...jpg):');
+  if (url && url.trim()) {
+    if (!Array.isArray(state.master.images)) state.master.images = [];
+    state.master.images.unshift(url.trim());
+    save();
+    if (imagePickCallback) imagePickCallback(url.trim());
+    window.closeImagePicker();
+    toast('Bild-URL übernommen ✓');
+  }
+};
+
+let imagePickCallback = null;
+window.openNewImgPicker = function() { imagePickCallback = (url) => { const iv = g('imgValue'); if(iv) iv.value = url; const prev = g('imgPreview'); const lbl = g('imgLabel'); if(prev) prev.innerHTML = url ? `<img src="${url}" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">` : '🖼'; if(lbl) lbl.textContent = url ? 'Bild gewählt ✓' : 'Wählen…'; }; const iv = g('imgValue'); openImagePicker(iv ? iv.value : ''); };
+
+function openImagePicker(currentUrl='') {
+  const modal = g('imagePickerModal'); const list = g('imagePickerList'); if(!modal || !list) return;
+  const catImgs = (gVal('group') && gVal('productType') && state.master.catalog[gVal('group')]?.[gVal('productType')]?.images) || [];
+  const allImgs = [...new Set([...catImgs, ...(state.master.images||[])])];
+  const uploadTile = `<label class="img-pick-upload" style="border:2px dashed var(--primary); display:flex; flex-direction:column; align-items:center; justify-content:center; height:100px; border-radius:8px; cursor:pointer; background:var(--surface2); color:var(--primary); font-weight:bold; font-size:var(--text-xs);"><span style="font-size:1.5rem;">✚</span><span>Upload</span><input type="file" accept="image/*" style="display:none;" onchange="window.handleModalImageUpload(this.files[0])"></label>`;
+  list.innerHTML = uploadTile + (allImgs.length ? allImgs.map(u => `<button type="button" class="img-pick" data-url="${u.replace(/"/g,'&quot;')}" style="border:2px solid ${u===currentUrl?'#4caf50':'transparent'}"><img src="${u}" loading="lazy" style="width:100%;height:100px;object-fit:cover;border-radius:8px;"></button>`).join('') : '');
+  modal.style.display='flex'; modal.classList.add('show');
+}
+window.closeImagePicker = function() { const modal = g('imagePickerModal'); if(modal){ modal.classList.remove('show'); modal.style.display='none'; } };
+
+window.handleModalImageUpload = function(file) {
+  if (!file) return;
+  compressImage(file, url => {
+    if (!Array.isArray(state.master.images)) state.master.images = [];
+    state.master.images.unshift(url); save();
+    if (imagePickCallback) imagePickCallback(url);
+    window.closeImagePicker(); toast('Bild hochgeladen ✓');
+  });
+};
 
 // SET BADGES LOGIK
 window.currentEditBadgeIndex = null;
@@ -333,7 +432,12 @@ function renderAllQuick() {
     renderQChips('productType', typs, ptVal);
 
     let arts = [], sizes = [], colors = [];
-    if (grpVal && ptVal && cat[grpVal][ptVal]) { arts = cat[grpVal][ptVal].articles||[]; sizes = cat[grpVal][ptVal].sizes||[]; colors = cat[grpVal][ptVal].colors||[]; }
+    if (grpVal && ptVal && cat[grpVal] && cat[grpVal][ptVal]) { 
+      arts = Array.isArray(cat[grpVal][ptVal].articles) ? cat[grpVal][ptVal].articles : []; 
+      sizes = Array.isArray(cat[grpVal][ptVal].sizes) ? cat[grpVal][ptVal].sizes : []; 
+      colors = Array.isArray(cat[grpVal][ptVal].colors) ? cat[grpVal][ptVal].colors : []; 
+    }
+    
     if(g('article')) renderQChips('article', arts, gVal('article')); 
     if(g('size')) renderQChips('size', sizes, gVal('size')); 
     if(g('color')) renderQChips('color', colors, gVal('color'));
@@ -351,29 +455,6 @@ if(ifrm) {
 }
 
 function addOrStack(item) { const key = stackKey(item); const ex = state.open.find(i=>stackKey(i)===key); const inst = { id:uid(), image:item.image, comment:item.comment, defect:item.defect, entryDate:item.entryDate, profitshare:item.profitshare, purchasePrice:item.purchasePrice }; if (ex) { ex.instances.push(inst); } else { state.open.unshift({ id:uid(), group:item.group, productType:item.productType, article:item.article, size:item.size, color:item.color, purchasePrice:item.purchasePrice, profitshare:item.profitshare, instances:[inst] }); } }
-
-let imagePickCallback = null;
-window.openNewImgPicker = function() { imagePickCallback = (url) => { const iv = g('imgValue'); if(iv) iv.value = url; const prev = g('imgPreview'); const lbl = g('imgLabel'); if(prev) prev.innerHTML = url ? `<img src="${url}" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">` : '🖼'; if(lbl) lbl.textContent = url ? 'Bild gewählt ✓' : 'Wählen…'; }; const iv = g('imgValue'); openImagePicker(iv ? iv.value : ''); };
-
-function openImagePicker(currentUrl='') {
-  const modal = g('imagePickerModal'); const list = g('imagePickerList'); if(!modal || !list) return;
-  const catImgs = (gVal('group') && gVal('productType') && state.master.catalog[gVal('group')]?.[gVal('productType')]?.images) || [];
-  const allImgs = [...new Set([...catImgs, ...(state.master.images||[])])];
-  const uploadTile = `<label class="img-pick-upload" style="border:2px dashed var(--primary); display:flex; flex-direction:column; align-items:center; justify-content:center; height:100px; border-radius:8px; cursor:pointer; background:var(--surface2); color:var(--primary); font-weight:bold; font-size:var(--text-xs);"><span style="font-size:1.5rem;">✚</span><span>Upload</span><input type="file" accept="image/*" style="display:none;" onchange="window.handleModalImageUpload(this.files[0])"></label>`;
-  list.innerHTML = uploadTile + (allImgs.length ? allImgs.map(u => `<button type="button" class="img-pick" data-url="${u.replace(/"/g,'&quot;')}" style="border:2px solid ${u===currentUrl?'#4caf50':'transparent'}"><img src="${u}" loading="lazy" style="width:100%;height:100px;object-fit:cover;border-radius:8px;"></button>`).join('') : '');
-  modal.style.display='flex'; modal.classList.add('show');
-}
-window.closeImagePicker = function() { const modal = g('imagePickerModal'); if(modal){ modal.classList.remove('show'); modal.style.display='none'; } };
-
-window.handleModalImageUpload = function(file) {
-  if (!file) return;
-  compressImage(file, url => {
-    if (!Array.isArray(state.master.images)) state.master.images = [];
-    state.master.images.unshift(url); save();
-    if (imagePickCallback) imagePickCallback(url);
-    window.closeImagePicker(); toast('Bild hochgeladen ✓');
-  });
-};
 
 window.editItem = function(itemId) { const item = state.open.find(i=>i.id===itemId); if (!item) return; const newArticle = prompt('Artikelname:', item.article||''); if(newArticle === null) return; item.article = newArticle; save(); renderOpen(); };
 window.deleteItem = function(itemId) { if (!confirm('Artikel löschen?')) return; state.open = state.open.filter(i=>i.id!==itemId); save(); renderOpen(); };
@@ -640,7 +721,7 @@ window.deleteSoldSet = function(id) {
   save(); renderSold(); toast('Gelöscht ✓');
 };
 
-// INTELLIGENTE STATISTIK (ALLER 5 FILTER: Gruppe, Typ, Artikel, Größe, Farbe)
+// STATISTIK LOGIK
 window.onStatsFilterChange = function(type) {
   if (type === 'grp') { g('statsFilterTyp').value = ''; g('statsFilterArt').value = ''; g('statsFilterSize').value = ''; g('statsFilterCol').value = ''; }
   else if (type === 'typ') { g('statsFilterArt').value = ''; g('statsFilterSize').value = ''; g('statsFilterCol').value = ''; }
@@ -712,7 +793,6 @@ function renderStats() {
     ].map(c=>`<div class="stat-card"><div class="k">${c.k}</div><div class="v">${c.v}</div></div>`).join('');
   }
 
-  // Spezifikationsgenaue Auswertung
   const specStats = new Map();
 
   ys.forEach(s => {
@@ -756,7 +836,6 @@ function renderStats() {
     `;
   }
 
-  // TOP 5 RANKINGS GENERIEREN
   const trContainer = g('topRankings');
   if (trContainer) {
     if (sortedSpecsByCount.length > 0) {
@@ -783,7 +862,6 @@ function renderStats() {
     }
   }
 
-  // Monatsübersicht
   const monthMap = new Map();
   ys.forEach(set => {
     const sDate = set.saleDate || today(); const m = fmtMonth(sDate);
@@ -833,18 +911,48 @@ function renderStats() {
   }
 }
 
+// KALENDER & DIREKTE GOOGLE KALENDER ÖFFNUNG FÜR ANDROID
 function renderTermine() {
     const container = g('terminContent'); if (!container) return; if (!state.termine || state.termine.length === 0) { container.innerHTML = '<div class="empty">Keine Termine vorhanden.</div>'; return; }
-    const sorted = [...state.termine].sort((a,b) => new Date(`${a.datum}T${a.uhrzeit}:00`) - new Date(`${b.datum}T${b.uhrzeit}:00`)); 
+    
+    const sorted = [...state.termine].sort((a,b) => {
+      const dateA = new Date(`${a.datum}T${a.uhrzeit||'00:00'}:00`);
+      const dateB = new Date(`${b.datum}T${b.uhrzeit||'00:00'}:00`);
+      return dateB - dateA;
+    }); 
     
     container.innerHTML = sorted.map(t => {
       const isAbholung = t.art === 'Abholung';
       const color = isAbholung ? 'var(--err)' : 'var(--success)';
       const mapsUrl = t.ort ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(t.ort)}` : null;
 
-      return `<div class="card" style="margin-bottom:var(--sp3); border-left:4px solid ${color};"><div class="card-body" style="padding:var(--sp3);"><div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:var(--sp2);"><div><div style="font-size:var(--text-xs); color:${color}; font-weight:700;">${t.art}</div><h4 style="margin:2px 0 0; font-size:var(--text-base);">${esc(t.name)}</h4></div><div style="text-align:right;"><div style="font-weight:700;">${fmtDate(t.datum)}</div><div style="color:var(--muted); font-size:var(--text-sm);">${t.uhrzeit} Uhr</div></div></div><div class="chips" style="margin-bottom:var(--sp3);">${t.preis ? `<span class="chip">💰 ${esc(t.preis)}</span>` : ''}${mapsUrl ? `<a href="${mapsUrl}" target="_blank" class="chip" style="color:var(--primary); font-weight:700; text-decoration:underline;">📍 ${esc(t.ort)}</a>` : ''}${t.user ? `<span class="chip">👤 ${esc(t.user)}</span>` : ''}</div><button class="btn btn-danger" style="min-height:30px; padding:0; width:100%" onclick="window.deleteTermin('${t.id}')">🗑 Löschen</button></div></div>`;
+      return `<div class="card" style="margin-bottom:var(--sp3); border-left:4px solid ${color};"><div class="card-body" style="padding:var(--sp3);"><div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:var(--sp2);"><div><div style="font-size:var(--text-xs); color:${color}; font-weight:700;">${t.art}</div><h4 style="margin:2px 0 0; font-size:var(--text-base);">${esc(t.name)}</h4></div><div style="text-align:right;"><div style="font-weight:700;">${fmtDate(t.datum)}</div><div style="color:var(--muted); font-size:var(--text-sm);">${t.uhrzeit} Uhr</div></div></div><div class="chips" style="margin-bottom:var(--sp3);">${t.preis ? `<span class="chip">💰 ${esc(t.preis)}</span>` : ''}${mapsUrl ? `<a href="${mapsUrl}" target="_blank" class="chip" style="color:var(--primary); font-weight:700; text-decoration:underline;">📍 ${esc(t.ort)}</a>` : ''}${t.user ? `<span class="chip">👤 ${esc(t.user)}</span>` : ''}</div><div style="display:flex; gap:8px;"><button class="btn btn-ghost" style="flex:1;" onclick="window.addToCalendar('${t.id}')">📅 Google Kalender öffnen</button><button class="btn btn-danger" style="width:auto;" onclick="window.deleteTermin('${t.id}')">🗑</button></div></div></div>`;
     }).join('');
 }
+
+window.addToCalendar = function(id) {
+  const t = state.termine.find(x => x.id === id);
+  if (!t) return;
+
+  // Format Betreff: Art / Name Artikel / Preis
+  const title = `${t.art} / ${t.name}${t.preis ? ' / ' + t.preis : ''}`;
+  const dateClean = (t.datum || today()).replace(/-/g, '');
+  const [h, m] = (t.uhrzeit || '10:00').split(':').map(Number);
+  const startDT = `${dateClean}T${String(h).padStart(2,'0')}${String(m).padStart(2,'0')}00`;
+  
+  let endH = h, endM = m + 30;
+  if (endM >= 60) { endM -= 60; endH = (endH + 1) % 24; }
+  const endDT = `${dateClean}T${String(endH).padStart(2,'0')}${String(endM).padStart(2,'0')}00`;
+
+  const details = `${t.user ? 'Kleinanzeigen User: ' + t.user + '\n' : ''}${t.info ? 'Info: ' + t.info : ''}`;
+  const location = t.ort || '';
+
+  // Direktes URL-Schema für die Google Kalender Web/App
+  const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDT}/${endDT}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
+  
+  window.open(gCalUrl, '_blank');
+  toast('Google Kalender wird geöffnet 📅');
+};
 
 window.deleteTermin = function(id) { if(!confirm('Termin löschen?')) return; state.termine = state.termine.filter(t => t.id !== id); save(); renderTermine(); };
 function populateUhrzeit() { const sel = g('terminUhrzeit'); if (!sel) return; let html = '<option value="" disabled selected>Zeit wählen</option>'; for(let i=9; i<=23; i++) { let hour = i < 10 ? '0'+i : i; html += `<option value="${hour}:00">${hour}:00</option><option value="${hour}:30">${hour}:30</option>`; } sel.innerHTML = html; }
