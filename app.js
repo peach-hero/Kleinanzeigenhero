@@ -1,5 +1,5 @@
 // ==========================================
-// KLEINANZEIGEN HERO - APP.JS (v32.0 Local-First Shield & Safe Sync)
+// KLEINANZEIGEN HERO - APP.JS (v33.0 Colored Hierarchy & Visual Tabs)
 // ==========================================
 
 const g = id => document.getElementById(id);
@@ -80,13 +80,13 @@ function compressImage(file, callback) {
       img.onload = () => { 
         const canvas = document.createElement('canvas'); 
         let w = img.width, h = img.height; 
-        const MAX = 300; 
+        const MAX = 250; 
         if (w > h && w > MAX) { h = Math.round(h * MAX / w); w = MAX; } 
         else if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } 
         canvas.width = w; canvas.height = h; 
         const ctx = canvas.getContext('2d'); 
         ctx.drawImage(img, 0, 0, w, h); 
-        callback(canvas.toDataURL('image/jpeg', 0.5)); 
+        callback(canvas.toDataURL('image/jpeg', 0.45)); 
       }; 
       img.src = e.target.result; 
     }; 
@@ -141,7 +141,7 @@ function ensureCatalogIntegrity() {
   });
 }
 
-// SICHERER CLOUD-SYNC: MERGE STATT BLINDES ÜBERSCHREIBEN (MIT LÖSCH-FANGNETZ)
+// SICHERER CLOUD-SYNC (MERGE STATT ÜBERSCHREIBEN)
 async function autoLoadFromCloud() {
   const gasUrl = localStorage.getItem('gasUrl') || gVal('gasUrl');
   if (!gasUrl) return;
@@ -152,7 +152,6 @@ async function autoLoadFromCloud() {
     if (data && !data.error) {
       const delSet = new Set(state.deletedIds || []);
 
-      // 1. Verkäufe mergen (Niemals Verkäufe verlieren)
       const localSoldMap = new Map((state.sold || []).map(s => [s.id, s]));
       (data.sold || []).forEach(cloudSold => {
         if (!delSet.has(cloudSold.id)) {
@@ -163,7 +162,6 @@ async function autoLoadFromCloud() {
       });
       state.sold = Array.from(localSoldMap.values());
 
-      // 2. Offene Bestände mergen
       const localOpenMap = new Map((state.open || []).map(o => [o.id, o]));
       (data.open || []).forEach(cloudItem => {
         if (!delSet.has(cloudItem.id)) {
@@ -174,7 +172,6 @@ async function autoLoadFromCloud() {
       });
       state.open = Array.from(localOpenMap.values());
 
-      // 3. Stammdaten mergen
       if (data.master && typeof data.master === 'object') {
         if (data.master.groupLogos) state.master.groupLogos = Object.assign({}, data.master.groupLogos, state.master.groupLogos);
         if (data.master.typeLogos) state.master.typeLogos = Object.assign({}, data.master.typeLogos, state.master.typeLogos);
@@ -195,7 +192,7 @@ async function autoLoadFromCloud() {
       const timeStr = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
       toast(`☁️ Sicher mit Cloud synchronisiert (${timeStr} Uhr) ✓`);
     }
-  } catch(e) { console.log('Auto-Sync Offline / Nicht erreichbar'); }
+  } catch(e) { console.log('Auto-Sync Offline'); }
 }
 
 window.autoSaveToCloud = function() {
@@ -317,64 +314,73 @@ function applyState(d) {
   } catch(e) { console.error(e); }
 }
 
-function convertDriveUrl(url) {
-  if (!url) return '';
-  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (match && match[1]) {
-    return `https://lh3.googleusercontent.com/d/${match[1]}`;
-  }
-  return url;
-}
+// BILD-AUSWAHL MODAL
+window.openImagePicker = function(currentUrl='') {
+  const modal = g('imagePickerModal'); 
+  const list = g('imagePickerList'); 
+  if(!modal || !list) return;
+  const pool = Array.isArray(state.master.images) ? state.master.images : [];
+  
+  list.innerHTML = pool.length ? pool.map(u => `
+    <div class="img-pick-item" style="border-color:${u===currentUrl?'var(--primary)':'var(--border)'};" onclick="window.selectPoolImage('${safeJsStr(u)}')">
+      <img src="${u}" loading="lazy">
+    </div>`).join('') : '<div class="empty" style="grid-column:1/-1;">Noch keine Bilder im Bilderpool vorhanden.</div>';
 
-window.searchGoogleImages = function() {
-  const grp = gVal('group'); const typ = gVal('productType'); const art = gVal('article');
-  const query = [grp, typ, art].filter(Boolean).join(' ') || 'IKEA Besta';
-  window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(query)}`, '_blank');
+  modal.style.display = 'flex'; 
+  modal.classList.add('show');
 };
 
-window.pasteImageUrl = function() {
-  const input = prompt('Bild-URL oder Google Drive Link einfügen:');
-  if (input && input.trim()) {
-    const directUrl = convertDriveUrl(input.trim());
-    if (!Array.isArray(state.master.images)) state.master.images = [];
-    state.master.images.unshift(directUrl);
-    save();
-    if (imagePickCallback) imagePickCallback(directUrl);
-    window.closeImagePicker();
-    toast('Bild-URL übernommen ✓');
-  }
+window.closeImagePicker = function() { 
+  const modal = g('imagePickerModal'); 
+  if(modal){ modal.classList.remove('show'); modal.style.display = 'none'; } 
 };
 
-window.openNewImgPicker = function() { imagePickCallback = (url) => { const iv = g('imgValue'); if(iv) iv.value = url; const prev = g('imgPreview'); const lbl = g('imgLabel'); if(prev) prev.innerHTML = url ? `<img src="${url}" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">` : '🖼'; if(lbl) lbl.textContent = url ? 'Bild gewählt ✓' : 'Wählen…'; }; const iv = g('imgValue'); openImagePicker(iv ? iv.value : ''); };
+window.selectPoolImage = function(url) {
+  if (imagePickCallback) imagePickCallback(url);
+  window.closeImagePicker();
+};
 
-window.openSellSetImgPicker = function() { imagePickCallback = (url) => { const siv = g('sellSetImgValue'); if(siv) siv.value = url; const prev = g('sellSetImgPreview'); const lbl = g('sellSetImgLabel'); if(prev) prev.innerHTML = url ? `<img src="${url}" style="width:28px;height:28px;object-fit:cover;border-radius:6px;">` : '🖼️'; if(lbl) lbl.textContent = url ? 'Set-Bild gewählt ✓' : 'Set-Bild wählen…'; }; openImagePicker(gVal('sellSetImgValue'), true); };
-
-function openImagePicker(currentUrl='', isSetMode=false) {
-  const modal = g('imagePickerModal'); const list = g('imagePickerList'); if(!modal || !list) return;
-  const setImgs = state.master.setImages || [];
-  const allImgs = [...new Set([...(isSetMode ? setImgs : []), ...(state.master.images||[]), ...setImgs])];
-  const uploadTile = `<label class="img-pick-upload" style="border:2px dashed var(--primary); display:flex; flex-direction:column; align-items:center; justify-content:center; height:100px; border-radius:8px; cursor:pointer; background:var(--surface2); color:var(--primary); font-weight:bold; font-size:var(--text-xs);"><span style="font-size:1.5rem;">✚</span><span>Upload</span><input type="file" accept="image/*" style="display:none;" onchange="window.handleModalImageUpload(this.files[0], ${isSetMode})"></label>`;
-  list.innerHTML = uploadTile + (allImgs.length ? allImgs.map(u => `<button type="button" class="img-pick" data-url="${u.replace(/"/g,'&quot;')}" style="border:2px solid ${u===currentUrl?'#4caf50':'transparent'}"><img src="${u}" loading="lazy" style="width:100%;height:100px;object-fit:cover;border-radius:8px;"></button>`).join('') : '');
-  modal.style.display='flex'; modal.classList.add('show');
-}
-window.closeImagePicker = function() { const modal = g('imagePickerModal'); if(modal){ modal.classList.remove('show'); modal.style.display='none'; } };
-
-window.handleModalImageUpload = function(file, isSetMode=false) {
+window.handleSingleModalUpload = function(file) {
   if (!file) return;
   compressImage(file, url => {
-    if (isSetMode) {
-      if (!Array.isArray(state.master.setImages)) state.master.setImages = [];
-      state.master.setImages.unshift(url);
-    } else {
-      if (!Array.isArray(state.master.images)) state.master.images = [];
-      state.master.images.unshift(url);
-    }
+    if (!Array.isArray(state.master.images)) state.master.images = [];
+    state.master.images.unshift(url);
     save();
     if (imagePickCallback) imagePickCallback(url);
-    window.closeImagePicker(); toast('Bild hochgeladen ✓');
+    window.closeImagePicker();
+    toast('Bild hochgeladen ✓');
   });
 };
 
+window.handleBatchPoolUpload = function(files) {
+  if (!files || files.length === 0) return;
+  toast(`Lade ${files.length} Bild(er) hoch...`);
+  if (!Array.isArray(state.master.images)) state.master.images = [];
+  let loaded = 0;
+  Array.from(files).forEach(file => {
+    compressImage(file, url => {
+      state.master.images.unshift(url);
+      loaded++;
+      if (loaded === files.length) {
+        save();
+        window.renderMaster();
+        toast(`${loaded} Bilder zum Pool hinzugefügt ✓`);
+      }
+    });
+  });
+};
+
+window.openSellSetImgPicker = function() { 
+  imagePickCallback = (url) => { 
+    const siv = g('sellSetImgValue'); if(siv) siv.value = url; 
+    const prev = g('sellSetImgPreview'); const lbl = g('sellSetImgLabel'); 
+    if(prev) prev.innerHTML = url ? `<img src="${url}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;">` : '🖼️'; 
+    if(lbl) lbl.textContent = url ? 'Set-Bild gewählt ✓' : 'Set-Bild wählen…'; 
+  }; 
+  window.openImagePicker(gVal('sellSetImgValue')); 
+};
+
+// BILDER FÜR GRUPPE, PRODUKTTYP & ARTIKELNAME IN STAMMDATEN
 window.setGroupLogo = function(grp) {
   imagePickCallback = (url) => {
     if (!state.master.groupLogos) state.master.groupLogos = {};
@@ -382,7 +388,7 @@ window.setGroupLogo = function(grp) {
     save(); window.renderMaster(); window.renderAllQuick(); window.renderOpenFilters(); window.renderOpen();
     toast(`Bild für Gruppe "${grp}" gespeichert ✓`);
   };
-  openImagePicker('');
+  window.openImagePicker('');
 };
 
 window.setTypeLogo = function(grp, typ) {
@@ -392,7 +398,7 @@ window.setTypeLogo = function(grp, typ) {
     save(); window.renderMaster(); window.renderAllQuick(); window.renderOpenFilters(); window.renderOpen();
     toast(`Bild für Produkttyp "${typ}" gespeichert ✓`);
   };
-  openImagePicker('');
+  window.openImagePicker('');
 };
 
 window.setArticleLogo = function(grp, typ, art) {
@@ -402,7 +408,7 @@ window.setArticleLogo = function(grp, typ, art) {
     save(); window.renderMaster(); window.renderAllQuick(); window.renderOpenFilters(); window.renderOpen();
     toast(`Bild für Artikel "${art}" gespeichert ✓`);
   };
-  openImagePicker('');
+  window.openImagePicker('');
 };
 
 // SET BADGES
@@ -418,9 +424,9 @@ window.updateBadgeProdType = function() {
 window.openBadgeImgPicker = function() { 
   imagePickCallback = (url) => { 
     const nbi = g('newBadgeImg'); if(nbi) nbi.value = url; 
-    const bip = g('badgeImgPreview'); if(bip) bip.innerHTML = url ? `<img src="${url}" style="width:16px;height:16px;object-fit:cover;border-radius:4px;vertical-align:middle;">` : '📷'; 
+    const bip = g('badgeImgPreview'); if(bip) bip.innerHTML = url ? `<img src="${url}" style="width:24px;height:24px;object-fit:cover;border-radius:4px;vertical-align:middle;">` : '📷'; 
   }; 
-  const nbi = g('newBadgeImg'); openImagePicker(nbi ? nbi.value : ''); 
+  window.openImagePicker(gVal('newBadgeImg')); 
 };
 
 window.addBadgeRule = function() {
@@ -437,7 +443,7 @@ window.editBadgeRule = function(idx) {
     if (!Array.isArray(state.master.badgeRules) || !state.master.badgeRules[idx]) return; const rule = state.master.badgeRules[idx];
     const nbn = g('newBadgeName'); if(nbn) nbn.value = rule.name || ''; const nbg = g('newBadgeGroup'); if(nbg) nbg.value = rule.group || ''; window.updateBadgeProdType(); const nbpt = g('newBadgeProdType'); if(nbpt) nbpt.value = rule.productType || '';
     const reqsArr = Array.isArray(rule.reqs) ? rule.reqs : []; const nbreqs = g('newBadgeReqs'); if(nbreqs) nbreqs.value = reqsArr.map(r => `${r.size}x${r.qty}`).join(', ');
-    const nbi = g('newBadgeImg'); if(nbi) nbi.value = rule.image || ''; const bip = g('badgeImgPreview'); if(bip) bip.innerHTML = rule.image ? `<img src="${rule.image}" style="width:16px;height:16px;object-fit:cover;border-radius:4px;vertical-align:middle;">` : '📷';
+    const nbi = g('newBadgeImg'); if(nbi) nbi.value = rule.image || ''; const bip = g('badgeImgPreview'); if(bip) bip.innerHTML = rule.image ? `<img src="${rule.image}" style="width:24px;height:24px;object-fit:cover;border-radius:4px;vertical-align:middle;">` : '📷';
     window.currentEditBadgeIndex = idx; const bft = g('badgeFormTitle'); if(bft) bft.textContent = 'Regel bearbeiten'; const sbb = g('saveBadgeBtn'); if(sbb) sbb.innerHTML = '✓ Aktualisieren'; const cbb = g('cancelBadgeBtn'); if(cbb) cbb.style.display = 'inline-flex';
 };
 
@@ -583,7 +589,7 @@ window.renderMaster = function() {
       } else { html += `<div class="empty">Noch keine Gruppen angelegt.</div>`; }
       
       const imgs = Array.isArray(state.master.images) ? state.master.images : [];
-      html += `<div class="card" style="margin-bottom:var(--sp4);"><div class="card-head"><div style="display:flex;align-items:center;gap:8px;"><h3 class="card-title">🖼 Bilderpool</h3><span class="chip">${imgs.length}</span></div></div><div class="card-body"><div class="img-grid">${imgs.length ? imgs.map((url,i)=>`<div class="img-card" style="position:relative;"><img src="${url}" loading="lazy" style="width:100%;height:80px;object-fit:cover;"><button type="button" class="btn-icon-subtle danger" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.7);padding:2px 6px;" onclick="window.deleteMasterImage(${i})">🗑</button></div>`).join('') : '<div class="empty" style="grid-column:1/-1;">Noch keine Bilder.</div>'}</div></div></div>`;
+      html += `<div class="card" style="margin-bottom:var(--sp4);"><div class="card-head"><div style="display:flex;align-items:center;gap:8px;"><h3 class="card-title">🖼 Bilderpool</h3><span class="chip">${imgs.length}</span></div><label class="btn btn-primary" style="min-height:28px;padding:.2rem .6rem;font-size:var(--text-xs);width:auto;cursor:pointer;">📂 Mehrere Bilder hochladen<input type="file" accept="image/*" multiple style="display:none;" onchange="window.handleBatchPoolUpload(this.files)"></label></div><div class="card-body"><div class="img-grid-select">${imgs.length ? imgs.map((url,i)=>`<div class="img-pick-item" style="position:relative;"><img src="${url}" loading="lazy"><button type="button" class="btn-icon-subtle danger" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.7);padding:2px 6px;" onclick="window.deleteMasterImage(${i})">🗑</button></div>`).join('') : '<div class="empty" style="grid-column:1/-1;">Noch keine Bilder im Bilderpool. Lade oben Bilder hoch.</div>'}</div></div></div>`;
       
       const safeBadgeRules = Array.isArray(state.master.badgeRules) ? state.master.badgeRules : [];
       html += `<div class="card" style="margin-bottom:var(--sp4);"><div class="card-head"><h3 class="card-title">🏆 Set Badges (Regeln)</h3></div><div class="card-body"><div id="badgeRulesList" style="margin-bottom:var(--sp3);">${safeBadgeRules.map((r, i) => { const reqsArr = Array.isArray(r.reqs) ? r.reqs : []; return `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--divider); padding:var(--sp2) 0;"><div style="display:flex; gap:12px; align-items:center;">${r.image ? `<img src="${r.image}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border);flex-shrink:0;">` : `<div style="width:40px;height:40px;border-radius:6px;border-style:dashed;border-color:var(--border);display:grid;place-items:center;color:var(--muted);flex-shrink:0;">📷</div>`}<div><b style="font-size:var(--text-base);">${esc(r.name)}</b> <span style="color:var(--muted); font-size:var(--text-xs);">(${esc(r.group)} · ${esc(r.productType)})</span><br><span style="font-size:var(--text-sm); font-weight:600; color:var(--primary);">${reqsArr.map(req => `${req.qty||1}x Gr. ${esc(req.size)}`).join(', ')}</span></div></div><div style="display:flex; gap:4px;"><button type="button" class="btn-icon-subtle" onclick="window.editBadgeRule(${i})" title="Bearbeiten">✏️</button><button type="button" class="btn-icon-subtle danger" onclick="window.deleteBadgeRule(${i})" title="Löschen">🗑️</button></div></div>`; }).join('') || '<div class="empty">Keine Regeln definiert.</div>'}</div><div style="background:var(--surface2); padding:var(--sp3); border-radius:var(--rad-md); border:1px solid var(--border);"><h4 id="badgeFormTitle" style="font-size:var(--text-sm); margin:0 0 var(--sp2);">Neue Regel erstellen</h4><div class="grid2" style="gap:8px;"><input type="text" class="input" id="newBadgeName" placeholder="Name (z.B. TV 180)"><select class="select" id="newBadgeGroup" onchange="window.updateBadgeProdType()"><option value="">– Gruppe wählen –</option>${groups.map(grp => `<option value="${esc(grp)}">${esc(grp)}</option>`).join('')}</select><select class="select" id="newBadgeProdType"><option value="">– Produkttyp –</option></select><input type="text" class="input" id="newBadgeReqs" placeholder="Bedarf (z.B. 64x2, 38x1)"></div><div style="display:flex; gap:8px; margin-top:8px; align-items:center;"><button type="button" class="btn btn-ghost" style="padding:4px 10px; min-height:32px; font-size:var(--text-xs);" onclick="window.openBadgeImgPicker()"><span id="badgeImgPreview">📷</span> Beispielbild</button><input type="hidden" id="newBadgeImg"></div><div style="display:flex; gap:8px; margin-top:var(--sp3);"><button type="button" id="saveBadgeBtn" class="btn btn-primary" style="flex:1;" onclick="window.addBadgeRule()">✚ Regel speichern</button><button type="button" id="cancelBadgeBtn" class="btn btn-ghost" style="display:none;" onclick="window.cancelEditBadgeRule()">Abbrechen</button></div></div></div></div>`;
@@ -675,6 +681,11 @@ function renderQChips(type, items, currentVal) {
     const isBig = (type === 'group' || type === 'productType');
     const selGrp = gVal('group');
 
+    let lvlClass = 'lvl-grp';
+    if (type === 'productType') lvlClass = 'lvl-typ';
+    if (type === 'article') lvlClass = 'lvl-art';
+    if (type === 'size' || type === 'color') lvlClass = 'lvl-var';
+
     let h = safeItems.map(val => {
         if(val == null) return ''; const strVal = String(val); const isActive = (strVal === String(currentVal||''));
         const safeParam = safeJsStr(strVal);
@@ -686,11 +697,11 @@ function renderQChips(type, items, currentVal) {
           logo = `<img src="${state.master.typeLogos[`${selGrp}||${strVal}`]}" class="grp-logo-xl">`;
         }
         
-        const chipClass = isBig ? 'qb-chip qb-chip-xl' : 'qb-chip';
+        const chipClass = isBig ? `qb-chip qb-chip-xl ${lvlClass}` : `qb-chip ${lvlClass}`;
 
         return `<div class="${chipClass} ${isActive ? 'active' : ''}" onclick="window.handleQuickSelect('${type}', '${safeParam}')">${logo}<span>${esc(strVal)}</span><span class="qb-rm" onclick="event.stopPropagation(); window.removeQuick('${type}', '${safeParam}')">×</span></div>`;
     }).join('');
-    h += `<button type="button" class="qb-chip ${isBig?'qb-chip-xl':''} qb-add" onclick="window.addQuick('${type}')">✚ Neu</button>`; c.innerHTML = h;
+    h += `<button type="button" class="qb-chip ${isBig?'qb-chip-xl':''} ${lvlClass} qb-add" onclick="window.addQuick('${type}')">✚ Neu</button>`; c.innerHTML = h;
 }
 
 // STRIKTE ARTIKEL-GEBUNDENE FILTERUNG BEI NEUERFASSUNG
@@ -764,6 +775,7 @@ if(ifrm) {
 function addOrStack(item) { const key = stackKey(item); const ex = state.open.find(i=>stackKey(i)===key); const inst = { id:uid(), image:'', comment:item.comment, defect:item.defect, entryDate:item.entryDate, profitshare:item.profitshare, purchasePrice:item.purchasePrice }; if (ex) { ex.instances.push(inst); } else { state.open.unshift({ id:uid(), group:item.group, productType:item.productType, article:item.article, size:item.size, color:item.color, purchasePrice:item.purchasePrice, profitshare:item.profitshare, instances:[inst] }); } }
 
 window.editItem = function(itemId) { const item = state.open.find(i=>i.id===itemId); if (!item) return; const newArticle = prompt('Artikelname:', item.article||''); if(newArticle === null) return; item.article = newArticle; save(); window.renderOpen(); };
+
 window.deleteItem = function(itemId) { 
   if (!confirm('Artikel löschen?')) return; 
   if (!state.deletedIds) state.deletedIds = [];
@@ -772,6 +784,7 @@ window.deleteItem = function(itemId) {
   save(); 
   window.renderOpen(); 
 };
+
 window.editEK = function(itemId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; const val = prompt('EK Preis (€):', item.purchasePrice||0); if(val === null) return; const price = parseFloat(val.replace(',','.')) || 0; item.instances.forEach(inst => inst.purchasePrice = price); save(); window.renderOpen(); };
 window.toggleItemProfitshare = function(itemId) { const item = state.open.find(i=>i.id===itemId); if(!item) return; const newVal = !item.instances.some(x=>x.profitshare); item.instances.forEach(x=>x.profitshare = newVal); save(); window.renderOpen(); };
 window.changeQty = function(itemId, delta) { const item = state.open.find(i=>i.id===itemId); if(!item) return; if(delta > 0) { item.instances.push({ id: uid(), purchasePrice: item.instances[0]?.purchasePrice||0, profitshare: false, entryDate: today() }); } else if(item.instances.length > 0) { item.instances.pop(); } save(); window.renderOpen(); };
@@ -809,31 +822,34 @@ window.toggleGrp = function(el) {
 };
 
 // ==========================================
-// BESTAND FILTER CHIPS
+// BESTAND FILTER CHIPS (FARBLICH DIFFERENZIERT)
 // ==========================================
 window.renderOpenFilters = function() {
   const f = state.openFilters;
   const cat = state.master.catalog || {};
   
+  // 1. Gruppen
   const grpContainer = g('qb-open-group');
   if (grpContainer) {
     grpContainer.innerHTML = Object.keys(cat).sort(sortKeys).map(grp => {
       const isActive = f.group === grp;
       const logo = (state.master.groupLogos && state.master.groupLogos[grp]) ? `<img src="${state.master.groupLogos[grp]}" class="grp-logo-thumb">` : '';
-      return `<div class="qb-chip ${isActive?'active':''}" onclick="window.handleOpenFilterChip('group', '${safeJsStr(grp)}')">${logo}<span>${esc(grp)}</span></div>`;
+      return `<div class="qb-chip lvl-grp ${isActive?'active':''}" onclick="window.handleOpenFilterChip('group', '${safeJsStr(grp)}')">${logo}<span>${esc(grp)}</span></div>`;
     }).join('');
   }
 
+  // 2. Produkttypen
   const fpt = g('open-field-productType'); 
   if(fpt) fpt.style.display = f.group ? 'grid' : 'none';
   const typContainer = g('qb-open-productType');
   if (typContainer && f.group && cat[f.group]) {
     typContainer.innerHTML = Object.keys(cat[f.group]).sort(sortKeys).map(t => {
       const typLogo = (state.master.typeLogos && state.master.typeLogos[`${f.group}||${t}`]) ? `<img src="${state.master.typeLogos[`${f.group}||${t}`]}" class="grp-logo-thumb">` : '';
-      return `<div class="qb-chip ${f.type===t?'active':''}" onclick="window.handleOpenFilterChip('type', '${safeJsStr(t)}')">${typLogo}<span>${esc(t)}</span></div>`;
+      return `<div class="qb-chip lvl-typ ${f.type===t?'active':''}" onclick="window.handleOpenFilterChip('type', '${safeJsStr(t)}')">${typLogo}<span>${esc(t)}</span></div>`;
     }).join('');
   }
 
+  // 3. Artikelnamen
   let arts = [];
   if (f.group && f.type && cat[f.group] && cat[f.group][f.type]) {
     arts = Array.isArray(cat[f.group][f.type].articles) ? cat[f.group][f.type].articles : [];
@@ -844,10 +860,11 @@ window.renderOpenFilters = function() {
   if (artContainer && f.group && f.type) {
     artContainer.innerHTML = arts.map(a => {
       const artLogo = (state.master.articleLogos && state.master.articleLogos[`${f.group}||${f.type}||${a}`]) ? `<img src="${state.master.articleLogos[`${f.group}||${f.type}||${a}`]}" class="grp-logo-thumb">` : '';
-      return `<div class="qb-chip ${f.article===a?'active':''}" onclick="window.handleOpenFilterChip('article', '${safeJsStr(a)}')">${artLogo}<span>${esc(a)}</span></div>`;
+      return `<div class="qb-chip lvl-art ${f.article===a?'active':''}" onclick="window.handleOpenFilterChip('article', '${safeJsStr(a)}')">${artLogo}<span>${esc(a)}</span></div>`;
     }).join('');
   }
 
+  // 4. Größen & Farben
   const needsArticle = arts.length > 0;
   const showSizeColor = f.group && f.type && (!needsArticle || f.article);
   const fsc = g('open-field-size-color');
@@ -873,13 +890,13 @@ window.renderOpenFilters = function() {
   const szContainer = g('qb-open-size');
   if (szContainer && showSizeColor) {
     szContainer.innerHTML = sizes.map(s => {
-      return `<div class="qb-chip ${f.size===s?'active':''}" onclick="window.handleOpenFilterChip('size', '${safeJsStr(s)}')"><span>Gr. ${esc(s)}</span></div>`;
+      return `<div class="qb-chip lvl-var ${f.size===s?'active':''}" onclick="window.handleOpenFilterChip('size', '${safeJsStr(s)}')"><span>Gr. ${esc(s)}</span></div>`;
     }).join('');
   }
   const colContainer = g('qb-open-color');
   if (colContainer && showSizeColor) {
     colContainer.innerHTML = colors.map(c => {
-      return `<div class="qb-chip ${f.color===c?'active':''}" onclick="window.handleOpenFilterChip('color', '${safeJsStr(c)}')"><span>${esc(c)}</span></div>`;
+      return `<div class="qb-chip lvl-var ${f.color===c?'active':''}" onclick="window.handleOpenFilterChip('color', '${safeJsStr(c)}')"><span>${esc(c)}</span></div>`;
     }).join('');
   }
 };
@@ -900,7 +917,7 @@ window.handleOpenFilterChip = function(type, val) {
 };
 
 // ==========================================
-// BESTAND BAUM-ANSICHT
+// BESTAND BAUM-ANSICHT (MIT VISUELLEN EBENEN-FARBEN)
 // ==========================================
 window.renderOpen = function() {
   updateZeroToggleUI();
@@ -1003,15 +1020,16 @@ window.renderOpen = function() {
             let inlineChipsHtml = '<div style="display:inline-flex; gap:4px; margin-left:8px; flex-wrap:wrap;">';
             artAvailSizes.forEach(s => {
               const isActive = state.openFilters.size === s;
-              inlineChipsHtml += `<span class="inline-filter-chip ${isActive?'active':''}" onclick="event.stopPropagation(); window.setInlineFilter('size', '${safeJsStr(s)}')">Gr. ${esc(s)}</span>`;
+              inlineChipsHtml += `<span class="inline-filter-chip ${isActive?'active':''}" style="border-color:rgba(245,158,11,0.4);" onclick="event.stopPropagation(); window.setInlineFilter('size', '${safeJsStr(s)}')">Gr. ${esc(s)}</span>`;
             });
             artAvailColors.forEach(c => {
               const isActive = state.openFilters.color === c;
-              inlineChipsHtml += `<span class="inline-filter-chip ${isActive?'active':''}" onclick="event.stopPropagation(); window.setInlineFilter('color', '${safeJsStr(c)}')">${esc(c)}</span>`;
+              inlineChipsHtml += `<span class="inline-filter-chip ${isActive?'active':''}" style="border-color:rgba(245,158,11,0.4);" onclick="event.stopPropagation(); window.setInlineFilter('color', '${safeJsStr(c)}')">${esc(c)}</span>`;
             });
             inlineChipsHtml += '</div>';
 
-            ptHtml += `<div style="margin-bottom:var(--sp3); margin-left:var(--sp2);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="${aKey}" style="cursor:pointer;"><div style="display:flex; align-items:center; flex-wrap:nowrap;">${artLogo?`<img src="${artLogo}" class="tree-thumb">`:''}<h4 class="group-title" style="font-size:1.15rem; color:#ffffff; font-weight:700;">${isOpen(aKey) ? "▼" : "▶"} ${esc(art)} <span style="font-weight:normal; color:var(--muted); font-size:var(--text-xs);">(${artTotal} Stk)</span></h4>${inlineChipsHtml}</div></div><div class="grp-body" data-body="${aKey}" style="display:${isOpen(aKey) ? "block" : "none"}">${colHtmlMaster}</div></div>`;
+            // ARTIELEBENE (BERNSTEIN/GOLD)
+            ptHtml += `<div style="margin-bottom:var(--sp3); margin-left:var(--sp2);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="${aKey}" style="cursor:pointer; border-left:4px solid var(--c-art-border); background:var(--c-art-bg); border-radius:8px;"><div style="display:flex; align-items:center; flex-wrap:nowrap;">${artLogo?`<img src="${artLogo}" class="tree-thumb">`:''}<h4 class="group-title" style="font-size:1.15rem; color:#fef3c7; font-weight:700;">${isOpen(aKey) ? "▼" : "▶"} ${esc(art)} <span style="font-weight:normal; color:var(--muted); font-size:var(--text-xs);">(${artTotal} Stk)</span></h4>${inlineChipsHtml}</div></div><div class="grp-body" data-body="${aKey}" style="display:${isOpen(aKey) ? "block" : "none"}">${colHtmlMaster}</div></div>`;
           }
         }
       }); 
@@ -1022,21 +1040,23 @@ window.renderOpen = function() {
         let inlineChipsHtml = '<div style="display:inline-flex; gap:4px; margin-left:8px; flex-wrap:wrap;">';
         ptAvailSizes.forEach(s => {
           const isActive = state.openFilters.size === s;
-          inlineChipsHtml += `<span class="inline-filter-chip ${isActive?'active':''}" onclick="event.stopPropagation(); window.setInlineFilter('size', '${safeJsStr(s)}')">Gr. ${esc(s)}</span>`;
+          inlineChipsHtml += `<span class="inline-filter-chip ${isActive?'active':''}" style="border-color:rgba(99,102,241,0.4);" onclick="event.stopPropagation(); window.setInlineFilter('size', '${safeJsStr(s)}')">Gr. ${esc(s)}</span>`;
         });
         ptAvailColors.forEach(c => {
           const isActive = state.openFilters.color === c;
-          inlineChipsHtml += `<span class="inline-filter-chip ${isActive?'active':''}" onclick="event.stopPropagation(); window.setInlineFilter('color', '${safeJsStr(c)}')">${esc(c)}</span>`;
+          inlineChipsHtml += `<span class="inline-filter-chip ${isActive?'active':''}" style="border-color:rgba(99,102,241,0.4);" onclick="event.stopPropagation(); window.setInlineFilter('color', '${safeJsStr(c)}')">${esc(c)}</span>`;
         });
         inlineChipsHtml += '</div>';
 
-        grpHtml += `<div style="margin-bottom:var(--sp4); margin-left:var(--sp2);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="${pKey}" style="cursor:pointer;"><div style="display:flex; align-items:center; flex-wrap:nowrap;">${ptLogo?`<img src="${ptLogo}" class="tree-thumb">`:''}<h3 class="group-title" style="font-size:1.2rem; color:#ffffff; font-weight:700;">${isOpen(pKey) ? "▼" : "▶"} 🏷 ${esc(pt)} <span style="font-weight:normal; color:var(--muted); font-size:var(--text-xs);">(${ptTotal} Stk)</span></h3>${inlineChipsHtml}</div></div><div class="grp-body" data-body="${pKey}" style="display:${isOpen(pKey) ? "block" : "none"}">${ptHtml}</div></div>`;
+        // PRODUKTTYP-EBENE (INDIGO/VIOLETT)
+        grpHtml += `<div style="margin-bottom:var(--sp4); margin-left:var(--sp2);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="${pKey}" style="cursor:pointer; border-left:4px solid var(--c-typ-border); background:var(--c-typ-bg); border-radius:8px;"><div style="display:flex; align-items:center; flex-wrap:nowrap;">${ptLogo?`<img src="${ptLogo}" class="tree-thumb">`:''}<h3 class="group-title" style="font-size:1.2rem; color:#e0e7ff; font-weight:700;">${isOpen(pKey) ? "▼" : "▶"} 🏷 ${esc(pt)} <span style="font-weight:normal; color:var(--muted); font-size:var(--text-xs);">(${ptTotal} Stk)</span></h3>${inlineChipsHtml}</div></div><div class="grp-body" data-body="${pKey}" style="display:${isOpen(pKey) ? "block" : "none"}">${ptHtml}</div></div>`;
       }
     }); 
 
     if (grpHtml) {
       const gKey = 'g_' + hashStr(grp);
-      html += `<div style="margin-bottom:var(--sp6);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="${gKey}" style="cursor:pointer;"><div style="display:flex;align-items:center; flex-wrap:nowrap;">${grpLogo ? `<img src="${grpLogo}" class="grp-header-logo">` : ''}<h2 class="group-title" style="font-size:1.45rem; color:#ffffff; font-weight:800;">${isOpen(gKey) ? "▼" : "▶"} ${esc(grp)} <span style="font-weight:normal; color:var(--muted); font-size:var(--text-sm);">(${grpTotal} Stk)</span></h2></div><span class="chip stack">${grpTotal} Stk</span></div><div class="grp-body" data-body="${gKey}" style="display:${isOpen(gKey) ? "block" : "none"}">${grpHtml}</div></div>`;
+      // GRUPPEN-EBENE (PETROL/CYAN)
+      html += `<div style="margin-bottom:var(--sp6);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="${gKey}" style="cursor:pointer; border-left:4px solid var(--c-grp-border); background:var(--c-grp-bg); border-radius:8px;"><div style="display:flex;align-items:center; flex-wrap:nowrap;">${grpLogo ? `<img src="${grpLogo}" class="grp-header-logo">` : ''}<h2 class="group-title" style="font-size:1.45rem; color:#f0f9ff; font-weight:800;">${isOpen(gKey) ? "▼" : "▶"} ${esc(grp)} <span style="font-weight:normal; color:var(--muted); font-size:var(--text-sm);">(${grpTotal} Stk)</span></h2></div><span class="chip stack" style="background:var(--c-grp); color:#fff;">${grpTotal} Stk</span></div><div class="grp-body" data-body="${gKey}" style="display:${isOpen(gKey) ? "block" : "none"}">${grpHtml}</div></div>`;
     }
   });
   oc.innerHTML = html || '<div class="empty">Keine Treffer.</div>';
@@ -1061,7 +1081,7 @@ window.renderSellQuick = function() {
     grpContainer.innerHTML = availGroups.map(grp => {
       const isActive = sel.group === grp;
       const logo = (state.master.groupLogos && state.master.groupLogos[grp]) ? `<img src="${state.master.groupLogos[grp]}" class="grp-logo-thumb">` : '';
-      return `<div class="qb-chip ${isActive?'active':''}" onclick="window.handleSellChipSelect('group', '${safeJsStr(grp)}')">${logo}<span>${esc(grp)}</span></div>`;
+      return `<div class="qb-chip lvl-grp ${isActive?'active':''}" onclick="window.handleSellChipSelect('group', '${safeJsStr(grp)}')">${logo}<span>${esc(grp)}</span></div>`;
     }).join('') || '<span class="muted" style="font-size:var(--text-xs);">Keine Artikel vorrätig</span>';
   }
 
@@ -1072,7 +1092,7 @@ window.renderSellQuick = function() {
   if (typContainer && sel.group) {
     typContainer.innerHTML = availTypes.map(t => {
       const typLogo = (state.master.typeLogos && state.master.typeLogos[`${sel.group}||${t}`]) ? `<img src="${state.master.typeLogos[`${sel.group}||${t}`]}" class="grp-logo-thumb">` : '';
-      return `<div class="qb-chip ${sel.type===t?'active':''}" onclick="window.handleSellChipSelect('type', '${safeJsStr(t)}')">${typLogo}<span>${esc(t)}</span></div>`;
+      return `<div class="qb-chip lvl-typ ${sel.type===t?'active':''}" onclick="window.handleSellChipSelect('type', '${safeJsStr(t)}')">${typLogo}<span>${esc(t)}</span></div>`;
     }).join('') || '<span class="muted" style="font-size:var(--text-xs);">Keine Typen</span>';
   }
 
@@ -1083,7 +1103,7 @@ window.renderSellQuick = function() {
   if (artContainer && sel.group && sel.type) {
     artContainer.innerHTML = availArticles.map(a => {
       const artLogo = (state.master.articleLogos && state.master.articleLogos[`${sel.group}||${sel.type}||${a}`]) ? `<img src="${state.master.articleLogos[`${sel.group}||${sel.type}||${a}`]}" class="grp-logo-thumb">` : '';
-      return `<div class="qb-chip ${sel.article===a?'active':''}" onclick="window.handleSellChipSelect('article', '${safeJsStr(a)}')">${artLogo}<span>${esc(a)}</span></div>`;
+      return `<div class="qb-chip lvl-art ${sel.article===a?'active':''}" onclick="window.handleSellChipSelect('article', '${safeJsStr(a)}')">${artLogo}<span>${esc(a)}</span></div>`;
     }).join('') || '<span class="muted" style="font-size:var(--text-xs);">Keine Artikel</span>';
   }
 
@@ -1095,13 +1115,13 @@ window.renderSellQuick = function() {
   const szContainer = g('qb-sell-size');
   if (szContainer && sel.group && sel.type) {
     szContainer.innerHTML = availSizes.map(s => {
-      return `<div class="qb-chip ${sel.size===s?'active':''}" onclick="window.handleSellChipSelect('size', '${safeJsStr(s)}')"><span>Gr. ${esc(s)}</span></div>`;
+      return `<div class="qb-chip lvl-var ${sel.size===s?'active':''}" onclick="window.handleSellChipSelect('size', '${safeJsStr(s)}')"><span>Gr. ${esc(s)}</span></div>`;
     }).join('') || '<span class="muted" style="font-size:var(--text-xs);">–</span>';
   }
   const colContainer = g('qb-sell-color');
   if (colContainer && sel.group && sel.type) {
     colContainer.innerHTML = availColors.map(c => {
-      return `<div class="qb-chip ${sel.color===c?'active':''}" onclick="window.handleSellChipSelect('color', '${safeJsStr(c)}')"><span>${esc(c)}</span></div>`;
+      return `<div class="qb-chip lvl-var ${sel.color===c?'active':''}" onclick="window.handleSellChipSelect('color', '${safeJsStr(c)}')"><span>${esc(c)}</span></div>`;
     }).join('') || '<span class="muted" style="font-size:var(--text-xs);">–</span>';
   }
 
@@ -1274,6 +1294,53 @@ window.executeSale = function() {
   save(); toast('Verkauft ✓'); state.page='sold'; window.render();
 };
 
+window.editSoldImage = function(id) {
+  const set = state.sold.find(s => s.id === id);
+  if (!set) return;
+  imagePickCallback = (url) => {
+    set.previewImage = url;
+    save();
+    window.renderSold();
+    toast('Verkaufs-Bild aktualisiert ✓');
+  };
+  window.openImagePicker(set.previewImage || '');
+};
+
+window.editSoldName = function(id) {
+  const set = state.sold.find(s => s.id === id);
+  if (!set) return;
+  const newName = prompt('Name / Set-Name bearbeiten:', set.setName || '');
+  if (newName !== null) {
+    set.setName = newName.trim() || 'Unbenanntes Set';
+    save();
+    window.renderSold();
+    toast('Name aktualisiert ✓');
+  }
+};
+
+window.editSoldPrice = function(id) {
+  const set = state.sold.find(s => s.id === id);
+  if (!set) return;
+  const newPriceStr = prompt('Verkaufspreis (€):', set.salePrice || 0);
+  if (newPriceStr !== null) {
+    const newPrice = parseFloat(newPriceStr.replace(',', '.')) || 0;
+    set.salePrice = newPrice;
+    const rawProfit = newPrice - (set.purchaseTotal || 0);
+    set.netProfit = set.hasProfitshare ? rawProfit * 0.5 : rawProfit;
+    save();
+    window.renderSold();
+    toast('Preis & Gewinn aktualisiert ✓');
+  }
+};
+
+window.deleteSoldSet = function(id) {
+  if (!confirm('Verkaufte Position löschen?')) return;
+  if (!state.deletedIds) state.deletedIds = [];
+  state.deletedIds.push(id);
+  state.sold = state.sold.filter(s => s.id !== id);
+  save(); window.renderSold(); toast('Gelöscht ✓');
+};
+
 window.renderSold = function() {
   const sf = g('soldSearch'); const needle = sf ? sf.value.trim().toLowerCase() : '';
   const sets = needle ? state.sold.filter(s=>(s.setName||'').toLowerCase().includes(needle)) : state.sold;
@@ -1331,14 +1398,6 @@ window.renderSold = function() {
       </div>
     </div>`;
   }).join('');
-};
-
-window.deleteSoldSet = function(id) {
-  if (!confirm('Verkaufte Position löschen?')) return;
-  if (!state.deletedIds) state.deletedIds = [];
-  state.deletedIds.push(id);
-  state.sold = state.sold.filter(s => s.id !== id);
-  save(); window.renderSold(); toast('Gelöscht ✓');
 };
 
 // STATISTIK LOGIK
@@ -1531,7 +1590,7 @@ window.renderStats = function() {
   }
 };
 
-// KALENDER & DIREKTE GOOGLE KALENDER ÖFFNUNG FÜR ANDROID
+// KALENDER LOGIK
 window.renderTermine = function() {
     const container = g('terminContent'); if (!container) return; if (!state.termine || state.termine.length === 0) { container.innerHTML = '<div class="empty">Keine Termine vorhanden.</div>'; return; }
     
@@ -1580,6 +1639,7 @@ window.deleteTermin = function(id) {
   save(); 
   window.renderTermine(); 
 };
+
 function populateUhrzeit() { const sel = g('terminUhrzeit'); if (!sel) return; let html = '<option value="" disabled selected>Zeit wählen</option>'; for(let i=9; i<=23; i++) { let hour = i < 10 ? '0'+i : i; html += `<option value="${hour}:00">${hour}:00</option><option value="${hour}:30">${hour}:30</option>`; } sel.innerHTML = html; }
 
 const tfrm = g('terminForm');
@@ -1595,8 +1655,6 @@ document.addEventListener('click', e => {
     else { if (state.master.catalog[grp] && state.master.catalog[grp][typ] && state.master.catalog[grp][typ][key]) { state.master.catalog[grp][typ][key].splice(+idx, 1); } }
     save(); window.updateMasterForm(); window.renderAllQuick(); window.renderMaster(); return;
   }
-  const imgPickBtn = el.closest('.img-pick'); if(imgPickBtn) { if(imagePickCallback) imagePickCallback(imgPickBtn.dataset.url); window.closeImagePicker(); return; }
-  const nb = el.closest('[data-page]'); if (nb) { state.page = nb.dataset.page; window.render(); }
 });
 
 const sy = g('statsYear'); if (sy) { sy.addEventListener('change', e=>{ state.year=e.target.value; window.renderStats(); }); }

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Kleinanzeigen Hero</title>
 
+  <!-- PWA Manifest & App Icons -->
   <link rel="manifest" href="./manifest.json">
   <meta name="apple-mobile-web-app-title" content="Kleinanzeigen Hero">
   <link rel="apple-touch-icon" href="./icon-192.png">
@@ -32,6 +33,23 @@
       --err: #f85149;
       --warn: #d29922;
       --success: #3fb950;
+      
+      /* Visuelle Ebenen-Farben */
+      --c-grp: #01696f;
+      --c-grp-border: #0ea5e9;
+      --c-grp-bg: rgba(14, 165, 233, 0.12);
+
+      --c-typ: #4f46e5;
+      --c-typ-border: #818cf8;
+      --c-typ-bg: rgba(99, 102, 241, 0.12);
+
+      --c-art: #b45309;
+      --c-art-border: #f59e0b;
+      --c-art-bg: rgba(245, 158, 11, 0.12);
+
+      --c-var: #059669;
+      --c-var-border: #34d399;
+      --c-var-bg: rgba(16, 185, 129, 0.12);
       
       --rad-sm: 6px;
       --rad-md: 10px;
@@ -108,8 +126,8 @@
     .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
     .btn-danger { background: rgba(248, 81, 73, 0.15); color: var(--err); border: 1px solid rgba(248, 81, 73, 0.3); }
 
-    /* Profitshare Toggle Button */
-    .ps-badge-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; font-size: var(--text-xs); color: var(--muted); cursor: pointer; transition: all 0.15s; user-select: none; font-weight: 700; }
+    /* Profitshare Toggle */
+    .ps-badge-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; font-size: var(--text-xs); color: var(--muted); cursor: pointer; transition: all 0.15s; user-select: none; font-weight: 700; }
     .ps-badge-btn.active { background: rgba(1, 105, 111, 0.3); border-color: var(--primary); color: #23b2b8; }
 
     /* Chips */
@@ -118,12 +136,31 @@
     .chip.days { background: rgba(1, 105, 111, 0.25); border-color: var(--primary); color: #23b2b8; font-weight: 700; }
     .chip.stack { background: rgba(1, 105, 111, 0.15); border-color: var(--primary); color: #23b2b8; font-weight: 700; }
 
-    .qb-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--rad-sm); font-size: var(--text-sm); cursor: pointer; user-select: none; }
-    .qb-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .qb-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--rad-sm); font-size: var(--text-sm); cursor: pointer; user-select: none; transition: all 0.15s; }
     .qb-chip .qb-rm { margin-left: 4px; color: var(--muted); font-size: 14px; }
     .qb-add { border-style: dashed; }
 
-    /* Logos */
+    /* Farbige Chip-Varianten */
+    .qb-chip.lvl-grp { border-color: rgba(14, 165, 233, 0.35); }
+    .qb-chip.lvl-grp.active { background: var(--c-grp); color: #fff; border-color: var(--c-grp-border); box-shadow: 0 0 10px rgba(14, 165, 233, 0.3); }
+
+    .qb-chip.lvl-typ { border-color: rgba(99, 102, 241, 0.35); }
+    .qb-chip.lvl-typ.active { background: var(--c-typ); color: #fff; border-color: var(--c-typ-border); box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
+
+    .qb-chip.lvl-art { border-color: rgba(245, 158, 11, 0.35); }
+    .qb-chip.lvl-art.active { background: var(--c-art); color: #fff; border-color: var(--c-art-border); box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
+
+    .qb-chip.lvl-var { border-color: rgba(16, 185, 129, 0.35); }
+    .qb-chip.lvl-var.active { background: var(--c-var); color: #fff; border-color: var(--c-var-border); box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+
+    /* Farbige Filter-Überschriften */
+    .filter-badge-title { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; padding: 2px 8px; border-radius: 6px; }
+    .filter-badge-title.grp { background: var(--c-grp-bg); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.3); }
+    .filter-badge-title.typ { background: var(--c-typ-bg); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
+    .filter-badge-title.art { background: var(--c-art-bg); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .filter-badge-title.var { background: var(--c-var-bg); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    /* Große Logos */
     .qb-chip-xl { padding: 12px 18px; font-size: 1.05rem; font-weight: 700; border-radius: 10px; gap: 12px; min-height: 60px; }
     .grp-logo-xl { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
     
@@ -135,13 +172,20 @@
     .thumb { width: 60px; height: 60px; border-radius: var(--rad-sm); background: var(--bg); border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.8rem; }
     .thumb img { width: 100%; height: 100%; object-fit: cover; }
 
+    /* Grid für Bildauswahl */
+    .img-grid-select { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+    .img-pick-item { border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid var(--border); background: var(--bg); height: 95px; position: relative; }
+    .img-pick-item:hover { border-color: var(--primary); }
+    .img-pick-item img { width: 100%; height: 100%; object-fit: cover; }
+
     /* Header Inline Filter Chips */
     .inline-filter-chip { display: inline-flex; align-items: center; padding: 4px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; font-size: 12px; color: var(--muted); cursor: pointer; margin: 0 3px; }
     .inline-filter-chip:hover { border-color: var(--primary); color: var(--text); }
     .inline-filter-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: bold; }
 
     /* Tree Lists & Cards */
-    .group-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--divider); user-select: none; }
+    .group-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--divider); user-select: none; transition: background 0.15s; }
+    .group-head:hover { opacity: 0.95; }
     .group-title { font-size: var(--text-base); font-weight: 700; display: flex; align-items: center; gap: 6px; color: var(--text); }
     
     .item-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); margin-top: var(--sp2); }
@@ -178,8 +222,7 @@
     /* Modals */
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; padding: var(--sp4); }
     .modal.show { display: flex; }
-    .modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-lg); width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: var(--sp4); }
-    .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-lg); width: 100%; max-width: 520px; max-height: 85vh; overflow-y: auto; padding: var(--sp4); }
 
     #toast { position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%) translateY(20px); background: #323232; color: #fff; padding: 8px 16px; border-radius: 20px; font-size: var(--text-xs); opacity: 0; transition: all 0.2s; pointer-events: none; z-index: 2000; white-space: nowrap; }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -213,21 +256,21 @@
           <form id="itemForm">
             <!-- 1. Gruppe -->
             <div class="form-group">
-              <label class="form-label" style="font-size:0.85rem; margin-bottom:4px;">1. Gruppe wählen</label>
+              <span class="filter-badge-title grp">📁 1. Gruppe</span>
               <select id="group" class="select" style="display:none;" onchange="window.onGroupChange()"></select>
               <div id="qb-group" class="chips"></div>
             </div>
 
             <!-- 2. Produkttyp -->
             <div class="form-group" id="field-productType" style="display:none;">
-              <label class="form-label" style="font-size:0.85rem; margin-bottom:4px;">2. Produkttyp wählen</label>
+              <span class="filter-badge-title typ">🏷️ 2. Produkttyp</span>
               <select id="productType" class="select" style="display:none;" onchange="window.onProductTypeChange()"></select>
               <div id="qb-productType" class="chips"></div>
             </div>
 
             <!-- 3. Artikelname -->
             <div class="form-group" id="field-article" style="display:none;">
-              <label class="form-label">3. Artikelname wählen (optional)</label>
+              <span class="filter-badge-title art">📦 3. Artikelname</span>
               <select id="article" class="select" style="display:none;" onchange="window.onArticleChange()"></select>
               <div id="qb-article" class="chips"></div>
             </div>
@@ -235,12 +278,12 @@
             <!-- 4. Größe & Farbe -->
             <div class="grid2" id="field-size-color" style="display:none;">
               <div class="form-group">
-                <label class="form-label">Größe</label>
+                <span class="filter-badge-title var">📏 Größe</span>
                 <select id="size" class="select" style="display:none;"></select>
                 <div id="qb-size" class="chips"></div>
               </div>
               <div class="form-group">
-                <label class="form-label">Farbe</label>
+                <span class="filter-badge-title var">🎨 Farbe</span>
                 <select id="color" class="select" style="display:none;"></select>
                 <div id="qb-color" class="chips"></div>
               </div>
@@ -273,7 +316,7 @@
       </div>
     </section>
 
-    <!-- PAGE: Bestand -->
+    <!-- PAGE: Bestand (Farblich gegliedert) -->
     <section id="page-open" class="page">
       <div style="display:flex; gap:8px; margin-bottom:var(--sp3); align-items:center;">
         <div class="search-wrap">
@@ -284,23 +327,35 @@
         <button type="button" class="btn btn-ghost" style="width:auto; white-space:nowrap;" onclick="window.openSetBadgesModal()">🏆 Mögliche Sets</button>
       </div>
 
-      <!-- Visuelle Filter-Chips im Bestand -->
+      <!-- Visuelle Filter-Chips im Bestand (Farblich gegliedert) -->
       <div class="card" style="margin-bottom:var(--sp3); background:var(--surface2);">
-        <div class="card-body" style="padding:10px;">
-          <div class="form-group" style="margin-bottom:6px;">
+        <div class="card-body" style="padding:12px;">
+          <!-- 1. Gruppe -->
+          <div class="form-group" style="margin-bottom:8px;">
+            <span class="filter-badge-title grp">📁 1. Gruppe</span>
             <div id="qb-open-group" class="chips"></div>
           </div>
-          <div class="form-group" id="open-field-productType" style="display:none; margin-bottom:6px;">
+
+          <!-- 2. Produkttyp -->
+          <div class="form-group" id="open-field-productType" style="display:none; margin-bottom:8px;">
+            <span class="filter-badge-title typ">🏷️ 2. Produkttyp</span>
             <div id="qb-open-productType" class="chips"></div>
           </div>
-          <div class="form-group" id="open-field-article" style="display:none; margin-bottom:6px;">
+
+          <!-- 3. Artikelname -->
+          <div class="form-group" id="open-field-article" style="display:none; margin-bottom:8px;">
+            <span class="filter-badge-title art">📦 3. Artikelname</span>
             <div id="qb-open-article" class="chips"></div>
           </div>
+
+          <!-- 4. Größe & Farbe -->
           <div class="grid2" id="open-field-size-color" style="display:none;">
             <div class="form-group" style="margin-bottom:0;">
+              <span class="filter-badge-title var">📏 Größe</span>
               <div id="qb-open-size" class="chips"></div>
             </div>
             <div class="form-group" style="margin-bottom:0;">
+              <span class="filter-badge-title var">🎨 Farbe</span>
               <div id="qb-open-color" class="chips"></div>
             </div>
           </div>
@@ -325,27 +380,27 @@
         </div>
         <div class="card-body">
           <div class="form-group">
-            <label class="form-label">Gruppe (Nur Vorrätige)</label>
+            <span class="filter-badge-title grp">📁 Gruppe (Vorrätig)</span>
             <div id="qb-sell-group" class="chips"></div>
           </div>
 
           <div class="form-group" id="sell-field-productType" style="display:none;">
-            <label class="form-label">Produkttyp</label>
+            <span class="filter-badge-title typ">🏷️ Produkttyp</span>
             <div id="qb-sell-productType" class="chips"></div>
           </div>
 
           <div class="form-group" id="sell-field-article" style="display:none;">
-            <label class="form-label">Artikelname</label>
+            <span class="filter-badge-title art">📦 Artikelname</span>
             <div id="qb-sell-article" class="chips"></div>
           </div>
 
           <div class="grid2" id="sell-field-size-color" style="display:none;">
             <div class="form-group">
-              <label class="form-label">Größe (Vorrätig)</label>
+              <span class="filter-badge-title var">📏 Größe</span>
               <div id="qb-sell-size" class="chips"></div>
             </div>
             <div class="form-group">
-              <label class="form-label">Farbe (Vorrätig)</label>
+              <span class="filter-badge-title var">🎨 Farbe</span>
               <div id="qb-sell-color" class="chips"></div>
             </div>
           </div>
@@ -594,27 +649,20 @@
 
   <div id="toast"></div>
 
-  <!-- Image Picker Modal -->
+  <!-- Bereinigtes Image Picker Modal -->
   <div id="imagePickerModal" class="modal">
     <div class="modal-content">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
         <h3>Bild auswählen</h3>
-        <button type="button" class="btn btn-ghost" style="width:auto; padding:4px 8px;" onclick="closeImagePicker()">✕</button>
+        <button type="button" class="btn btn-ghost" style="width:auto; padding:4px 8px;" onclick="window.closeImagePicker()">✕</button>
       </div>
       
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:var(--sp3);">
-        <label class="btn btn-primary" style="font-size:var(--text-xs); cursor:pointer;">
-          📷 Vom Gerät hochladen
-          <input type="file" accept="image/*" style="display:none;" onchange="window.handleModalImageUpload(this.files[0])">
-        </label>
-        <button type="button" class="btn btn-ghost" style="font-size:var(--text-xs);" onclick="window.searchGoogleImages()">🔍 Google Suche</button>
-      </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:var(--sp3);">
-        <button type="button" class="btn btn-ghost" style="font-size:var(--text-xs);" onclick="window.pasteImageUrl()">🔗 URL einfügen</button>
-        <a href="https://drive.google.com/drive/folders/1KxGzzl1n8D8u8ET9938yEXU_FNeif1VK?usp=drive_link" target="_blank" class="btn btn-ghost" style="font-size:var(--text-xs); text-decoration:none;">📂 Drive Ordner</a>
-      </div>
+      <label class="btn btn-primary" style="font-size:var(--text-sm); cursor:pointer; width:100%;">
+        📷 Neues Bild vom Gerät hochladen
+        <input type="file" accept="image/*" style="display:none;" onchange="window.handleSingleModalUpload(this.files[0])">
+      </label>
 
-      <div id="imagePickerList" class="img-grid"></div>
+      <div id="imagePickerList" class="img-grid-select"></div>
     </div>
   </div>
 
@@ -629,7 +677,7 @@
     </div>
   </div>
 
-  <script src="./app.js?v=32.0"></script>
+  <script src="./app.js?v=33.0"></script>
 
 </body>
 </html>
