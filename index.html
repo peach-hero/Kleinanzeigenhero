@@ -81,11 +81,76 @@
     body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
     /* Top Bar Header */
-    .top-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: var(--sp2) var(--sp4); display: flex; align-items: center; justify-content: space-between; height: 56px; flex-shrink: 0; }
-    .brand { font-weight: 700; font-size: var(--text-lg); display: flex; align-items: center; gap: 8px; color: var(--text); }
-    .brand-icon { width: 28px; height: 28px; border-radius: var(--rad-sm); object-fit: cover; }
+    .top-bar { 
+      background: var(--surface); 
+      border-bottom: 1px solid var(--border); 
+      padding: var(--sp2) var(--sp3); 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      height: 56px; 
+      flex-shrink: 0; 
+      gap: 8px;
+    }
+    
+    .brand-wrap { 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
+      min-width: 0;
+      flex: 1;
+    }
 
-    .header-actions { display: flex; align-items: center; gap: 6px; }
+    .brand { 
+      font-weight: 700; 
+      font-size: var(--text-base); 
+      display: flex; 
+      align-items: center; 
+      gap: 6px; 
+      color: var(--text); 
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .brand-icon { width: 26px; height: 26px; border-radius: var(--rad-sm); object-fit: cover; }
+
+    /* Mini Cloud Quick Buttons in Topbar */
+    .cloud-quick-btns {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .btn-cloud-mini {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: rgba(1, 105, 111, 0.25);
+      border: 1px solid var(--primary);
+      color: #38bdf8;
+      border-radius: var(--rad-sm);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .btn-cloud-mini.secondary {
+      background: var(--surface2);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-cloud-mini:hover {
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .btn-cloud-mini:active {
+      transform: scale(0.95);
+    }
+
+    .header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     .icon-btn { background: transparent; border: 1px solid var(--border); color: var(--text); width: 36px; height: 36px; border-radius: var(--rad-sm); display: grid; place-items: center; cursor: pointer; font-size: 1.1rem; }
     .icon-btn:active { background: var(--surface2); }
     .icon-btn.active { border-color: var(--primary); background: rgba(1, 105, 111, 0.15); }
@@ -126,7 +191,7 @@
     .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
     .btn-danger { background: rgba(248, 81, 73, 0.15); color: var(--err); border: 1px solid rgba(248, 81, 73, 0.3); }
 
-    /* Profitshare Toggle */
+    /* Profitshare Toggle Button */
     .ps-badge-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; font-size: var(--text-xs); color: var(--muted); cursor: pointer; transition: all 0.15s; user-select: none; font-weight: 700; }
     .ps-badge-btn.active { background: rgba(1, 105, 111, 0.3); border-color: var(--primary); color: #23b2b8; }
 
@@ -232,12 +297,23 @@
 </head>
 <body>
 
-  <!-- Top Header Bar -->
+  <!-- Top Header Bar mit festen Speichern & Laden Buttons -->
   <header class="top-bar">
-    <div class="brand">
-      <img src="icon-192.png" class="brand-icon" alt="Logo" onerror="this.style.display='none'">
-      <span>Kleinanzeigen Hero</span>
+    <div class="brand-wrap">
+      <div class="brand">
+        <img src="icon-192.png" class="brand-icon" alt="Logo" onerror="this.style.display='none'">
+        <span>Kleinanzeigen Hero</span>
+      </div>
+      <div class="cloud-quick-btns">
+        <button type="button" class="btn-cloud-mini" onclick="window.saveToCloud()" title="In Cloud speichern">
+          ☁️ Speichern
+        </button>
+        <button type="button" class="btn-cloud-mini secondary" onclick="window.loadFromCloud()" title="Aus Cloud laden">
+          ⬇️ Laden
+        </button>
+      </div>
     </div>
+    
     <div class="header-actions">
       <button type="button" class="icon-btn" data-page="sold" onclick="window.switchPage('sold')" title="Historie">📜</button>
       <button type="button" class="icon-btn" data-page="stats" onclick="window.switchPage('stats')" title="Statistik">📊</button>
@@ -316,7 +392,7 @@
       </div>
     </section>
 
-    <!-- PAGE: Bestand (Farblich gegliedert) -->
+    <!-- PAGE: Bestand -->
     <section id="page-open" class="page">
       <div style="display:flex; gap:8px; margin-bottom:var(--sp3); align-items:center;">
         <div class="search-wrap">
@@ -330,25 +406,18 @@
       <!-- Visuelle Filter-Chips im Bestand (Farblich gegliedert) -->
       <div class="card" style="margin-bottom:var(--sp3); background:var(--surface2);">
         <div class="card-body" style="padding:12px;">
-          <!-- 1. Gruppe -->
           <div class="form-group" style="margin-bottom:8px;">
             <span class="filter-badge-title grp">📁 1. Gruppe</span>
             <div id="qb-open-group" class="chips"></div>
           </div>
-
-          <!-- 2. Produkttyp -->
           <div class="form-group" id="open-field-productType" style="display:none; margin-bottom:8px;">
             <span class="filter-badge-title typ">🏷️ 2. Produkttyp</span>
             <div id="qb-open-productType" class="chips"></div>
           </div>
-
-          <!-- 3. Artikelname -->
           <div class="form-group" id="open-field-article" style="display:none; margin-bottom:8px;">
             <span class="filter-badge-title art">📦 3. Artikelname</span>
             <div id="qb-open-article" class="chips"></div>
           </div>
-
-          <!-- 4. Größe & Farbe -->
           <div class="grid2" id="open-field-size-color" style="display:none;">
             <div class="form-group" style="margin-bottom:0;">
               <span class="filter-badge-title var">📏 Größe</span>
@@ -603,7 +672,7 @@
       </div>
 
       <div class="card">
-        <div class="card-head"><h3 class="card-title">☁️ Cloud Sync & Backup</h3></div>
+        <div class="card-head"><h3 class="card-title">☁️ Cloud Sync & Bereinigung</h3></div>
         <div class="card-body">
           <div class="form-group">
             <label class="form-label">Google Apps Script WebApp URL</label>
@@ -620,6 +689,9 @@
               <input type="file" style="display:none;" onchange="importData(this.files[0])">
             </label>
           </div>
+          <button type="button" class="btn btn-danger" style="width:100%; margin-top:6px;" onclick="window.cleanCorruptedImagesAndGhostGroups()">
+            🧹 Defekte Bilder & Geister-Gruppen bereinigen
+          </button>
         </div>
       </div>
 
@@ -677,7 +749,7 @@
     </div>
   </div>
 
-  <script src="./app.js?v=33.0"></script>
+  <script src="./app.js?v=35.0"></script>
 
 </body>
 </html>
