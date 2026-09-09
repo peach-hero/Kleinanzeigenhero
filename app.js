@@ -1,5 +1,5 @@
 // ==========================================
-// KLEINANZEIGEN HERO - APP.JS (v34.0 Ghost & Corrupt Image Cleaner)
+// KLEINANZEIGEN HERO - APP.JS (v36.0 In-Place Add, Reset & Sorted Sold)
 // ==========================================
 
 const g = id => document.getElementById(id);
@@ -34,7 +34,7 @@ const state = {
   sellSelection: { group: '', type: '', article: '', size: '', color: '' },
   sold: [], soldFilter: '', termine: [], year: String(new Date().getFullYear()),
   deletedIds: [],
-  deletedGroups: [], // DAUERHAFTE SPERRLISTE FÜR GELÖSCHTE GRUPPEN
+  deletedGroups: [],
   master: { catalog: {}, badgeRules: [], groupLogos: {}, typeLogos: {}, articleLogos: {}, images: [], setImages: [] }, openCollapse: {}, hideZero: true
 };
 
@@ -74,7 +74,6 @@ function load() {
 }
 function fallbackLoad() { try { const ls = JSON.parse(localStorage.getItem('amp3') || 'null'); if (ls) applyState(ls); } catch(e) {} initApp(); }
 
-// PRÜFEN OB EIN BILD GÜLTIG ODER BESCHÄDIGT IST
 function isValidImage(url) {
   if (!url || typeof url !== 'string') return false;
   const str = url.trim();
@@ -85,18 +84,15 @@ function isValidImage(url) {
   return false;
 }
 
-// BEREINIGUNGSFUNKTION FÜR BESCHÄDIGTE BILDER & GEISTER-GRUPPEN
 window.cleanCorruptedImagesAndGhostGroups = function() {
   let cleanedCount = 0;
   
-  // 1. Bilderpool säubern
   if (Array.isArray(state.master.images)) {
     const origLen = state.master.images.length;
     state.master.images = state.master.images.filter(isValidImage);
     cleanedCount += (origLen - state.master.images.length);
   }
 
-  // 2. Gruppen-Logos säubern
   if (state.master.groupLogos) {
     Object.keys(state.master.groupLogos).forEach(k => {
       if (!isValidImage(state.master.groupLogos[k])) {
@@ -106,7 +102,6 @@ window.cleanCorruptedImagesAndGhostGroups = function() {
     });
   }
 
-  // 3. Typ- & Artikel-Logos säubern
   if (state.master.typeLogos) {
     Object.keys(state.master.typeLogos).forEach(k => {
       if (!isValidImage(state.master.typeLogos[k])) {
@@ -124,7 +119,6 @@ window.cleanCorruptedImagesAndGhostGroups = function() {
     });
   }
 
-  // 4. Verkaufs-Vorschauen säubern
   (state.sold || []).forEach(s => {
     if (s.previewImage && !isValidImage(s.previewImage)) {
       s.previewImage = '';
@@ -132,7 +126,6 @@ window.cleanCorruptedImagesAndGhostGroups = function() {
     }
   });
 
-  // 5. Gelöschte Gruppen aus dem Katalog tilgen
   const delGrps = new Set(state.deletedGroups || []);
   delGrps.forEach(grp => {
     if (state.master.catalog && state.master.catalog[grp]) {
@@ -144,7 +137,7 @@ window.cleanCorruptedImagesAndGhostGroups = function() {
   });
 
   save();
-  window.saveToCloud(); // Direkt in die Cloud schreiben
+  window.saveToCloud();
   window.updateMasterForm();
   window.renderAllQuick();
   window.renderMaster();
@@ -153,7 +146,6 @@ window.cleanCorruptedImagesAndGhostGroups = function() {
   toast(`Bereinigung abgeschlossen: ${cleanedCount} defekte Einträge entfernt ✓`);
 };
 
-// KOMPRESSION BEIM UPLOAD
 function compressImage(file, callback) {
     const reader = new FileReader(); 
     reader.onload = e => { 
@@ -198,7 +190,25 @@ window.toggleTheme = function() {
   document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
 };
 
-// SICHERER CLOUD-SYNC (OHNE DIE WIEDERBELEBUNG GELÖSCHTER BILDER/GRUPPEN)
+function ensureCatalogIntegrity() {
+  if (!state.master) state.master = {};
+  if (!state.master.catalog || typeof state.master.catalog !== 'object') state.master.catalog = {};
+
+  state.open.forEach(item => {
+    if (item.group && !(state.deletedGroups || []).includes(item.group)) {
+      if (!state.master.catalog[item.group]) state.master.catalog[item.group] = {};
+      const pt = item.productType || 'Standard';
+      if (!state.master.catalog[item.group][pt]) {
+        state.master.catalog[item.group][pt] = { articles: [], sizes: [], colors: [] };
+      }
+      if (item.article && !state.master.catalog[item.group][pt].articles.includes(item.article)) {
+        state.master.catalog[item.group][pt].articles.push(item.article);
+      }
+    }
+  });
+}
+
+// CLOUD-SYNC (MERGE STATT ÜBERSCHREIBEN)
 async function autoLoadFromCloud() {
   const gasUrl = localStorage.getItem('gasUrl') || gVal('gasUrl');
   if (!gasUrl) return;
@@ -210,7 +220,6 @@ async function autoLoadFromCloud() {
       const delSet = new Set(state.deletedIds || []);
       const delGrps = new Set(state.deletedGroups || []);
 
-      // 1. Verkäufe mergen
       const localSoldMap = new Map((state.sold || []).map(s => [s.id, s]));
       (data.sold || []).forEach(cloudSold => {
         if (!delSet.has(cloudSold.id)) {
@@ -221,7 +230,6 @@ async function autoLoadFromCloud() {
       });
       state.sold = Array.from(localSoldMap.values());
 
-      // 2. Offene Bestände mergen
       const localOpenMap = new Map((state.open || []).map(o => [o.id, o]));
       (data.open || []).forEach(cloudItem => {
         if (!delSet.has(cloudItem.id) && !delGrps.has(cloudItem.group)) {
@@ -232,7 +240,6 @@ async function autoLoadFromCloud() {
       });
       state.open = Array.from(localOpenMap.values());
 
-      // 3. Stammdaten mergen (Ohne gelöschte Gruppen!)
       if (data.master && typeof data.master === 'object') {
         if (data.master.catalog) {
           Object.keys(data.master.catalog).forEach(grp => {
@@ -250,7 +257,6 @@ async function autoLoadFromCloud() {
         }
       }
 
-      // Auto-Bereinigung durchführen
       if (Array.isArray(state.master.images)) {
         state.master.images = state.master.images.filter(isValidImage);
       }
@@ -262,7 +268,7 @@ async function autoLoadFromCloud() {
       window.renderOpenFilters();
       window.renderOpen();
       const timeStr = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-      toast(`☁️ Sicher mit Cloud synchronisiert (${timeStr} Uhr) ✓`);
+      toast(`☁️ Sicher aus Cloud geladen (${timeStr} Uhr) ✓`);
     }
   } catch(e) { console.log('Auto-Sync Offline'); }
 }
@@ -312,7 +318,9 @@ window.importData = function(file) {
 };
 
 window.saveToCloud = async function() {
-  const gasUrl = gVal('gasUrl').trim(); if(!gasUrl) return toast('Bitte Script URL eingeben.'); localStorage.setItem('gasUrl', gasUrl);
+  const gasUrl = gVal('gasUrl').trim() || localStorage.getItem('gasUrl'); 
+  if(!gasUrl) return toast('Bitte Script-URL in Stammdaten eintragen.'); 
+  localStorage.setItem('gasUrl', gasUrl);
   const cloudPayload = { open:state.open, sold:state.sold, termine:state.termine, master:state.master, year:state.year, deletedIds:state.deletedIds, deletedGroups:state.deletedGroups };
   try { 
     toast('Speichere in Cloud...'); 
@@ -320,18 +328,21 @@ window.saveToCloud = async function() {
     const text = await res.text(); 
     try { 
       const result = JSON.parse(text); 
-      if(result.status === 'success') toast('Sync erfolgreich ✓'); 
+      if(result.status === 'success') toast('In Cloud gespeichert ✓'); 
       else toast('Fehler: ' + result.message); 
     } catch(err) { toast('Cloud-Upload abgeschlossen ✓'); } 
   } catch(e) { toast('Netzwerkfehler beim Upload'); }
 };
 
 window.loadFromCloud = async function() {
-  const gasUrl = gVal('gasUrl').trim(); if(!gasUrl) return toast('Bitte URL eingeben.'); localStorage.setItem('gasUrl', gasUrl);
+  const gasUrl = gVal('gasUrl').trim() || localStorage.getItem('gasUrl'); 
+  if(!gasUrl) return toast('Bitte Script-URL in Stammdaten eintragen.'); 
+  localStorage.setItem('gasUrl', gasUrl);
   autoLoadFromCloud();
 };
 
 function initApp() { 
+  ensureCatalogIntegrity();
   window.updateMasterForm(); 
   populateUhrzeit(); 
   window.renderAllQuick(); 
@@ -367,11 +378,12 @@ function applyState(d) {
       if (d.master.articleLogos && typeof d.master.articleLogos === 'object') state.master.articleLogos = d.master.articleLogos;
     }
 
-    // Gelöschte Gruppen definitiv tilgen
     delGrps.forEach(grp => {
       if (state.master.catalog && state.master.catalog[grp]) delete state.master.catalog[grp];
       if (state.master.groupLogos && state.master.groupLogos[grp]) delete state.master.groupLogos[grp];
     });
+
+    ensureCatalogIntegrity();
 
     let newOpen = [];
     for (let i=0; i < state.open.length; i++) {
@@ -614,7 +626,7 @@ if(mfBtn) {
           if (!val) return alert('Name eingeben.'); 
           if (state.master.catalog[val] !== undefined) return alert('Existiert bereits.'); 
           state.master.catalog[val] = {}; 
-          state.deletedGroups = (state.deletedGroups || []).filter(g => g !== val); // Aus Sperrliste entfernen
+          state.deletedGroups = (state.deletedGroups || []).filter(g => g !== val);
         }
         else if (type === 'producttypes') { if (!grp || !val) return alert('Pflichtfelder fehlen.'); if (!state.master.catalog[grp]) state.master.catalog[grp] = {}; if (state.master.catalog[grp][val] !== undefined) return alert('Existiert bereits.'); state.master.catalog[grp][val] = { articles:[], sizes:[], colors:[] }; }
         else if (type === 'articles') { if (!grp || !typ || !val) return alert('Pflichtfelder fehlen.'); if (!state.master.catalog[grp] || !state.master.catalog[grp][typ]) return alert('Gruppe/Typ fehlt.'); let arr = state.master.catalog[grp][typ].articles; if (!Array.isArray(arr)) { arr = []; state.master.catalog[grp][typ].articles = arr; } if (arr.includes(val)) return alert('Existiert bereits.'); arr.push(val); arr.sort(sortKeys); }
@@ -646,17 +658,17 @@ window.renderMaster = function() {
       if (groups.length) {
         groups.forEach(grp => {
           const typs = Object.keys(cat[grp] || {}).sort(sortKeys);
-          const grpLogo = (state.master.groupLogos && state.master.groupLogos[grp]) || '';
+          const grpLogo = (state.master.groupLogos && isValidImage(state.master.groupLogos[grp])) ? state.master.groupLogos[grp] : '';
           html += `<div class="card" style="margin-bottom:var(--sp4);"><div class="card-head"><div style="display:flex;align-items:center;gap:8px;">${grpLogo ? `<img src="${grpLogo}" class="grp-header-logo">` : ''}<h3 class="card-title">📁 ${esc(grp)}</h3></div><div style="display:flex;gap:4px;"><button type="button" class="btn btn-ghost" style="min-height:28px;padding:.2rem .5rem;font-size:var(--text-xs);width:auto;" onclick="window.setGroupLogo('${safeJsStr(grp)}')">🖼️ Bild</button><button type="button" class="btn btn-danger" style="min-height:28px;padding:.2rem .6rem;font-size:var(--text-xs);width:auto;" data-rm="group" data-grp="${esc(grp)}">🗑 Gruppe</button></div></div><div class="card-body" style="padding:0;">`;
           if (!typs.length) { html += `<div class="empty" style="margin:var(--sp4);">Noch keine Produkttypen.</div>`; }
           typs.forEach(typ => {
             const d = cat[grp][typ] || {};
-            const typLogo = (state.master.typeLogos && state.master.typeLogos[`${grp}||${typ}`]) || '';
+            const typLogo = (state.master.typeLogos && isValidImage(state.master.typeLogos[`${grp}||${typ}`])) ? state.master.typeLogos[`${grp}||${typ}`] : '';
             html += `<div style="border-bottom:1px solid var(--divider);padding:var(--sp3) var(--sp4);"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp2);"><div style="display:flex;align-items:center;gap:6px;">${typLogo ? `<img src="${typLogo}" class="grp-logo-thumb">` : ''}<b style="font-size:var(--text-base); color:var(--text);">🏷 ${esc(typ)}</b></div><div style="display:flex;gap:4px;"><button type="button" class="btn btn-ghost" style="min-height:26px;padding:.2rem .5rem;font-size:var(--text-xs);width:auto;" onclick="window.setTypeLogo('${safeJsStr(grp)}', '${safeJsStr(typ)}')">🖼️ Bild</button><button type="button" class="btn btn-danger" style="min-height:26px;padding:.2rem .5rem;font-size:var(--text-xs);width:auto;" data-rm="prodtype" data-grp="${esc(grp)}" data-typ="${esc(typ)}">🗑 Typ</button></div></div>`;
             
             const artArr = Array.isArray(d.articles) ? d.articles : [];
             html += `<div style="margin-bottom:var(--sp2);"><div class="muted" style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--sp1);">Artikelname</div><div class="chips">${artArr.map((v,i)=>{
-              const artLogo = (state.master.articleLogos && state.master.articleLogos[`${grp}||${typ}||${v}`]) || '';
+              const artLogo = (state.master.articleLogos && isValidImage(state.master.articleLogos[`${grp}||${typ}||${v}`])) ? state.master.articleLogos[`${grp}||${typ}||${v}`] : '';
               return `<span class="chip" style="display:inline-flex;align-items:center;gap:4px;">${artLogo?`<img src="${artLogo}" class="grp-logo-thumb">`:''}${esc(v)}<button type="button" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;line-height:1;" onclick="window.setArticleLogo('${safeJsStr(grp)}','${safeJsStr(typ)}','${safeJsStr(v)}')">🖼️</button><button type="button" style="background:none;border:none;cursor:pointer;color:var(--err);font-size:12px;padding:0;line-height:1;" data-rm="articles" data-grp="${esc(grp)}" data-typ="${esc(typ)}" data-idx="${i}">×</button></span>`;
             }).join('') || '<span class="muted" style="font-size:var(--text-xs);">Noch keine Einträge</span>'}</div></div>`;
 
@@ -854,6 +866,27 @@ window.renderAllQuick = function() {
   } catch(e) { }
 };
 
+// FORMULAR RESETTEN (ALLE ANGABEN ZURÜCKSETZEN)
+window.resetItemForm = function() {
+  const ifrm = g('itemForm');
+  if (ifrm) ifrm.reset();
+  ['group', 'productType', 'article', 'size', 'color'].forEach(id => {
+    const el = g(id);
+    if (el) el.value = '';
+  });
+  const psInp = g('profitshare');
+  if (psInp) psInp.value = 'false';
+  const psBtn = g('profitshareBtn');
+  if (psBtn) {
+    psBtn.classList.remove('active');
+    psBtn.innerHTML = '🤝 Profitshare: Aus';
+  }
+  const qEl = g('quantity');
+  if (qEl) qEl.value = '1';
+  window.renderAllQuick();
+  toast('Angaben zurückgesetzt ↺');
+};
+
 // PROFITSHARE TOGGLE BUTTON BEI NEUERFASSUNG
 window.toggleProfitshareNew = function() {
   const hiddenInput = g('profitshare');
@@ -865,15 +898,45 @@ window.toggleProfitshareNew = function() {
   btn.innerHTML = isNowActive ? '🤝 50/50 Aktiv' : '🤝 Profitshare: Aus';
 };
 
+// ARTIKEL EINPFLEGEN: AUF DER MASKE BLEIBEN & PREISE LEEREN
 const ifrm = g('itemForm');
 if(ifrm) {
     ifrm.addEventListener('submit', e => {
-      e.preventDefault(); const pP = g('purchasePrice'); const totalPrice = pP ? +pP.value : 0; if (!gVal('group') || !gVal('productType')) return alert('Gruppe & Typ wählen.'); const qEl = g('quantity'); const qty = qEl ? +qEl.value : 1; let pricePerUnit = qty > 0 ? totalPrice / qty : 0;
-      const isPs = gVal('profitshare') === 'true'; const dEl = g('defect');
-      for(let q=0;q<qty;q++) { const item = { group:gVal('group'), productType:gVal('productType'), article:gVal('article'), size:gVal('size'), color:gVal('color'), purchasePrice:pricePerUnit, profitshare:isPs, image:'', comment:dEl?dEl.value:'', defect:dEl?dEl.value:'', entryDate:today() }; addOrStack(item); }
+      e.preventDefault(); 
+      const pP = g('purchasePrice'); 
+      const totalPrice = pP ? +pP.value : 0; 
+      if (!gVal('group') || !gVal('productType')) return alert('Gruppe & Typ wählen.'); 
+      const qEl = g('quantity'); 
+      const qty = qEl ? +qEl.value : 1; 
+      let pricePerUnit = qty > 0 ? totalPrice / qty : 0;
+      const isPs = gVal('profitshare') === 'true'; 
+      const dEl = g('defect');
+      for(let q=0; q<qty; q++) { 
+        const item = { 
+          group: gVal('group'), 
+          productType: gVal('productType'), 
+          article: gVal('article'), 
+          size: gVal('size'), 
+          color: gVal('color'), 
+          purchasePrice: pricePerUnit, 
+          profitshare: isPs, 
+          image: '', 
+          comment: dEl ? dEl.value : '', 
+          defect: dEl ? dEl.value : '', 
+          entryDate: today() 
+        }; 
+        addOrStack(item); 
+      }
       save(); 
       window.autoSaveToCloud();
-      toast(qty>1?qty+' Artikel hinzugefügt ✓':'Artikel hinzugefügt ✓'); state.page='open'; window.render();
+      toast(qty > 1 ? qty + ' Artikel hinzugefügt ✓' : 'Artikel hinzugefügt ✓');
+      
+      // Einkaufsfelder leeren, aber auf der Einkaufsmaske bleiben!
+      if (pP) pP.value = '';
+      if (dEl) dEl.value = '';
+      if (qEl) qEl.value = '1';
+      state.page = 'new';
+      window.render();
     });
 }
 
@@ -928,13 +991,12 @@ window.toggleGrp = function(el) {
 };
 
 // ==========================================
-// BESTAND FILTER CHIPS
+// BESTAND FILTER CHIPS (FARBLICH DIFFERENZIERT)
 // ==========================================
 window.renderOpenFilters = function() {
   const f = state.openFilters;
   const cat = state.master.catalog || {};
   
-  // 1. Gruppen
   const grpContainer = g('qb-open-group');
   if (grpContainer) {
     grpContainer.innerHTML = Object.keys(cat).sort(sortKeys).map(grp => {
@@ -944,7 +1006,6 @@ window.renderOpenFilters = function() {
     }).join('');
   }
 
-  // 2. Produkttypen
   const fpt = g('open-field-productType'); 
   if(fpt) fpt.style.display = f.group ? 'grid' : 'none';
   const typContainer = g('qb-open-productType');
@@ -955,7 +1016,6 @@ window.renderOpenFilters = function() {
     }).join('');
   }
 
-  // 3. Artikelnamen
   let arts = [];
   if (f.group && f.type && cat[f.group] && cat[f.group][f.type]) {
     arts = Array.isArray(cat[f.group][f.type].articles) ? cat[f.group][f.type].articles : [];
@@ -970,7 +1030,6 @@ window.renderOpenFilters = function() {
     }).join('');
   }
 
-  // 4. Größen & Farben
   const needsArticle = arts.length > 0;
   const showSizeColor = f.group && f.type && (!needsArticle || f.article);
   const fsc = g('open-field-size-color');
@@ -1023,7 +1082,7 @@ window.handleOpenFilterChip = function(type, val) {
 };
 
 // ==========================================
-// BESTAND BAUM-ANSICHT
+// BESTAND BAUM-ANSICHT (MIT VISUELLEN EBENEN-FARBEN)
 // ==========================================
 window.renderOpen = function() {
   updateZeroToggleUI();
@@ -1453,9 +1512,19 @@ window.deleteSoldSet = function(id) {
   toast('Gelöscht ✓');
 };
 
+// HISTORIE: AKTUELLSTE EINHEITEN NACH DATUM ABSTEIGEND SORTIEREN
 window.renderSold = function() {
   const sf = g('soldSearch'); const needle = sf ? sf.value.trim().toLowerCase() : '';
-  const sets = needle ? state.sold.filter(s=>(s.setName||'').toLowerCase().includes(needle)) : state.sold;
+  
+  // Sortierung: Neuestes Verkaufsdatum ganz nach oben
+  const sortedSold = [...state.sold].sort((a, b) => {
+    const dateA = a.saleDate || '';
+    const dateB = b.saleDate || '';
+    if (dateB !== dateA) return dateB.localeCompare(dateA);
+    return (b.id || '').localeCompare(a.id || '');
+  });
+
+  const sets = needle ? sortedSold.filter(s=>(s.setName||'').toLowerCase().includes(needle)) : sortedSold;
   const sc = g('soldContent'); if (!sc) return;
   if (!sets.length) { sc.innerHTML='<div class="empty">Keine Einträge.</div>'; return; }
   

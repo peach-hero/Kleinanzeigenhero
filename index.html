@@ -386,7 +386,10 @@
               <input type="text" id="defect" class="input" placeholder="z.B. Kratzer oben links">
             </div>
 
-            <button type="submit" class="btn btn-primary" style="margin-top:var(--sp2);">Hinzufügen</button>
+            <div style="display:flex; gap:8px; margin-top:var(--sp3);">
+              <button type="submit" class="btn btn-primary" style="flex:1;">✚ Hinzufügen</button>
+              <button type="button" class="btn btn-ghost" style="width:auto; padding:0 16px;" onclick="window.resetItemForm()" title="Eingaben komplett leeren">↺ Zurücksetzen</button>
+            </div>
           </form>
         </div>
       </div>
@@ -403,7 +406,7 @@
         <button type="button" class="btn btn-ghost" style="width:auto; white-space:nowrap;" onclick="window.openSetBadgesModal()">🏆 Mögliche Sets</button>
       </div>
 
-      <!-- Visuelle Filter-Chips im Bestand (Farblich gegliedert) -->
+      <!-- Visuelle Filter-Chips im Bestand -->
       <div class="card" style="margin-bottom:var(--sp3); background:var(--surface2);">
         <div class="card-body" style="padding:12px;">
           <div class="form-group" style="margin-bottom:8px;">
@@ -749,7 +752,7 @@
     </div>
   </div>
 
-  <script src="./app.js?v=35.0"></script>
+  <script src="./app.js?v=36.0"></script>
 
 </body>
 </html>
