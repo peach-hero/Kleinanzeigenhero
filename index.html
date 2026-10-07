@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Kleinanzeigen Hero</title>
 
-  <!-- PWA Manifest & App Icons -->
   <link rel="manifest" href="./manifest.json">
   <meta name="apple-mobile-web-app-title" content="Kleinanzeigen Hero">
   <link rel="apple-touch-icon" href="./icon-192.png">
@@ -20,157 +19,50 @@
   
   <style>
     :root {
-      --bg: #0d1117;
-      --surface: #161b22;
-      --surface2: #21262d;
-      --border: #30363d;
-      --divider: #21262d;
-      --text: #f0f6fc;
-      --muted: #8b949e;
-      --primary: #01696f;
-      --primary-hover: #02858d;
-      --accent: #2ea043;
-      --err: #f85149;
-      --warn: #d29922;
-      --success: #3fb950;
+      --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d; --divider: #21262d;
+      --text: #f0f6fc; --muted: #8b949e; --primary: #01696f; --primary-hover: #02858d;
+      --accent: #2ea043; --err: #f85149; --warn: #d29922; --success: #3fb950;
       
-      /* Visuelle Ebenen-Farben */
-      --c-grp: #01696f;
-      --c-grp-border: #0ea5e9;
-      --c-grp-bg: rgba(14, 165, 233, 0.12);
-
-      --c-typ: #4f46e5;
-      --c-typ-border: #818cf8;
-      --c-typ-bg: rgba(99, 102, 241, 0.12);
-
-      --c-art: #b45309;
-      --c-art-border: #f59e0b;
-      --c-art-bg: rgba(245, 158, 11, 0.12);
-
-      --c-var: #059669;
-      --c-var-border: #34d399;
-      --c-var-bg: rgba(16, 185, 129, 0.12);
+      --c-grp: #01696f; --c-grp-border: #0ea5e9; --c-grp-bg: rgba(14, 165, 233, 0.12);
+      --c-typ: #4f46e5; --c-typ-border: #818cf8; --c-typ-bg: rgba(99, 102, 241, 0.12);
+      --c-art: #b45309; --c-art-border: #f59e0b; --c-art-bg: rgba(245, 158, 11, 0.12);
+      --c-var: #059669; --c-var-border: #34d399; --c-var-bg: rgba(16, 185, 129, 0.12);
       
-      --rad-sm: 6px;
-      --rad-md: 10px;
-      --rad-lg: 16px;
-      
-      --sp1: 4px;
-      --sp2: 8px;
-      --sp3: 12px;
-      --sp4: 16px;
-      --sp6: 24px;
-      
-      --text-xs: 0.75rem;
-      --text-sm: 0.875rem;
-      --text-base: 1rem;
-      --text-lg: 1.25rem;
+      --rad-sm: 6px; --rad-md: 10px; --rad-lg: 16px;
+      --sp1: 4px; --sp2: 8px; --sp3: 12px; --sp4: 16px; --sp6: 24px;
+      --text-xs: 0.75rem; --text-sm: 0.875rem; --text-base: 1rem; --text-lg: 1.25rem;
     }
 
-    [data-theme="light"] {
-      --bg: #f6f8fa;
-      --surface: #ffffff;
-      --surface2: #f3f4f6;
-      --border: #d0d7de;
-      --divider: #e1e4e8;
-      --text: #1f2328;
-      --muted: #656d76;
-    }
+    [data-theme="light"] { --bg: #f6f8fa; --surface: #ffffff; --surface2: #f3f4f6; --border: #d0d7de; --divider: #e1e4e8; --text: #1f2328; --muted: #656d76; }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Satoshi', sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-    /* Top Bar Header */
-    .top-bar { 
-      background: var(--surface); 
-      border-bottom: 1px solid var(--border); 
-      padding: var(--sp2) var(--sp3); 
-      display: flex; 
-      align-items: center; 
-      justify-content: space-between; 
-      height: 56px; 
-      flex-shrink: 0; 
-      gap: 8px;
-    }
-    
-    .brand-wrap { 
-      display: flex; 
-      align-items: center; 
-      gap: 8px; 
-      min-width: 0;
-      flex: 1;
-    }
-
-    .brand { 
-      font-weight: 700; 
-      font-size: var(--text-base); 
-      display: flex; 
-      align-items: center; 
-      gap: 6px; 
-      color: var(--text); 
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
+    .top-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: var(--sp2) var(--sp3); display: flex; align-items: center; justify-content: space-between; height: 56px; flex-shrink: 0; gap: 8px; }
+    .brand-wrap { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+    .brand { font-weight: 700; font-size: var(--text-base); display: flex; align-items: center; gap: 6px; color: var(--text); white-space: nowrap; flex-shrink: 0; }
     .brand-icon { width: 26px; height: 26px; border-radius: var(--rad-sm); object-fit: cover; }
 
-    /* Mini Cloud Quick Buttons in Topbar */
-    .cloud-quick-btns {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      flex-shrink: 0;
-    }
-
-    .btn-cloud-mini {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 4px 8px;
-      background: rgba(1, 105, 111, 0.25);
-      border: 1px solid var(--primary);
-      color: #38bdf8;
-      border-radius: var(--rad-sm);
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.15s ease;
-      user-select: none;
-    }
-    .btn-cloud-mini.secondary {
-      background: var(--surface2);
-      border-color: var(--border);
-      color: var(--text);
-    }
-    .btn-cloud-mini:hover {
-      background: var(--primary);
-      color: #ffffff;
-    }
-    .btn-cloud-mini:active {
-      transform: scale(0.95);
-    }
+    .cloud-quick-btns { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .btn-cloud-mini { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; background: rgba(1, 105, 111, 0.25); border: 1px solid var(--primary); color: #38bdf8; border-radius: var(--rad-sm); font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.15s ease; user-select: none; }
+    .btn-cloud-mini.secondary { background: var(--surface2); border-color: var(--border); color: var(--text); }
+    .btn-cloud-mini:hover { background: var(--primary); color: #ffffff; }
 
     .header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     .icon-btn { background: transparent; border: 1px solid var(--border); color: var(--text); width: 36px; height: 36px; border-radius: var(--rad-sm); display: grid; place-items: center; cursor: pointer; font-size: 1.1rem; }
-    .icon-btn:active { background: var(--surface2); }
-    .icon-btn.active { border-color: var(--primary); background: rgba(1, 105, 111, 0.15); }
-
+    
     .btn-icon-subtle { background: transparent; border: none; color: var(--muted); padding: 4px 6px; cursor: pointer; font-size: 1.1rem; border-radius: var(--rad-sm); transition: background 0.15s, color 0.15s; }
     .btn-icon-subtle:hover { background: var(--surface2); color: var(--text); }
-    .btn-icon-subtle.danger:hover { color: var(--err); background: rgba(248, 81, 73, 0.15); }
 
-    /* Scroll Area */
     .scroll-container { flex: 1; overflow-y: auto; padding: var(--sp4); padding-bottom: 80px; }
     .page { display: none; }
     .page.active { display: block; }
 
-    /* Cards */
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); overflow: hidden; margin-bottom: var(--sp4); }
     .card-head { padding: var(--sp3) var(--sp4); background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
     .card-title { font-size: var(--text-base); font-weight: 700; }
     .card-body { padding: var(--sp4); }
 
-    /* Form Controls */
     .form-group { margin-bottom: var(--sp3); display: grid; gap: var(--sp1); }
     .form-label { font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; color: var(--muted); }
     .input, .select { width: 100%; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--rad-sm); color: var(--text); font-size: var(--text-sm); outline: none; }
@@ -179,125 +71,113 @@
     .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp2); }
     .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--sp2); }
 
-    /* Suchfeld */
     .search-wrap { position: relative; flex: 1; display: flex; align-items: center; }
     .search-wrap input { padding-right: 32px; }
     .search-clear { position: absolute; right: 8px; background: transparent; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 4px; display: none; }
     .search-wrap input:not(:placeholder-shown) + .search-clear { display: block; }
 
-    /* Buttons */
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border-radius: var(--rad-sm); border: none; font-weight: 600; font-size: var(--text-xs); cursor: pointer; min-height: 32px; width: auto; transition: background 0.15s; }
     .btn-primary { background: var(--primary); color: #fff; width: 100%; min-height: 42px; font-size: var(--text-sm); }
     .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
     .btn-danger { background: rgba(248, 81, 73, 0.15); color: var(--err); border: 1px solid rgba(248, 81, 73, 0.3); }
 
-    /* Profitshare Toggle Button */
-    .ps-badge-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; font-size: var(--text-xs); color: var(--muted); cursor: pointer; transition: all 0.15s; user-select: none; font-weight: 700; }
+    .ps-badge-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; font-size: var(--text-xs); color: var(--muted); cursor: pointer; font-weight: 700; user-select: none; }
     .ps-badge-btn.active { background: rgba(1, 105, 111, 0.3); border-color: var(--primary); color: #23b2b8; }
 
-    /* Chips */
     .chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-    .chip { padding: 4px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; font-size: var(--text-xs); color: var(--text); }
-    .chip.days { background: rgba(1, 105, 111, 0.25); border-color: var(--primary); color: #23b2b8; font-weight: 700; }
-    .chip.stack { background: rgba(1, 105, 111, 0.15); border-color: var(--primary); color: #23b2b8; font-weight: 700; }
+    .chip { padding: 4px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; font-size: var(--text-xs); color: var(--text); cursor:pointer; }
+    .chip.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight:bold; }
+    .chip.days { background: rgba(1, 105, 111, 0.25); border-color: var(--primary); color: #23b2b8; font-weight: 700; cursor:default; }
+    .chip.stack { background: rgba(1, 105, 111, 0.15); border-color: var(--primary); color: #23b2b8; font-weight: 700; cursor:default; }
 
-    .qb-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--rad-sm); font-size: var(--text-sm); cursor: pointer; user-select: none; transition: all 0.15s; }
-    .qb-chip .qb-rm { margin-left: 4px; color: var(--muted); font-size: 14px; }
-    .qb-add { border-style: dashed; }
+    .qb-chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--rad-sm); font-size: 0.95rem; cursor: pointer; user-select: none; transition: all 0.15s; }
+    .qb-chip.lvl-grp { border-color: rgba(14, 165, 233, 0.35); } .qb-chip.lvl-grp.active { background: var(--c-grp); color: #fff; border-color: var(--c-grp-border); box-shadow: 0 0 10px rgba(14, 165, 233, 0.3); }
+    .qb-chip.lvl-typ { border-color: rgba(99, 102, 241, 0.35); } .qb-chip.lvl-typ.active { background: var(--c-typ); color: #fff; border-color: var(--c-typ-border); box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
+    .qb-chip.lvl-art { border-color: rgba(245, 158, 11, 0.35); } .qb-chip.lvl-art.active { background: var(--c-art); color: #fff; border-color: var(--c-art-border); box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
+    .qb-chip.lvl-var { border-color: rgba(16, 185, 129, 0.35); } .qb-chip.lvl-var.active { background: var(--c-var); color: #fff; border-color: var(--c-var-border); box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
 
-    /* Farbige Chip-Varianten */
-    .qb-chip.lvl-grp { border-color: rgba(14, 165, 233, 0.35); }
-    .qb-chip.lvl-grp.active { background: var(--c-grp); color: #fff; border-color: var(--c-grp-border); box-shadow: 0 0 10px rgba(14, 165, 233, 0.3); }
-
-    .qb-chip.lvl-typ { border-color: rgba(99, 102, 241, 0.35); }
-    .qb-chip.lvl-typ.active { background: var(--c-typ); color: #fff; border-color: var(--c-typ-border); box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
-
-    .qb-chip.lvl-art { border-color: rgba(245, 158, 11, 0.35); }
-    .qb-chip.lvl-art.active { background: var(--c-art); color: #fff; border-color: var(--c-art-border); box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
-
-    .qb-chip.lvl-var { border-color: rgba(16, 185, 129, 0.35); }
-    .qb-chip.lvl-var.active { background: var(--c-var); color: #fff; border-color: var(--c-var-border); box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
-
-    /* Farbige Filter-Überschriften */
     .filter-badge-title { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; padding: 2px 8px; border-radius: 6px; }
     .filter-badge-title.grp { background: var(--c-grp-bg); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.3); }
     .filter-badge-title.typ { background: var(--c-typ-bg); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
     .filter-badge-title.art { background: var(--c-art-bg); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
     .filter-badge-title.var { background: var(--c-var-bg); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
 
-    /* Große Logos */
-    .qb-chip-xl { padding: 12px 18px; font-size: 1.05rem; font-weight: 700; border-radius: 10px; gap: 12px; min-height: 60px; }
-    .grp-logo-xl { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
-    
-    /* Baum-Bilder */
     .tree-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; margin-right: 12px; border: 1px solid var(--border); flex-shrink: 0; }
     .grp-header-logo { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; margin-right: 14px; border: 1px solid var(--border); flex-shrink: 0; }
-    .grp-logo-thumb { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; margin-right: 6px; vertical-align: middle; border: 1px solid var(--border); }
-    .badge-modal-img { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
-    .thumb { width: 60px; height: 60px; border-radius: var(--rad-sm); background: var(--bg); border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.8rem; }
-    .thumb img { width: 100%; height: 100%; object-fit: cover; }
-
-    /* Grid für Bildauswahl */
+    .grp-logo-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; margin-right: 8px; vertical-align: middle; border: 1px solid var(--border); }
+    
     .img-grid-select { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
     .img-pick-item { border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid var(--border); background: var(--bg); height: 95px; position: relative; }
-    .img-pick-item:hover { border-color: var(--primary); }
     .img-pick-item img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* Header Inline Filter Chips */
-    .inline-filter-chip { display: inline-flex; align-items: center; padding: 4px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; font-size: 12px; color: var(--muted); cursor: pointer; margin: 0 3px; }
-    .inline-filter-chip:hover { border-color: var(--primary); color: var(--text); }
-    .inline-filter-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: bold; }
-
-    /* Tree Lists & Cards */
-    .group-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--divider); user-select: none; transition: background 0.15s; }
-    .group-head:hover { opacity: 0.95; }
-    .group-title { font-size: var(--text-base); font-weight: 700; display: flex; align-items: center; gap: 6px; color: var(--text); }
+    .matrix-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); margin-top: 8px; }
+    .matrix-table th, .matrix-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: center; vertical-align: middle; }
+    .matrix-table th { background: var(--surface2); color: var(--muted); font-size: 11px; text-transform: uppercase; font-weight: 700; }
+    .matrix-table td:first-child { text-align: left; }
     
-    .item-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); margin-top: var(--sp2); }
-    .item-card-main { display: flex; gap: var(--sp3); align-items: center; width: 100%; }
-    .item-info { flex: 1; min-width: 0; }
-    .item-title { font-weight: 700; font-size: 1.05rem; }
+    /* OVP-Feld: Keine Pfeile (Spinner) */
+    .ovp-input {
+      width: 62px;
+      padding: 4px 6px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 11px;
+      text-align: center;
+      font-weight: 700;
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+    .ovp-input::-webkit-outer-spin-button,
+    .ovp-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .ovp-input:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+
+    .qty-ctrl { display: inline-flex; align-items: center; background: var(--bg); border-radius: 6px; border: 1px solid var(--border); overflow: hidden; }
+    .qty-ctrl button { background: transparent; border: none; color: var(--text); padding: 4px 10px; cursor: pointer; font-weight: bold; font-size: 14px; }
+    .qty-ctrl button:active { background: var(--primary); color: #fff; }
+    .qty-ctrl span { display: inline-block; min-width: 26px; text-align: center; font-weight: 700; font-size: 13px; }
     
-    .item-footer { margin-top: var(--sp3); padding-top: var(--sp2); border-top: 1px solid var(--divider); display: flex; justify-content: flex-end; align-items: center; }
-    .item-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .is-zero { opacity: 0.3 !important; transition: opacity 0.2s ease; }
 
-    .sold-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); margin-bottom: var(--sp3); }
+    .color-dot-btn { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 18px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-size: 11px; user-select: none; transition: all 0.15s ease; position: relative; }
+    .color-dot-btn.has-logo { padding: 3px 6px; gap: 4px; }
+    .color-dot-btn.active { border-color: var(--primary); background: rgba(1, 105, 111, 0.25); box-shadow: 0 0 0 1px var(--primary); }
+    .color-swatch-circle { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.25); background-size: cover; background-position: center; flex-shrink: 0; display: inline-block; }
+    .color-btn-actions { display: inline-flex; align-items: center; gap: 3px; margin-left: 2px; }
+    .color-btn-del { color: var(--muted); font-size: 10px; font-weight: 700; padding: 1px 4px; border-radius: 3px; cursor: pointer; transition: all 0.15s; }
+    .color-btn-del:hover { color: #fff; background: var(--err); }
+    .color-btn-img { font-size: 10px; opacity: 0.45; cursor: pointer; transition: opacity 0.15s; }
+    .color-btn-img:hover { opacity: 1; }
 
-    /* Tables */
-    .mini-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
-    .mini-table th, .mini-table td { padding: 12px 14px !important; border-bottom: 1px solid var(--divider); text-align: left !important; white-space: nowrap; }
-    .mini-table th { background: var(--surface2); font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; }
+    #toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-30px); background: #10b981; color: #ffffff; padding: 10px 22px; border-radius: 24px; font-size: 13px; font-weight: 700; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); opacity: 0; pointer-events: none; z-index: 3000; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; gap: 8px; }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); }
-    .stat-card .k { font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; font-weight: 700; }
-    .stat-card .v { font-size: 1.3rem; font-weight: 800; color: var(--primary); margin-top: 2px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--sp2); }
+    .kpi-card, .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); }
+    .kpi-card .k, .stat-card .k { font-size: 11px; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+    .kpi-card .v, .stat-card .v { font-size: 1.25rem; font-weight: 800; color: var(--text); margin-top: 4px; }
+    .kpi-card .d { font-size: 10px; color: var(--muted); margin-top: 2px; }
 
-    .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp2); margin-top: var(--sp2); }
-    .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); }
-    .kpi-card .k { font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; font-weight: 700; }
-    .kpi-card .v { font-size: var(--text-base); font-weight: 700; margin: 4px 0 2px; color: var(--text); word-break: break-word; }
-    .kpi-card .d { font-size: 11px; color: var(--muted); }
-
-    /* Bottom Nav Bar */
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; height: 60px; z-index: 100; }
     .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: transparent; border: none; color: var(--muted); font-size: 11px; cursor: pointer; }
     .nav-btn .icon { font-size: 1.2rem; }
     .nav-btn.active { color: var(--primary); font-weight: 700; }
 
-    /* Modals */
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; padding: var(--sp4); }
     .modal.show { display: flex; }
-    .modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-lg); width: 100%; max-width: 520px; max-height: 85vh; overflow-y: auto; padding: var(--sp4); }
-
-    #toast { position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%) translateY(20px); background: #323232; color: #fff; padding: 8px 16px; border-radius: 20px; font-size: var(--text-xs); opacity: 0; transition: all 0.2s; pointer-events: none; z-index: 2000; white-space: nowrap; }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
+    .modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-lg); width: 100%; max-width: 580px; max-height: 85vh; overflow-y: auto; padding: var(--sp4); }
     .empty { text-align: center; color: var(--muted); padding: var(--sp6) var(--sp4); font-size: var(--text-sm); }
   </style>
 </head>
 <body>
 
-  <!-- Top Header Bar mit festen Speichern & Laden Buttons -->
   <header class="top-bar">
     <div class="brand-wrap">
       <div class="brand">
@@ -305,24 +185,63 @@
         <span>Kleinanzeigen Hero</span>
       </div>
       <div class="cloud-quick-btns">
-        <button type="button" class="btn-cloud-mini" onclick="window.saveToCloud()" title="In Cloud speichern">
-          ☁️ Speichern
-        </button>
-        <button type="button" class="btn-cloud-mini secondary" onclick="window.loadFromCloud()" title="Aus Cloud laden">
-          ⬇️ Laden
-        </button>
+        <button type="button" class="btn-cloud-mini" onclick="window.saveToCloud()">☁️ Speichern</button>
+        <button type="button" class="btn-cloud-mini secondary" onclick="window.loadFromCloud()">⬇️ Laden</button>
       </div>
     </div>
     
     <div class="header-actions">
-      <button type="button" class="icon-btn" data-page="sold" onclick="window.switchPage('sold')" title="Historie">📜</button>
-      <button type="button" class="icon-btn" data-page="stats" onclick="window.switchPage('stats')" title="Statistik">📊</button>
-      <button type="button" class="icon-btn" id="themeToggle" onclick="window.toggleTheme()" title="Theme wechseln">🌗</button>
-      <button type="button" class="icon-btn" data-page="master" onclick="window.switchPage('master')" title="Stammdaten">⚙️</button>
+      <button type="button" class="icon-btn" onclick="window.switchPage('sold')" title="Historie">📜</button>
+      <button type="button" class="icon-btn" onclick="window.switchPage('stats')" title="Statistik">📊</button>
+      <button type="button" class="icon-btn" onclick="window.toggleTheme()" title="Theme wechseln">🌗</button>
+      <button type="button" class="icon-btn" onclick="window.switchPage('master')" title="Stammdaten">⚙</button>
     </div>
   </header>
 
   <main class="scroll-container">
+
+    <!-- PAGE: Besta Manager -->
+    <section id="page-besta" class="page">
+      <div style="display:flex; gap:10px; margin-bottom: 16px;">
+        <button type="button" id="btn-besta-tueren" class="btn btn-primary" style="flex:1;" onclick="window.setBestaTab('tueren')">🚪 Türen</button>
+        <button type="button" id="btn-besta-korpus" class="btn btn-ghost" style="flex:1;" onclick="window.setBestaTab('korpus')">🗄 Korpusse</button>
+      </div>
+
+      <!-- BESTA TÜREN -->
+      <div id="besta-tueren-view">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp2);">
+          <h2 style="font-size:1.2rem; font-weight:800;">🚪 Türen Inventar</h2>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:var(--text-xs); color:var(--muted);">Leere ausblenden</span>
+            <div id="bestaHideZeroBtn" onclick="window.toggleBestaHideZero()" style="width:40px; height:20px; background:var(--primary); border-radius:10px; position:relative; cursor:pointer; transition:background 0.2s;">
+              <div id="bestaHideZeroKnob" style="width:16px; height:16px; background:#fff; border-radius:50%; position:absolute; top:2px; left:22px; transition:left 0.2s;"></div>
+            </div>
+          </div>
+        </div>
+        <div style="overflow-x:auto; background:var(--surface); border:1px solid var(--border); border-radius:var(--rad-md);">
+          <table class="matrix-table" id="bestaTuerenTable"></table>
+        </div>
+      </div>
+
+      <!-- BESTA KORPUSSE -->
+      <div id="besta-korpus-view" style="display:none;">
+        <div style="margin-bottom:var(--sp4);">
+          <div id="bestaKorpusTopBar" style="margin-bottom:14px; background:var(--surface2); padding:12px; border-radius:8px; border: 1px solid var(--border);"></div>
+
+          <div style="margin-bottom:var(--sp4);">
+            <h2 style="font-size:1.1rem; margin-bottom:8px; font-weight:800;">🗄️ Baubare Korpusse</h2>
+            <div style="overflow-x:auto; background:var(--surface); border:1px solid var(--border); border-radius:var(--rad-md);">
+              <table class="matrix-table" id="bestaKorpusTable"></table>
+            </div>
+          </div>
+
+          <div>
+            <h2 style="font-size:1.1rem; margin-bottom:8px; font-weight:800;">📦 Einzel-Bauteile (Lagerbestand)</h2>
+            <div id="bestaBauteileContainer"></div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- PAGE: Neu -->
     <section id="page-new" class="page active">
@@ -330,42 +249,11 @@
         <div class="card-head"><h3 class="card-title">✚ Neuer Artikel</h3></div>
         <div class="card-body">
           <form id="itemForm">
-            <!-- 1. Gruppe -->
-            <div class="form-group">
-              <span class="filter-badge-title grp">📁 1. Gruppe</span>
-              <select id="group" class="select" style="display:none;" onchange="window.onGroupChange()"></select>
-              <div id="qb-group" class="chips"></div>
-            </div>
+            <div class="form-group"><span class="filter-badge-title grp">📁 1. Gruppe</span><select id="group" class="select" style="display:none;" onchange="window.onGroupChange()"></select><div id="qb-group" class="chips"></div></div>
+            <div class="form-group" id="field-productType" style="display:none;"><span class="filter-badge-title typ">🏷️ 2. Produkttyp</span><select id="productType" class="select" style="display:none;" onchange="window.onProductTypeChange()"></select><div id="qb-productType" class="chips"></div></div>
+            <div class="form-group" id="field-article" style="display:none;"><span class="filter-badge-title art">📦 3. Artikelname</span><select id="article" class="select" style="display:none;" onchange="window.onArticleChange()"></select><div id="qb-article" class="chips"></div></div>
+            <div class="grid2" id="field-size-color" style="display:none;"><div class="form-group"><span class="filter-badge-title var">📏 Größe</span><select id="size" class="select" style="display:none;"></select><div id="qb-size" class="chips"></div></div><div class="form-group"><span class="filter-badge-title var">🎨 Farbe</span><select id="color" class="select" style="display:none;"></select><div id="qb-color" class="chips"></div></div></div>
 
-            <!-- 2. Produkttyp -->
-            <div class="form-group" id="field-productType" style="display:none;">
-              <span class="filter-badge-title typ">🏷️ 2. Produkttyp</span>
-              <select id="productType" class="select" style="display:none;" onchange="window.onProductTypeChange()"></select>
-              <div id="qb-productType" class="chips"></div>
-            </div>
-
-            <!-- 3. Artikelname -->
-            <div class="form-group" id="field-article" style="display:none;">
-              <span class="filter-badge-title art">📦 3. Artikelname</span>
-              <select id="article" class="select" style="display:none;" onchange="window.onArticleChange()"></select>
-              <div id="qb-article" class="chips"></div>
-            </div>
-
-            <!-- 4. Größe & Farbe -->
-            <div class="grid2" id="field-size-color" style="display:none;">
-              <div class="form-group">
-                <span class="filter-badge-title var">📏 Größe</span>
-                <select id="size" class="select" style="display:none;"></select>
-                <div id="qb-size" class="chips"></div>
-              </div>
-              <div class="form-group">
-                <span class="filter-badge-title var">🎨 Farbe</span>
-                <select id="color" class="select" style="display:none;"></select>
-                <div id="qb-color" class="chips"></div>
-              </div>
-            </div>
-
-            <!-- Einkaufspreis & Profitshare Button -->
             <div class="grid2">
               <div class="form-group">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -388,7 +276,7 @@
 
             <div style="display:flex; gap:8px; margin-top:var(--sp3);">
               <button type="submit" class="btn btn-primary" style="flex:1;">✚ Hinzufügen</button>
-              <button type="button" class="btn btn-ghost" style="width:auto; padding:0 16px;" onclick="window.resetItemForm()" title="Eingaben komplett leeren">↺ Zurücksetzen</button>
+              <button type="button" class="btn btn-ghost" style="width:auto; padding:0 16px;" onclick="window.resetItemForm()">↺ Zurücksetzen</button>
             </div>
           </form>
         </div>
@@ -398,47 +286,26 @@
     <!-- PAGE: Bestand -->
     <section id="page-open" class="page">
       <div style="display:flex; gap:8px; margin-bottom:var(--sp3); align-items:center;">
-        <div class="search-wrap">
-          <input type="text" id="openSearchText" class="input" placeholder="🔍 Suche im Bestand..." oninput="window.updateOpenFilters()">
-          <button type="button" class="search-clear" onclick="window.clearOpenSearch()">✕</button>
-        </div>
+        <div class="search-wrap"><input type="text" id="openSearchText" class="input" placeholder="🔍 Suche im Bestand..." oninput="window.updateOpenFilters()"><button type="button" class="search-clear" onclick="window.clearOpenSearch()">✕</button></div>
         <button type="button" id="toggleAllBtn" class="btn btn-ghost" style="width:auto; white-space:nowrap;" onclick="window.toggleAllGroups()">↕ Alle</button>
-        <button type="button" class="btn btn-ghost" style="width:auto; white-space:nowrap;" onclick="window.openSetBadgesModal()">🏆 Mögliche Sets</button>
+        <button type="button" class="btn btn-ghost" style="width:auto; white-space:nowrap; border-color:var(--primary); color:var(--text);" onclick="window.openSetBadgesModal()">🏆 Mögliche Sets</button>
       </div>
 
-      <!-- Visuelle Filter-Chips im Bestand -->
       <div class="card" style="margin-bottom:var(--sp3); background:var(--surface2);">
         <div class="card-body" style="padding:12px;">
-          <div class="form-group" style="margin-bottom:8px;">
-            <span class="filter-badge-title grp">📁 1. Gruppe</span>
-            <div id="qb-open-group" class="chips"></div>
-          </div>
-          <div class="form-group" id="open-field-productType" style="display:none; margin-bottom:8px;">
-            <span class="filter-badge-title typ">🏷️ 2. Produkttyp</span>
-            <div id="qb-open-productType" class="chips"></div>
-          </div>
-          <div class="form-group" id="open-field-article" style="display:none; margin-bottom:8px;">
-            <span class="filter-badge-title art">📦 3. Artikelname</span>
-            <div id="qb-open-article" class="chips"></div>
-          </div>
+          <div class="form-group" style="margin-bottom:8px;"><span class="filter-badge-title grp">📁 1. Gruppe</span><div id="qb-open-group" class="chips"></div></div>
+          <div class="form-group" id="open-field-productType" style="display:none; margin-bottom:8px;"><span class="filter-badge-title typ">🏷️ 2. Produkttyp</span><div id="qb-open-productType" class="chips"></div></div>
+          <div class="form-group" id="open-field-article" style="display:none; margin-bottom:8px;"><span class="filter-badge-title art">📦 3. Artikelname</span><div id="qb-open-article" class="chips"></div></div>
           <div class="grid2" id="open-field-size-color" style="display:none;">
-            <div class="form-group" style="margin-bottom:0;">
-              <span class="filter-badge-title var">📏 Größe</span>
-              <div id="qb-open-size" class="chips"></div>
-            </div>
-            <div class="form-group" style="margin-bottom:0;">
-              <span class="filter-badge-title var">🎨 Farbe</span>
-              <div id="qb-open-color" class="chips"></div>
-            </div>
+            <div class="form-group" style="margin-bottom:0;"><span class="filter-badge-title var">📏 Größe</span><div id="qb-open-size" class="chips"></div></div>
+            <div class="form-group" style="margin-bottom:0;"><span class="filter-badge-title var">🎨 Farbe</span><div id="qb-open-color" class="chips"></div></div>
           </div>
         </div>
       </div>
 
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
         <span style="font-size:var(--text-xs); color:var(--muted);">Nullbestände ausblenden</span>
-        <div id="zeroFilterBtn" onclick="window.toggleZeroFilter()" style="width:40px; height:20px; background:var(--primary); border-radius:10px; position:relative; cursor:pointer; transition:background 0.2s;">
-          <div id="zeroFilterKnob" style="width:16px; height:16px; background:#fff; border-radius:50%; position:absolute; top:2px; left:22px; transition:left 0.2s;"></div>
-        </div>
+        <div id="zeroFilterBtn" onclick="window.toggleZeroFilter()" style="width:40px; height:20px; background:var(--primary); border-radius:10px; position:relative; cursor:pointer; transition:background 0.2s;"><div id="zeroFilterKnob" style="width:16px; height:16px; background:#fff; border-radius:50%; position:absolute; top:2px; left:22px; transition:left 0.2s;"></div></div>
       </div>
 
       <div id="openContent"></div>
@@ -447,83 +314,30 @@
     <!-- PAGE: Verkauf -->
     <section id="page-sell" class="page">
       <div class="card">
-        <div class="card-head">
-          <h3 class="card-title">🛍 Verkauf erfassen</h3>
-        </div>
+        <div class="card-head"><h3 class="card-title">🛍 Verkauf erfassen</h3></div>
         <div class="card-body">
-          <div class="form-group">
-            <span class="filter-badge-title grp">📁 Gruppe (Vorrätig)</span>
-            <div id="qb-sell-group" class="chips"></div>
-          </div>
-
-          <div class="form-group" id="sell-field-productType" style="display:none;">
-            <span class="filter-badge-title typ">🏷️ Produkttyp</span>
-            <div id="qb-sell-productType" class="chips"></div>
-          </div>
-
-          <div class="form-group" id="sell-field-article" style="display:none;">
-            <span class="filter-badge-title art">📦 Artikelname</span>
-            <div id="qb-sell-article" class="chips"></div>
-          </div>
-
+          <div class="form-group"><span class="filter-badge-title grp">📁 Gruppe</span><div id="qb-sell-group" class="chips"></div></div>
+          <div class="form-group" id="sell-field-productType" style="display:none;"><span class="filter-badge-title typ">🏷️ Produkttyp</span><div id="qb-sell-productType" class="chips"></div></div>
+          <div class="form-group" id="sell-field-article" style="display:none;"><span class="filter-badge-title art">📦 Artikelname</span><div id="qb-sell-article" class="chips"></div></div>
           <div class="grid2" id="sell-field-size-color" style="display:none;">
-            <div class="form-group">
-              <span class="filter-badge-title var">📏 Größe</span>
-              <div id="qb-sell-size" class="chips"></div>
-            </div>
-            <div class="form-group">
-              <span class="filter-badge-title var">🎨 Farbe</span>
-              <div id="qb-sell-color" class="chips"></div>
-            </div>
+            <div class="form-group"><span class="filter-badge-title var">📏 Größe</span><div id="qb-sell-size" class="chips"></div></div>
+            <div class="form-group"><span class="filter-badge-title var">🎨 Farbe</span><div id="qb-sell-color" class="chips"></div></div>
           </div>
-
-          <div class="form-group" style="margin-top:var(--sp3);">
-            <label class="form-label">Verfügbare Lager-Exemplare (Klick auf ✚ zum Hinzufügen)</label>
-            <div id="sellInstanceList" style="display:grid; gap:6px; max-height:200px; overflow-y:auto; padding:6px; border:1px solid var(--border); border-radius:var(--rad-sm); background:var(--bg);"></div>
-          </div>
-
-          <div class="form-group" style="margin-top:var(--sp3);">
-            <label class="form-label">Warenkorb</label>
-            <div id="sellCartContainer"></div>
-          </div>
-
+          <div class="form-group" style="margin-top:var(--sp3);"><label class="form-label">Verfügbare Lager-Exemplare</label><div id="sellInstanceList" style="display:grid; gap:6px; max-height:200px; overflow-y:auto; padding:6px; border:1px solid var(--border); border-radius:var(--rad-sm); background:var(--bg);"></div></div>
+          <div class="form-group" style="margin-top:var(--sp3);"><label class="form-label">Warenkorb</label><div id="sellCartContainer"></div></div>
           <hr style="border:none; border-top:1px solid var(--border); margin:var(--sp4) 0;">
-
-          <div class="form-group">
-            <label class="form-label">Set Name / Basisname</label>
-            <input type="text" id="sellBaseName" class="input" placeholder="z.B. Besta TV-Kombination" oninput="window.updateSellPreview()">
-            <div id="sellNamePreview" style="font-size:var(--text-xs); color:var(--muted); margin-top:2px;"></div>
-          </div>
-
-          <div class="form-group" id="sellSetImageGroup" style="display:none;">
-            <label class="form-label">Set-Bild (für mehrteiliges Set)</label>
-            <button type="button" class="btn btn-ghost" onclick="window.openSellSetImgPicker()" style="justify-content:flex-start; width:100%;">
-              <span id="sellSetImgPreview">🖼️</span> <span id="sellSetImgLabel">Set-Bild wählen…</span>
-            </button>
-            <input type="hidden" id="sellSetImgValue">
-          </div>
-
+          <div class="form-group"><label class="form-label">Set Name / Basisname</label><input type="text" id="sellBaseName" class="input" placeholder="z.B. Besta TV-Kombination" oninput="window.updateSellPreview()"></div>
+          <div class="form-group" id="sellSetImageGroup" style="display:none;"><label class="form-label">Set-Bild</label><button type="button" class="btn btn-ghost" onclick="window.openSellSetImgPicker()" style="justify-content:flex-start; width:100%;"><span id="sellSetImgPreview">🖼</span> <span id="sellSetImgLabel">Set-Bild wählen…</span></button><input type="hidden" id="sellSetImgValue"></div>
           <div class="grid3">
-            <div class="form-group">
-              <label class="form-label">Verkaufspreis (€)</label>
-              <input type="number" step="0.01" id="sellPrice" class="input" placeholder="0.00" oninput="window.updateSellPreview()">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Profitshare %</label>
-              <input type="number" id="sellPsInput" class="input" value="0" min="0" max="100" oninput="window.onPsPctInput()">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Profitshare (€)</label>
-              <input type="number" step="0.01" id="sellPsEuroInput" class="input" placeholder="0.00" oninput="window.onPsEuroInput()">
-            </div>
+            <div class="form-group"><label class="form-label">VK (€)</label><input type="number" step="0.01" id="sellPrice" class="input" placeholder="0.00" oninput="window.updateSellPreview()"></div>
+            <div class="form-group"><label class="form-label">PS %</label><input type="number" id="sellPsInput" class="input" value="0" min="0" max="100" oninput="window.onPsPctInput()"></div>
+            <div class="form-group"><label class="form-label">PS (€)</label><input type="number" step="0.01" id="sellPsEuroInput" class="input" placeholder="0.00" oninput="window.onPsEuroInput()"></div>
           </div>
-
-          <div style="background:var(--surface2); padding:var(--sp3); border-radius:var(--rad-md); margin-bottom:var(--sp3); font-size:var(--text-xs);">
-            <div>EK Gesamt: <b id="sellEKTotal">0,00 €</b></div>
-            <div>Rohertrag: <b id="sellNetto">0,00 €</b></div>
-            <div id="sellFinalProfit" style="font-weight:700; color:var(--primary); margin-top:4px;"></div>
+          <div style="background:var(--surface2); padding:var(--sp3); border-radius:var(--rad-md); margin-bottom:var(--sp3); font-size:var(--text-xs); line-height: 1.6;">
+            <div>Einkaufspreis gesamt: <b id="sellEKTotal">0,00 €</b></div>
+            <div>Rohertrag (Gewinn vor PS): <b id="sellNetto">0,00 €</b></div>
+            <div id="sellFinalProfit" style="font-weight:700; color:var(--primary); font-size: 13px; margin-top: 4px;"></div>
           </div>
-
           <button type="button" class="btn btn-primary" onclick="window.executeSale()">Verkauf abschließen</button>
         </div>
       </div>
@@ -531,11 +345,45 @@
 
     <!-- PAGE: Historie -->
     <section id="page-sold" class="page">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
-        <input type="text" id="soldSearch" class="input" placeholder="🔍 Verkaufte Durchsuchen..." oninput="window.renderSold()">
-      </div>
-      <div id="soldSubtitle" style="font-size:var(--text-xs); color:var(--muted); margin-bottom:var(--sp3);"></div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);"><input type="text" id="soldSearch" class="input" placeholder="🔍 Verkaufte Durchsuchen..." oninput="window.renderSold()"></div>
       <div id="soldContent"></div>
+    </section>
+
+    <!-- PAGE: Routenplaner -->
+    <section id="page-route" class="page">
+      <div class="card">
+        <div class="card-head"><h3 class="card-title">🧭 Routenplaner & Rentabilität</h3></div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">1. Start- & Endpunkt (Ausgangsort)</label>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
+              <span class="chip active" id="routeStartHome" onclick="window.setRouteStart('home')">🏠 Zuhause (Josephstr. 14)</span>
+              <span class="chip" id="routeStartGps" onclick="window.setRouteStart('gps')">📍 Standort</span>
+              <span class="chip" id="routeStartCustom" onclick="window.setRouteStart('custom')">✏️ Eigene</span>
+            </div>
+            <input type="text" id="routeStartInput" class="input" style="font-size:13px; display:none;" value="Josephstr. 14, 22041 Hamburg">
+          </div>
+          <div class="form-group">
+            <label class="form-label">2. Zieladresse (Haupt-Abholort)</label>
+            <input type="text" id="routeDestInput" class="input" placeholder="z.B. Kieler Straße 400, Hamburg">
+          </div>
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label class="form-label" style="margin-bottom:0;">3. Zwischenstationen (Optionale Stopps)</label>
+              <button type="button" class="btn btn-ghost" style="padding:2px 8px; font-size:11px;" onclick="window.addRouteWaypoint()">✚ Stopp</button>
+            </div>
+            <div id="routeWaypointsContainer"></div>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="window.calcRoutePage()">🚀 Optimale Rundreise & Fahrtkosten berechnen</button>
+          <div id="routeCalculationResult" style="margin-top:10px;"></div>
+          <hr style="border:none; border-top:1px solid var(--border); margin:var(--sp4) 0;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <label class="form-label" style="margin-bottom:0;">⭐ Meine Favorite Spots für Abstecher</label>
+            <button type="button" class="btn btn-ghost" style="padding:2px 8px; font-size:11px;" onclick="window.addNewFavoriteSpot()">✚ Neuer Spot</button>
+          </div>
+          <div id="routeFavoriteSpotsManager"></div>
+        </div>
+      </div>
     </section>
 
     <!-- PAGE: Termine -->
@@ -545,214 +393,1546 @@
         <div class="card-body">
           <form id="terminForm">
             <div class="grid2">
-              <div class="form-group">
-                <label class="form-label">Art</label>
-                <select id="terminArt" class="select">
-                  <option value="Abholung">Abholung (Verkauf)</option>
-                  <option value="Übergabe">Einkauf / Übergabe</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Name / Artikel</label>
-                <input type="text" id="terminName" class="input" placeholder="z.B. Besta Korpus" required>
-              </div>
+              <div class="form-group"><label class="form-label">Art</label><select id="terminArt" class="select"><option value="Abholung">Abholung (Verkauf)</option><option value="Übergabe">Einkauf</option></select></div>
+              <div class="form-group"><label class="form-label">Name / Artikel</label><input type="text" id="terminName" class="input" required></div>
             </div>
-
             <div class="grid2">
-              <div class="form-group">
-                <label class="form-label">Datum</label>
-                <input type="date" id="terminDatum" class="input" required>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Uhrzeit</label>
-                <select id="terminUhrzeit" class="select" required></select>
-              </div>
+              <div class="form-group"><label class="form-label">Datum</label><input type="date" id="terminDatum" class="input" required></div>
+              <div class="form-group"><label class="form-label">Uhrzeit</label><select id="terminUhrzeit" class="select" required></select></div>
             </div>
-
-            <div class="grid2">
-              <div class="form-group">
-                <label class="form-label">Preis / Betrag</label>
-                <input type="text" id="terminPreis" class="input" placeholder="z.B. 50 €">
-              </div>
-              <div class="form-group">
-                <label class="form-label">Ort / Adresse</label>
-                <input type="text" id="terminOrt" class="input" placeholder="Musterstraße 1, Koblenz">
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Kleinanzeigen-User</label>
-              <input type="text" id="terminUser" class="input" placeholder="Username">
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Info</label>
-              <input type="text" id="terminInfo" class="input" placeholder="Notizen...">
-            </div>
-
             <button type="submit" class="btn btn-primary">Termin eintragen</button>
           </form>
         </div>
       </div>
-
       <div id="terminContent"></div>
     </section>
 
     <!-- PAGE: Statistik -->
     <section id="page-stats" class="page">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
-        <h2>Statistik</h2>
-        <select id="statsYear" class="select" style="width:auto;"></select>
-      </div>
-
-      <div class="card" style="margin-bottom:var(--sp3);">
-        <div class="card-head"><h3 class="card-title">🔍 Dynamischer KPI Filter</h3></div>
-        <div class="card-body">
-          <div class="grid3" style="margin-bottom:6px;">
-            <select id="statsFilterGrp" class="select" onchange="window.onStatsFilterChange('grp')"><option value="">Gruppe</option></select>
-            <select id="statsFilterTyp" class="select" onchange="window.onStatsFilterChange('typ')"><option value="">Produkttyp</option></select>
-            <select id="statsFilterArt" class="select" onchange="window.onStatsFilterChange('art')"><option value="">Artikelname</option></select>
-          </div>
-          <div class="grid2">
-            <select id="statsFilterSize" class="select" onchange="window.onStatsFilterChange('size')"><option value="">Größe</option></select>
-            <select id="statsFilterCol" class="select" onchange="window.onStatsFilterChange('col')"><option value="">Farbe</option></select>
-          </div>
-        </div>
-      </div>
-
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);"><h2>Statistik</h2><select id="statsYear" class="select" style="width:auto;"></select></div>
+      <div class="card" style="margin-bottom:var(--sp3);"><div class="card-head"><h3 class="card-title">🔍 Dynamischer KPI Filter</h3></div><div class="card-body"><div class="grid3" style="margin-bottom:6px;"><select id="statsFilterGrp" class="select" onchange="window.onStatsFilterChange('grp')"></select><select id="statsFilterTyp" class="select" onchange="window.onStatsFilterChange('typ')"></select><select id="statsFilterArt" class="select" onchange="window.onStatsFilterChange('art')"></select></div><div class="grid2"><select id="statsFilterSize" class="select" onchange="window.onStatsFilterChange('size')"></select><select id="statsFilterCol" class="select" onchange="window.onStatsFilterChange('col')"></select></div></div></div>
       <div id="statsCards" class="grid2" style="margin-bottom:var(--sp3);"></div>
       <div id="dynamicKpis" class="kpi-grid" style="margin-bottom:var(--sp4);"></div>
       <div id="topRankings" style="margin-bottom:var(--sp4);"></div>
-
-      <div class="card" style="margin-bottom:var(--sp3);">
-        <div class="card-head"><h3 class="card-title">Monatsübersicht</h3></div>
-        <div class="card-body" style="padding:0; overflow-x:auto;">
-          <table id="monthTable" class="mini-table" style="margin:0;"></table>
-        </div>
-      </div>
+      <div class="card" style="margin-bottom:var(--sp3);"><div class="card-head"><h3 class="card-title">Monatsübersicht</h3></div><div class="card-body" style="padding:0; overflow-x:auto;"><table id="monthTable" class="mini-table" style="margin:0;"></table></div></div>
     </section>
 
-    <!-- PAGE: Stammdaten -->
+    <!-- PAGE: Stammdaten & Exporte -->
     <section id="page-master" class="page">
       <div class="card">
         <div class="card-head"><h3 class="card-title">✚ Stammdaten hinzufügen</h3></div>
         <div class="card-body">
           <form id="masterForm">
-            <div class="form-group">
-              <label class="form-label">Kategorie</label>
-              <select id="masterType" class="select" onchange="window.updateMasterForm()">
-                <option value="groups">Gruppe (z.B. Besta)</option>
-                <option value="producttypes">Produkttyp (z.B. Tür)</option>
-                <option value="articles">Artikelname (z.B. Selsviken)</option>
-                <option value="sizes">Größe (z.B. 64x64)</option>
-                <option value="colors">Farbe (z.B. Weiß)</option>
-              </select>
-            </div>
-
-            <div class="form-group mf-grp" style="display:none;">
-              <label class="form-label">Gruppe wählen</label>
-              <select id="masterGroup" class="select" onchange="window.updateMasterForm()"></select>
-            </div>
-
-            <div class="form-group mf-typ" style="display:none;">
-              <label class="form-label">Produkttyp wählen</label>
-              <select id="masterProdType" class="select" onchange="window.updateMasterForm()"></select>
-            </div>
-
-            <div class="form-group mf-art" style="display:none;">
-              <label class="form-label">Artikelname wählen</label>
-              <select id="masterArticle" class="select"></select>
-            </div>
-
-            <div class="form-group mf-val">
-              <label class="form-label" id="masterValueLabel">Wert</label>
-              <input type="text" id="masterValue" class="input">
-            </div>
-
+            <div class="form-group"><label class="form-label">Kategorie</label><select id="masterType" class="select" onchange="window.updateMasterForm()"><option value="groups">Gruppe (z.B. Besta)</option><option value="producttypes">Produkttyp (z.B. Tür)</option><option value="articles">Artikelname (z.B. Selsviken)</option><option value="sizes">Größe (z.B. 64x64)</option><option value="colors">Farbe (z.B. Weiß)</option></select></div>
+            <div class="form-group mf-grp" style="display:none;"><label class="form-label">Gruppe wählen</label><select id="masterGroup" class="select" onchange="window.updateMasterForm()"></select></div>
+            <div class="form-group mf-typ" style="display:none;"><label class="form-label">Produkttyp wählen</label><select id="masterProdType" class="select" onchange="window.updateMasterForm()"></select></div>
+            <div class="form-group mf-art" style="display:none;"><label class="form-label">Artikelname wählen</label><select id="masterArticle" class="select"></select></div>
+            <div class="form-group mf-val"><label class="form-label" id="masterValueLabel">Wert</label><input type="text" id="masterValue" class="input"></div>
             <button type="submit" class="btn btn-primary">Speichern</button>
           </form>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-head"><h3 class="card-title">☁️ Cloud Sync & Bereinigung</h3></div>
+        <div class="card-head"><h3 class="card-title">☁ Cloud Sync & Exporte</h3></div>
         <div class="card-body">
-          <div class="form-group">
-            <label class="form-label">Google Apps Script WebApp URL</label>
-            <input type="text" id="gasUrl" class="input" placeholder="https://script.google.com/macros/s/.../exec">
+          <div class="form-group"><label class="form-label">Google Apps Script WebApp URL</label><input type="text" id="gasUrl" class="input" placeholder="https://script.google.com/macros/s/.../exec"></div>
+          <div class="grid2" style="margin-bottom:var(--sp3);"><button type="button" class="btn btn-primary" onclick="window.saveToCloud()">☁️ In Cloud</button><button type="button" class="btn btn-ghost" style="width:100%" onclick="window.loadFromCloud()">⬇ Aus Cloud</button></div>
+          
+          <div style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; margin-bottom:6px;">Gezielte Exporte</div>
+          <div class="grid3" style="margin-bottom:var(--sp3);">
+            <button type="button" class="btn btn-ghost" onclick="window.exportBestand()">📦 Nur Bestand</button>
+            <button type="button" class="btn btn-ghost" onclick="window.exportBesta()">🗄️ Besta & Korpus</button>
+            <button type="button" class="btn btn-ghost" onclick="window.exportSold()">📜 Nur Historie</button>
           </div>
-          <div class="grid2" style="margin-bottom:var(--sp3);">
-            <button type="button" class="btn btn-primary" onclick="window.saveToCloud()">☁️ In Cloud</button>
-            <button type="button" class="btn btn-ghost" style="width:100%" onclick="window.loadFromCloud()">⬇️ Aus Cloud</button>
-          </div>
-          <div class="grid2">
-            <button type="button" id="exportBtn" class="btn btn-ghost" style="width:100%" onclick="window.exportData()">💾 JSON Export</button>
-            <label class="btn btn-ghost" style="cursor:pointer; text-align:center; width:100%">
-              📂 Import
-              <input type="file" style="display:none;" onchange="importData(this.files[0])">
-            </label>
-          </div>
-          <button type="button" class="btn btn-danger" style="width:100%; margin-top:6px;" onclick="window.cleanCorruptedImagesAndGhostGroups()">
-            🧹 Defekte Bilder & Geister-Gruppen bereinigen
-          </button>
+
+          <div class="grid2" style="margin-bottom:var(--sp3);"><button type="button" id="exportBtn" class="btn btn-ghost" style="width:100%" onclick="window.exportData()">💾 Gesamt-Backup</button><label class="btn btn-ghost" style="cursor:pointer; text-align:center; width:100%">📂 Import<input type="file" style="display:none;" onchange="window.importData(this.files[0])"></label></div>
+          <button type="button" class="btn btn-danger" style="width:100%;" onclick="window.cleanCorruptedImagesAndGhostGroups()">🧹 Defekte Bilder & Geister-Gruppen bereinigen</button>
         </div>
       </div>
-
       <div id="masterContent"></div>
     </section>
 
   </main>
 
   <nav class="bottom-nav">
-    <button type="button" class="nav-btn active" data-page="new" onclick="window.switchPage('new')">
-      <span class="icon">✚</span>
-      <span>Neu</span>
-    </button>
-    <button type="button" class="nav-btn" data-page="open" onclick="window.switchPage('open')">
-      <span class="icon">📦</span>
-      <span>Bestand</span>
-    </button>
-    <button type="button" class="nav-btn" data-page="sell" onclick="window.switchPage('sell')">
-      <span class="icon">🏷️</span>
-      <span>Verkauf</span>
-    </button>
-    <button type="button" class="nav-btn" data-page="termin" onclick="window.switchPage('termin')">
-      <span class="icon">📅</span>
-      <span>Termine</span>
-    </button>
+    <button type="button" class="nav-btn" data-page="besta" onclick="window.switchPage('besta')"><span class="icon">🗄️</span><span>Besta</span></button>
+    <button type="button" class="nav-btn active" data-page="new" onclick="window.switchPage('new')"><span class="icon">✚</span><span>Neu</span></button>
+    <button type="button" class="nav-btn" data-page="open" onclick="window.switchPage('open')"><span class="icon">📦</span><span>Bestand</span></button>
+    <button type="button" class="nav-btn" data-page="sell" onclick="window.switchPage('sell')"><span class="icon">🏷️</span><span>Verkauf</span></button>
+    <button type="button" class="nav-btn" data-page="route" onclick="window.switchPage('route')"><span class="icon">🧭</span><span>Route</span></button>
+    <button type="button" class="nav-btn" data-page="termin" onclick="window.switchPage('termin')"><span class="icon">📅</span><span>Termine</span></button>
   </nav>
 
   <div id="toast"></div>
 
-  <!-- Bereinigtes Image Picker Modal -->
   <div id="imagePickerModal" class="modal">
     <div class="modal-content">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
-        <h3>Bild auswählen</h3>
-        <button type="button" class="btn btn-ghost" style="width:auto; padding:4px 8px;" onclick="window.closeImagePicker()">✕</button>
+        <h3>Bild auswählen</h3><button type="button" class="btn btn-ghost" style="width:auto; padding:4px 8px;" onclick="window.closeImagePicker()">✕</button>
       </div>
-      
       <label class="btn btn-primary" style="font-size:var(--text-sm); cursor:pointer; width:100%;">
-        📷 Neues Bild vom Gerät hochladen
-        <input type="file" accept="image/*" style="display:none;" onchange="window.handleSingleModalUpload(this.files[0])">
+        📷 Bild vom Gerät hochladen<input type="file" accept="image/*" style="display:none;" onchange="window.handleSingleModalUpload(this.files[0])">
       </label>
-
       <div id="imagePickerList" class="img-grid-select"></div>
     </div>
   </div>
 
-  <!-- Set Badges Modal -->
+  <!-- MODAL: MÖGLICHE SETS & REGEL-EDITOR -->
   <div id="setBadgesModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 640px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
-        <h3>🏆 Baubare Sets im Bestand</h3>
+        <h3 style="font-size:1.2rem; font-weight:800;">🏆 Mögliche Sets & Set-Regeln</h3>
         <button type="button" class="btn btn-ghost" style="width:auto; padding:4px 8px;" onclick="window.closeSetBadgesModal()">✕</button>
       </div>
-      <div id="setBadgesContent"></div>
+
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <button type="button" id="tabBtnPossibleSets" class="btn btn-primary" style="flex:1;" onclick="window.setSetBadgesTab('matches')">✨ Baubare Sets im Lager</button>
+        <button type="button" id="tabBtnSetRules" class="btn btn-ghost" style="flex:1;" onclick="window.setSetBadgesTab('rules')">⚙ Set-Regeln verwalten</button>
+      </div>
+
+      <div id="viewPossibleSetsMatches">
+        <div id="setBadgesContent"></div>
+      </div>
+
+      <div id="viewPossibleSetsRules" style="display:none;">
+        <div style="background:var(--surface2); padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom:12px;">
+          <h4 style="font-size:13px; font-weight:800; margin-bottom:8px; text-transform:uppercase; color:var(--primary);">✚ Neue Set-Regel definieren</h4>
+          
+          <div class="form-group" style="margin-bottom:6px;">
+            <label class="form-label">Set-Name Vorlage (Nutze {Korpus}, {Tür}, {Farbe})</label>
+            <input type="text" id="ruleNamePattern" class="input" placeholder="z.B. {Korpus} {Tür} ({Farbe})">
+          </div>
+
+          <div class="grid2" style="margin-bottom:6px;">
+            <div class="form-group">
+              <label class="form-label">Korpus-Modell</label>
+              <select id="ruleKorpusModel" class="select"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gleicher Türname & Farbe nötig?</label>
+              <select id="ruleSameArtCol" class="select">
+                <option value="true">Ja (gleicher Name & Farbe)</option>
+                <option value="false">Nein (Beliebige Türen)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="font-weight:700; font-size:11px; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">Benötigte Türen-Anzahl nach Größe:</div>
+          <div class="grid3" style="margin-bottom:8px;">
+            <div class="form-group">
+              <label class="form-label">Gr. 64 Türen</label>
+              <input type="number" id="ruleReq64" class="input" value="2" min="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gr. 38 Türen</label>
+              <input type="number" id="ruleReq38" class="input" value="0" min="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gr. 26 Türen / Blenden</label>
+              <input type="number" id="ruleReq26" class="input" value="0" min="0">
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-primary" onclick="window.saveNewSetRule()">✚ Regel speichern</button>
+        </div>
+
+        <div style="font-weight:800; font-size:12px; color:var(--muted); text-transform:uppercase; margin-bottom:6px;">Aktive Set-Regeln:</div>
+        <div id="setRulesList"></div>
+      </div>
     </div>
   </div>
 
-  <script src="./app.js?v=36.0"></script>
+  <script>
+    const g = id => document.getElementById(id);
+    const gVal = id => { const el = g(id); return el ? el.value : ''; };
+    const esc = s => { if(s==null)return''; if(typeof s==='object'){try{s=JSON.stringify(s);}catch(e){s='[Objekt]';}} return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); };
+    const safeJsStr = s => String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    const sortKeys = (a, b) => String(a||'').localeCompare(String(b||''),'de');
+    const euro = v => Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(+v||0);
+    const today = () => new Date().toISOString().slice(0,10);
+    const uid = () => 'xxxx-xxxx-4xxx-yxxx-xxxx'.replace(/[xy]/g, c => { var r=Math.random()*16|0, v=c==='x'?r:(r&0x3|0x8); return v.toString(16); });
+    function calcDays(s) { if(!s) return 0; const t = new Date(s); if(isNaN(t.getTime())) return 0; return Math.max(0, Math.floor((new Date().getTime() - t.getTime())/(1000*60*60*24))); }
+    const fmtDate = d => { if(!d) return '-'; const dt=new Date(d); return isNaN(dt.getTime())?String(d):new Intl.DateTimeFormat('de-DE',{dateStyle:'medium'}).format(dt); };
+    const fmtMonth = d => { if(!d) return '-'; const dt=new Date(d); return isNaN(dt.getTime())?String(d):new Intl.DateTimeFormat('de-DE',{month:'long',year:'numeric'}).format(dt); };
+    const stackKey = i => `${i.group}||${i.productType||''}||${i.article||''}||${i.size||''}||${i.color||''}`;
 
+    let toastTimer = null;
+    function toast(msg) {
+      const t = g('toast');
+      if(!t) return;
+      t.innerHTML = '<span>✓</span> <span>' + esc(msg) + '</span>';
+      t.classList.add('show');
+      if(toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { t.classList.remove('show'); }, 2200);
+    }
+
+    function fillSel(el, vals, ph) { if(el) el.innerHTML=(ph?'<option value="">'+ph+'</option>':'')+vals.map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join(''); }
+
+    const COLOR_HEX_MAP = {
+      'weiß': '#ffffff', 'weiss': '#ffffff', 'hochglanz weiß': 'linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%)',
+      'schwarzbraun': '#2c1e18', 'schwarz-braun': '#2c1e18', 'schwarz': '#141414',
+      'beige': '#dfd3c3', 'grau': '#7a7a7a', 'dunkelgrau': '#3a3a3a', 'hellgrau': '#d1d5db',
+      'eiche': '#c4a47c', 'eicheneffekt': '#c4a47c', 'walnuss': '#5c3a21',
+      'blau': '#2563eb', 'dunkelblau': '#1e3a8a', 'grün': '#15803d', 'rot': '#b91c1c'
+    };
+
+    function getColorStyle(colorName) {
+      const norm = String(colorName || '').toLowerCase().trim();
+      const customImg = state.master?.colorImages?.[norm];
+      if(customImg) return "background-image: url('"+customImg+"'); border-color: rgba(255,255,255,0.4);";
+      for(const [key, hex] of Object.entries(COLOR_HEX_MAP)){
+        if(norm.includes(key)){
+          if(hex.startsWith('linear-gradient')) return "background: "+hex+"; border: 1px solid #cbd5e1;";
+          return "background-color: "+hex+"; "+ (hex === '#ffffff' ? 'border: 1px solid #94a3b8;' : '');
+        }
+      }
+      return "background-color: #64748b;";
+    }
+
+    window.uploadColorSwatch = function(colorName){
+      const norm = String(colorName || '').toLowerCase().trim();
+      imagePickCallback = url => {
+        if(!state.master.colorImages) state.master.colorImages = {};
+        state.master.colorImages[norm] = url;
+        save(); window.autoSaveToCloud?.();
+        window.renderBestaManager();
+        toast('Farbmuster gespeichert ✓');
+      };
+      window.openImagePicker(state.master.colorImages?.[norm] || '');
+    };
+
+    const DEFAULT_FAVORITE_SPOTS = [
+      { name: 'IKEA Altona', addr: 'Große Bergstraße 164, 22767 Hamburg' },
+      { name: 'IKEA Schnelsen', addr: 'Wunderbrunnen 1, 22457 Hamburg' },
+      { name: 'IKEA Moorfleet', addr: 'Unterer Landweg 77, 22113 Hamburg' },
+      { name: 'P3 Padel (Bergedorf)', addr: 'Havighorster Weg 16, 21031 Hamburg' },
+      { name: 'padel amigos (Halstenbek)', addr: 'Am Bahndamm 88, 25469 Halstenbek' },
+      { name: 'Holmes Place Bahrenfeld', addr: 'Gasstraße 6, 22761 Hamburg' },
+      { name: 'Sports Club Alsterdorf', addr: 'Heubergredder 34, 22297 Hamburg' }
+    ];
+
+    const DEFAULT_BESTA_TUEREN = ['Björköviken','Djupviken','Förvaltare','Glassvik','Grundsviken','Hammarsmed','Hanviken','Hedeviken','Hjortviken','Kallviken','Krukmakare','Lappviken','Laxviken','Mjörtviken','Norum','Novum','Pippmakare','Riksviken','Selsviken','Sindvik','Smeviken','Studsviken','Sutterviken','Tofta','Tombo','Vara','Vassbo'];
+
+    const BESTA_KORPUS_MODELS = {
+      'Hochschrank': { dim: '193 x 40 x 60', bom: { 'Seite': { s: '193', q: 2 }, 'Oben/Unten': { s: '60', q: 2 } } },
+      'Highboard': { dim: '128 x 40 x 60', bom: { 'Seite': { s: '128', q: 2 }, 'Oben/Unten': { s: '60', q: 2 } } },
+      'Sideboard': { dim: '64 x 40 x 120', bom: { 'Seite': { s: '64', q: 2 }, 'Oben/Unten': { s: '120', q: 2 }, 'Mitte': { s: '64', q: 1 } } },
+      'Sideboard (niedrig)': { dim: '38 x 40 x 120', bom: { 'Seite': { s: '38', q: 2 }, 'Oben/Unten': { s: '120', q: 2 }, 'Mitte': { s: '38', q: 1 } } },
+      'Sideboard TV': { dim: '38 x 40 x 120', bom: { 'Seite': { s: '38', q: 2 }, 'Oben/Unten TV': { s: '120', q: 2 }, 'Mitte TV': { s: '38', q: 1 } } },
+      'Longboard': { dim: '64 x 40 x 180', bom: { 'Seite': { s: '64', q: 2 }, 'Oben/Unten': { s: '180', q: 2 }, 'Mitte': { s: '64', q: 2 } } },
+      'Longboard (niedrig)': { dim: '38 x 40 x 180', bom: { 'Seite': { s: '38', q: 2 }, 'Oben/Unten': { s: '180', q: 2 }, 'Mitte': { s: '38', q: 2 } } },
+      'Longboard TV': { dim: '64 x 40 x 180', bom: { 'Seite': { s: '64', q: 2 }, 'Oben/Unten TV': { s: '180', q: 2 }, 'Mitte TV': { s: '64', q: 2 } } },
+      'Longboard TV (niedrig)': { dim: '38 x 40 x 180', bom: { 'Seite': { s: '38', q: 2 }, 'Oben/Unten TV': { s: '180', q: 2 }, 'Mitte TV': { s: '38', q: 2 } } },
+      'Einzelkorpus': { dim: '64 x 40 x 60', bom: { 'Seite': { s: '64', q: 2 }, 'Oben/Unten': { s: '60', q: 2 } } },
+      'Einzelkorpus (niedrig)': { dim: '38 x 40 x 60', bom: { 'Seite': { s: '38', q: 2 }, 'Oben/Unten': { s: '60', q: 2 } } },
+      'Sideboard schmal': { dim: '64 x 20 x 120', bom: { 'Seite': { s: '64s', q: 2 }, 'Oben/Unten': { s: '120s', q: 2 }, 'Mitte': { s: '64s', q: 1 } } },
+      'Sideboard schmal (niedrig)': { dim: '38 x 20 x 120', bom: { 'Seite': { s: '38s', q: 2 }, 'Oben/Unten': { s: '120s', q: 2 }, 'Mitte': { s: '38s', q: 1 } } },
+      'Einzelkorpus schmal': { dim: '64 x 20 x 60', bom: { 'Seite': { s: '64s', q: 2 }, 'Oben/Unten': { s: '60s', q: 2 } } },
+      'Einzelkorpus schmal (niedrig)': { dim: '38 x 20 x 60', bom: { 'Seite': { s: '38s', q: 2 }, 'Oben/Unten': { s: '60s', q: 2 } } }
+    };
+
+    const BESTA_KORPUS_CATEGORIES = {
+      'Einzelkorpus': ['Einzelkorpus', 'Einzelkorpus (niedrig)', 'Einzelkorpus schmal', 'Einzelkorpus schmal (niedrig)'],
+      'Sideboard': ['Sideboard', 'Sideboard (niedrig)', 'Sideboard TV', 'Sideboard schmal', 'Sideboard schmal (niedrig)'],
+      'Longboard': ['Longboard', 'Longboard (niedrig)', 'Longboard TV', 'Longboard TV (niedrig)'],
+      'Highboard / Hochschrank': ['Highboard', 'Hochschrank']
+    };
+
+    const BESTA_BOM = {};
+    Object.entries(BESTA_KORPUS_MODELS).forEach(([name, def]) => {
+      BESTA_BOM[name] = def.bom;
+      BESTA_BOM[def.dim] = def.bom;
+      BESTA_BOM[def.dim.replace(/\s+/g, '')] = def.bom;
+    });
+
+    const state = { page:'new', sellCart:[], psMode:'pct', open:[], openFilters:{text:'',group:'',type:'',article:'',size:'',color:''}, sellSelection:{group:'',type:'',article:'',size:'',color:''}, sold:[], soldFilter:'', termine:[], year:String(new Date().getFullYear()), deletedIds:[], deletedGroups:[], master:{catalog:{}, badgeRules:[], groupLogos:{}, typeLogos:{}, articleLogos:{}, images:[], setImages:[], colorImages:{}, doorOVP:{}, favoriteSpots:[...DEFAULT_FAVORITE_SPOTS]}, openCollapse:{}, hideZero:false };
+    let globalExpandState=false, db=null, imagePickCallback=null;
+    const DB_NAME='amp3db', DB_VER=1, STORE='data';
+
+    window.bestaHideZero = false;
+    window.bestaActiveTab = 'tueren';
+    window.bestaTuerColors = {};
+    window.bestaGlobalKorpusColor = 'Weiß';
+
+    function openDB(){ return new Promise((res,rej)=>{ if(db){res(db);return;} const req=indexedDB.open(DB_NAME,DB_VER); req.onupgradeneeded=e=>e.target.result.createObjectStore(STORE); req.onsuccess=e=>{db=e.target.result;res(db);}; req.onerror=e=>rej(e.target.error); }); }
+    function save(){ const pl={open:state.open,sold:state.sold,termine:state.termine,master:state.master,year:state.year,deletedIds:state.deletedIds,deletedGroups:state.deletedGroups}; try{localStorage.setItem('amp3',JSON.stringify(pl));}catch(e){} openDB().then(database=>{ const tx=database.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(pl,'state'); }).catch(()=>{}); }
+    function load(){ openDB().then(database=>{ const tx=database.transaction(STORE,'readonly'); const req=tx.objectStore(STORE).get('state'); req.onsuccess=e=>{ if(e.target.result) applyState(e.target.result); else{try{const ls=JSON.parse(localStorage.getItem('amp3'));if(ls)applyState(ls);}catch(e){}} initApp(); }; req.onerror=()=>fallbackLoad(); }).catch(()=>fallbackLoad()); }
+    function fallbackLoad(){ try{const ls=JSON.parse(localStorage.getItem('amp3'));if(ls)applyState(ls);}catch(e){} initApp(); }
+
+    function isValidImage(url){ if(!url||typeof url!=='string')return false; const s=url.trim(); if(s.startsWith('http'))return true; if(s.startsWith('data:image/'))return s.length>500&&s.includes(';base64,'); return false; }
+    function compressImage(file, callback){ const reader=new FileReader(); reader.onload=e=>{ const img=new Image(); img.onload=()=>{ const canvas=document.createElement('canvas'); let w=img.width,h=img.height; const MAX=250; if(w>h&&w>MAX){h=Math.round(h*MAX/w);w=MAX;}else if(h>MAX){w=Math.round(w*MAX/h);h=MAX;} canvas.width=w; canvas.height=h; canvas.getContext('2d').drawImage(img,0,0,w,h); callback(canvas.toDataURL('image/jpeg',0.45)); }; img.src=e.target.result; }; reader.readAsDataURL(file); }
+    function getEntityImage(grp, pt, art){ const m=state.master; if(grp&&pt&&art&&m.articleLogos&&isValidImage(m.articleLogos[`${grp}||${pt}||${art}`])) return m.articleLogos[`${grp}||${pt}||${art}`]; if(grp&&pt&&!art&&m.typeLogos&&isValidImage(m.typeLogos[`${grp}||${pt}`])) return m.typeLogos[`${grp}||${pt}`]; if(grp&&!pt&&!art&&m.groupLogos&&isValidImage(m.groupLogos[grp])) return m.groupLogos[grp]; return ''; }
+
+    window.switchPage = function(pageName){
+      state.page = pageName;
+      window.render();
+    };
+    window.toggleTheme = function(){ document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'); };
+
+    function ensureCatalogIntegrity(){
+      if(!state.master) state.master={};
+      if(!state.master.catalog||typeof state.master.catalog!=='object') state.master.catalog={};
+      if(!state.master.colorImages) state.master.colorImages={};
+      if(!state.master.doorOVP) state.master.doorOVP={};
+      if(!state.master.catalog.Besta) state.master.catalog.Besta={};
+      if(!state.master.catalog.Besta['Tür']) state.master.catalog.Besta['Tür']={articles:[...DEFAULT_BESTA_TUEREN],sizes:['64','38','26'],colors:['Weiß','Schwarzbraun']};
+      if(!state.master.catalog.Besta['Korpus Bauteil']) state.master.catalog.Besta['Korpus Bauteil']={articles:['Seite','Oben/Unten','Oben/Unten TV','Mitte','Mitte TV'],sizes:[],colors:['Weiß','Schwarzbraun']};
+      if(!Array.isArray(state.master.favoriteSpots) || state.master.favoriteSpots.length === 0) state.master.favoriteSpots = [...DEFAULT_FAVORITE_SPOTS];
+    }
+
+    window.openImagePicker = function(cur=''){ const m=g('imagePickerModal'), l=g('imagePickerList'); if(!m||!l)return; const p=(Array.isArray(state.master.images)?state.master.images:[]).filter(isValidImage); l.innerHTML=p.length?p.map(u=>'<div class="img-pick-item" style="border-color:'+(u===cur?'var(--primary)':'var(--border)')+';" onclick="window.selectPoolImage(\''+safeJsStr(u)+'\')"><img src="'+u+'" loading="lazy"></div>').join(''):'<div class="empty" style="grid-column:1/-1;">Pool leer.</div>'; m.style.display='flex'; m.classList.add('show'); };
+    window.closeImagePicker = function(){ const m=g('imagePickerModal'); if(m){m.classList.remove('show');m.style.display='none';} };
+    window.selectPoolImage = function(url){ if(imagePickCallback) imagePickCallback(url); window.closeImagePicker(); };
+    window.handleSingleModalUpload = function(file){ if(!file)return; compressImage(file, u=>{ if(!Array.isArray(state.master.images)) state.master.images=[]; state.master.images.unshift(u); save(); if(imagePickCallback) imagePickCallback(u); window.closeImagePicker(); toast('Bild hochgeladen ✓'); }); };
+    window.openSellSetImgPicker = function(){ imagePickCallback=url=>{ const v=g('sellSetImgValue'),p=g('sellSetImgPreview'),l=g('sellSetImgLabel'); if(v)v.value=url; if(p)p.innerHTML=url?'<img src="'+url+'" style="width:36px;height:36px;object-fit:cover;border-radius:6px;">':'🖼'; if(l)l.textContent=url?'Set-Bild gewählt ✓':'Set-Bild wählen…'; }; window.openImagePicker(gVal('sellSetImgValue')); };
+    window.setArticleLogo = function(grp,typ,art){ imagePickCallback=url=>{if(!state.master.articleLogos)state.master.articleLogos={};state.master.articleLogos[`${grp}||${typ}||${art}`]=url;save();window.renderMaster();window.renderAllQuick();window.renderOpenFilters();window.renderOpen();window.renderBestaManager();toast('Bild gespeichert ✓');}; window.openImagePicker(''); };
+    window.setGroupLogo = function(grp){ imagePickCallback=url=>{if(!state.master.groupLogos)state.master.groupLogos={};state.master.groupLogos[grp]=url;save();window.renderMaster();window.renderAllQuick();toast('Logo gespeichert ✓');}; window.openImagePicker(state.master.groupLogos?.[grp]||''); };
+
+    function getBestaComp(p,s,c){
+      const cl=String(c||'').toLowerCase().trim();
+      const artMatch = String(p).toLowerCase().trim();
+      return state.open.reduce((sum,i)=>{
+        if(i && i.group==='Besta' && (i.productType||'').toLowerCase().includes('bauteil')){
+          if(String(i.article||'').toLowerCase().trim()===artMatch && String(i.size||'').trim()===String(s).trim() && String(i.color||'').toLowerCase().trim()===cl){
+            return sum + (i.instances ? i.instances.length : 0);
+          }
+        }
+        return sum;
+      },0);
+    }
+
+    function getBestaPoss(m,c){
+      const r=BESTA_BOM[m];
+      if(!r) return 0;
+      let min=Infinity;
+      for(const[p,d] of Object.entries(r)){
+        min=Math.min(min,Math.floor(getBestaComp(p,d.s,c)/d.q));
+      }
+      return min===Infinity?0:min;
+    }
+
+    function addBestaInst(p,s,c,q,ek=0,ps=false,def=''){
+      for(let i=0;i<q;i++){
+        const pl={group:'Besta',productType:'Korpus Bauteil',article:p,size:s,color:c,defect:def,purchasePrice:ek,profitshare:ps,entryDate:today()};
+        const k=stackKey(pl);
+        let ex=state.open.find(x=>stackKey(x)===k);
+        const inst={id:uid(),purchasePrice:ek,profitshare:ps,entryDate:today(),defect:def};
+        if(ex) ex.instances.push(inst);
+        else state.open.unshift({id:uid(),...pl,instances:[inst]});
+      }
+    }
+
+    function remBestaInst(p,s,c,q){
+      const cl=String(c||'').toLowerCase().trim();
+      const artMatch = String(p).toLowerCase().trim();
+      let ex=state.open.find(x=>x && x.group==='Besta' && (x.productType||'').toLowerCase().includes('bauteil') && String(x.article||'').toLowerCase().trim()===artMatch && String(x.size||'').trim()===String(s).trim() && String(x.color||'').toLowerCase().trim()===cl);
+      if(ex && ex.instances){
+        for(let i=0;i<q && ex.instances.length>0;i++) ex.instances.pop();
+      }
+    }
+
+    window.increaseBestaKorpus = function(model, color){
+      const c = color || window.bestaGlobalKorpusColor || 'Weiß';
+      const bom = BESTA_BOM[model];
+      if(!bom) return;
+      for(const [p, d] of Object.entries(bom)){ addBestaInst(p, d.s, c, d.q, 0, false, ''); }
+      save(); window.autoSaveToCloud?.();
+      window.renderBestaManager(); window.renderOpen();
+      toast('+1 '+model+' ('+c+') aufgebaut ✓');
+    };
+
+    window.reduceBestaKorpus = function(model, color){
+      const c = color || window.bestaGlobalKorpusColor || 'Weiß';
+      const poss = getBestaPoss(model, c);
+      if(poss <= 0) return toast('Kein '+model+' ('+c+') zum Abbauen vorhanden.');
+      const bom = BESTA_BOM[model];
+      if(!bom) return;
+      for(const [p, d] of Object.entries(bom)){ remBestaInst(p, d.s, c, d.q); }
+      save(); window.autoSaveToCloud?.();
+      window.renderBestaManager(); window.renderOpen();
+      toast('−1 '+model+' ('+c+') abgebaut ✓');
+    };
+
+    window.deleteBestaTuerColor = function(art, color){
+      if(!confirm('Farbe "'+color+'" bei "'+art+'" wirklich entfernen?')) return;
+      const cl = String(color).toLowerCase().trim();
+      const bCat = state.master?.catalog?.Besta?.['Tür'];
+      if(bCat){
+        if(!bCat.articleData) bCat.articleData = {};
+        if(!bCat.articleData[art]){
+          const currentList = Array.from(new Set([...(bCat.colors || ['Weiß','Schwarzbraun'])]));
+          bCat.articleData[art] = { sizes: ['64','38','26'], colors: currentList.filter(c => String(c).toLowerCase().trim() !== cl) };
+        } else {
+          bCat.articleData[art].colors = (bCat.articleData[art].colors || []).filter(c => String(c).toLowerCase().trim() !== cl);
+        }
+      }
+
+      state.open = state.open.filter(i => !(i && i.group === 'Besta' && (i.productType||'').toLowerCase().includes('tür') && i.article === art && String(i.color||'').toLowerCase().trim() === cl));
+      if(window.bestaTuerColors[art] === color){ delete window.bestaTuerColors[art]; }
+      save(); window.autoSaveToCloud?.(); window.renderBestaManager(); window.renderOpen(); toast('Farbe entfernt ✓');
+    };
+
+    window.changeBestaTuerQty = function(art,sz,c,d){
+      const col = c || 'Weiß'; const cl = String(col).toLowerCase().trim();
+      let ex = state.open.find(x => x && x.group==='Besta' && (x.productType||'').toLowerCase().includes('tür') && x.article===art && String(x.size||'').trim()===String(sz).trim() && String(x.color||'').toLowerCase().trim()===cl);
+      if(d > 0){
+        const inst = { id: uid(), purchasePrice: 0, profitshare: false, entryDate: today() };
+        if(ex) ex.instances.push(inst);
+        else state.open.unshift({ id: uid(), group: 'Besta', productType: 'Tür', article: art, size: sz, color: col, purchasePrice: 0, profitshare: false, instances: [inst] });
+        toast('+1 '+art+' ('+col+', Gr. '+sz+')');
+      } else if(d < 0 && ex && ex.instances && ex.instances.length > 0){
+        ex.instances.pop(); toast('-1 '+art+' ('+col+', Gr. '+sz+')');
+      }
+      save(); window.renderBestaManager();
+    };
+
+    // OVP Hilfsfunktionen (Pfeile weg, automatisches €-Zeichen)
+    window.updateDoorOVP = function(art, sz, val){
+      if(!state.master.doorOVP) state.master.doorOVP = {};
+      const key = `${art}_${sz}`;
+      const cleanStr = String(val || '').replace('€', '').replace(',', '.').trim();
+      const num = parseFloat(cleanStr) || 0;
+      if(num > 0) {
+        state.master.doorOVP[key] = num;
+      } else {
+        delete state.master.doorOVP[key];
+      }
+      save(); 
+      window.autoSaveToCloud?.();
+    };
+
+    window.onOvpFocus = function(el){
+      el.value = el.value.replace(' €', '').replace('€', '').trim();
+      el.select();
+    };
+
+    window.onOvpBlur = function(art, sz, el){
+      const key = `${art}_${sz}`;
+      window.updateDoorOVP(art, sz, el.value);
+      const val = state.master?.doorOVP?.[key];
+      el.value = val ? `${val % 1 === 0 ? val : val.toFixed(2).replace('.', ',')} €` : '';
+    };
+
+    window.toggleBestaKorpusPs = function(){
+      const btn = g('bestaQuickPsBtn'); const val = g('bestaQuickPs'); if(!btn || !val) return;
+      const isPs = val.value === 'true'; val.value = isPs ? 'false' : 'true';
+      btn.classList.toggle('active', !isPs); btn.textContent = !isPs ? '🤝 PS: An' : '🤝 PS: Aus';
+    };
+
+    window.addBestaKorpusDirect = function(){
+      const m = gVal('bestaQuickModel'); const q = parseInt(gVal('bestaQuickQty')) || 1;
+      const c = window.bestaGlobalKorpusColor || 'Weiß';
+      const totalEk = parseFloat(gVal('bestaQuickPrice').replace(',', '.')) || 0;
+      const isPs = gVal('bestaQuickPs') === 'true';
+
+      if(!m) return toast('Bitte Modell wählen.');
+      const bom = BESTA_BOM[m]; if(!bom) return;
+
+      let totalParts = 0; for(const part of Object.values(bom)) totalParts += part.q;
+      const pieceEk = totalParts > 0 ? (totalEk / totalParts) : 0;
+
+      for(const [p, d] of Object.entries(bom)){ addBestaInst(p, d.s, c, d.q * q, pieceEk, isPs, ''); }
+      save(); window.renderBestaManager(); window.renderOpen();
+      toast(q+'x '+m+' ('+c+') erfasst ✓'); const pin = g('bestaQuickPrice'); if(pin) pin.value = '';
+    };
+
+    window.changeBestaBauteilQty = function(p,s,d){
+      if(d > 0){ addBestaInst(p,s,window.bestaGlobalKorpusColor,1); toast('+1 '+p+' ('+s+')'); }
+      else { remBestaInst(p,s,window.bestaGlobalKorpusColor,1); toast('-1 '+p+' ('+s+')'); }
+      save(); window.renderBestaManager();
+    };
+
+    window.toggleBestaHideZero = function(){ window.bestaHideZero=!window.bestaHideZero; window.renderBestaManager(); };
+    window.setBestaTab = function(tab){
+      window.bestaActiveTab=tab;
+      const bt=g('btn-besta-tueren'),bk=g('btn-besta-korpus'),vt=g('besta-tueren-view'),vk=g('besta-korpus-view');
+      if(bt) bt.className=tab==='tueren'?'btn btn-primary':'btn btn-ghost';
+      if(bk) bk.className=tab==='korpus'?'btn btn-primary':'btn btn-ghost';
+      if(vt) vt.style.display=tab==='tueren'?'block':'none';
+      if(vk) vk.style.display=tab==='korpus'?'block':'none';
+      window.renderBestaManager();
+    };
+
+    window.onBestaTuerColorSelect = function(a,c){ window.bestaTuerColors[a]=c; window.renderBestaManager(); };
+    window.addBestaModel = function(){
+      const v=prompt('Tür-Artikelname:'); if(!v||!v.trim())return; const m=v.trim();
+      if(!state.master.catalog.Besta['Tür']) state.master.catalog.Besta['Tür']={articles:[],sizes:['64','38','26'],colors:['Weiß','Schwarzbraun']};
+      if(!state.master.catalog.Besta['Tür'].articles.includes(m)){ state.master.catalog.Besta['Tür'].articles.push(m); state.master.catalog.Besta['Tür'].articles.sort(sortKeys); save(); window.renderBestaManager(); toast('Hinzugefügt ✓'); }
+    };
+    window.addBestaColorToArticle = function(a){
+      const v=prompt('Neue Farbe für '+a+':'); if(!v||!v.trim())return; const c=v.trim();
+      const t=state.master.catalog.Besta['Tür']; if(!t.articleData) t.articleData={};
+      if(!t.articleData[a]) t.articleData[a]={sizes:['64','38','26'],colors:['Weiß','Schwarzbraun']};
+      if(!t.articleData[a].colors.includes(c)){ t.articleData[a].colors.push(c); t.articleData[a].colors.sort(sortKeys); window.bestaTuerColors[a]=c; save(); window.renderBestaManager(); toast('Farbe hinzugefügt ✓'); }
+    };
+    window.addBestaKorpusColor = function(){
+      const v=prompt('Neue Korpus-Farbe:'); if(!v||!v.trim())return; const c=v.trim();
+      if(!state.master.catalog.Besta['Korpus Bauteil']) state.master.catalog.Besta['Korpus Bauteil']={articles:['Seite','Oben/Unten','Oben/Unten TV','Mitte','Mitte TV'],sizes:[],colors:[]};
+      if(!state.master.catalog.Besta['Korpus Bauteil'].colors.includes(c)){ state.master.catalog.Besta['Korpus Bauteil'].colors.push(c); state.master.catalog.Besta['Korpus Bauteil'].colors.sort(sortKeys); window.bestaGlobalKorpusColor=c; save(); window.renderBestaManager(); toast('Farbe hinzugefügt ✓'); }
+    };
+    window.onBestaKorpusColorChange = function(c){ window.bestaGlobalKorpusColor=c; window.renderBestaManager(); };
+
+    window.renderBestaManager = function(){
+      try{
+        const bCat = state.master?.catalog?.Besta || {};
+        const defaultDoorColors = bCat['Tür']?.colors || ['Weiß', 'Schwarzbraun'];
+        const ovpMap = state.master?.doorOVP || {};
+
+        const tt = g('bestaTuerenTable');
+        if(tt && window.bestaActiveTab === 'tueren'){
+          const allSzs = ['64','38','26'];
+          const dArts = new Set(DEFAULT_BESTA_TUEREN);
+          const dc = {};
+
+          if(bCat['Tür']?.articles) bCat['Tür'].articles.forEach(a => dArts.add(a));
+          
+          state.open.forEach(i => {
+            if(i && i.group === 'Besta' && (i.productType||'').toLowerCase().includes('tür') && i.article){
+              dArts.add(i.article);
+              if(!dc[i.article]) dc[i.article] = new Set();
+              if(i.color) dc[i.article].add(i.color);
+            }
+          });
+
+          dArts.forEach(a => {
+            if(!dc[a]) dc[a] = new Set();
+            const artColors = bCat['Tür']?.articleData?.[a]?.colors;
+            if(Array.isArray(artColors)){ artColors.forEach(c => dc[a].add(c)); }
+            else { defaultDoorColors.forEach(c => dc[a].add(c)); }
+          });
+
+          const sArts = Array.from(dArts).sort(sortKeys);
+          let visSzs = [...allSzs];
+          if(window.bestaHideZero){
+            visSzs = allSzs.filter(sz => sArts.some(art => {
+              const sc = window.bestaTuerColors[art] || Array.from(dc[art]||[])[0] || 'Weiß';
+              const scl = String(sc).toLowerCase().trim();
+              return state.open.some(i => i && i.group==='Besta' && (i.productType||'').toLowerCase().includes('tür') && i.article===art && String(i.size||'').trim()===sz && String(i.color||'').toLowerCase().trim()===scl && (i.instances?.length>0));
+            }));
+          }
+
+          let th = '<thead><tr><th style="width:50px;">Bild</th><th style="text-align:left;">Name <button type="button" class="btn-icon-subtle" style="padding:0; color:var(--primary); font-size:14px;" onclick="window.addBestaModel()">✚</button></th><th style="text-align:left;">Farbe</th>'+visSzs.map(s => `<th>Gr. ${s}<br><span style="font-size:9px;color:var(--muted);font-weight:normal;">Bestand / OVP</span></th>`).join('')+'</tr></thead>';
+          let tb = '', rowIdx = 0;
+
+          sArts.forEach(art => {
+            const ac = Array.from(dc[art] || []).sort(sortKeys);
+            if(!window.bestaTuerColors[art]){
+              let bc = ac[0] || 'Weiß';
+              for(let c of ac){
+                if(state.open.some(i => i && i.group==='Besta' && (i.productType||'').toLowerCase().includes('tür') && i.article===art && String(i.color||'').toLowerCase().trim()===String(c).toLowerCase().trim() && (i.instances?.length>0))){
+                  bc = c; break;
+                }
+              }
+              window.bestaTuerColors[art] = bc;
+            }
+
+            const sel = window.bestaTuerColors[art] || ac[0] || 'Weiß';
+            const scl = String(sel).toLowerCase().trim();
+            const cnts = {};
+            let tR = 0;
+
+            visSzs.forEach(s => {
+              const c = state.open.reduce((sum,i) => (i && i.group==='Besta' && (i.productType||'').toLowerCase().includes('tür') && i.article===art && String(i.size||'').trim()===s && String(i.color||'').toLowerCase().trim()===scl)?sum+(i.instances?i.instances.length:0):sum, 0);
+              cnts[s] = c; tR += c;
+            });
+
+            if(window.bestaHideZero && tR === 0) return;
+
+            const al = getEntityImage('Besta','Tür',art);
+            const imH = al ? '<img src="'+al+'" style="width:40px;height:40px;border-radius:6px;object-fit:cover;cursor:pointer;" onclick="window.setArticleLogo(\'Besta\',\'Tür\',\''+safeJsStr(art)+'\')">' : '<div style="width:40px;height:40px;border-radius:6px;background:var(--surface2);display:grid;place-items:center;cursor:pointer;border:1px dashed var(--border);" onclick="window.setArticleLogo(\'Besta\',\'Tür\',\''+safeJsStr(art)+'\')">📷</div>';
+
+            const cChips = ac.map(c => {
+              const isAct = c === sel;
+              const norm = String(c).toLowerCase().trim();
+              const hasLogo = Boolean(state.master?.colorImages?.[norm]);
+              const st = getColorStyle(c);
+
+              return '<div class="color-dot-btn '+(isAct ? 'active' : '')+' '+(hasLogo ? 'has-logo' : '')+'" onclick="window.onBestaTuerColorSelect(\''+safeJsStr(art)+'\',\''+safeJsStr(c)+'\')"><span class="color-swatch-circle" style="'+st+'" title="'+esc(c)+'"></span>'+(hasLogo ? '' : '<span>'+esc(c)+'</span>')+'<span class="color-btn-actions"><span class="color-btn-del" title="Farbe löschen" onclick="event.stopPropagation(); window.deleteBestaTuerColor(\''+safeJsStr(art)+'\',\''+safeJsStr(c)+'\')">✕</span><span class="color-btn-img" title="Logo/Muster wählen" onclick="event.stopPropagation(); window.uploadColorSwatch(\''+safeJsStr(c)+'\')">🖼</span></span></div>';
+            }).join('') + '<span class="chip" style="cursor:pointer; border-style:dashed;" onclick="window.addBestaColorToArticle(\''+safeJsStr(art)+'\')">✚</span>';
+
+            const qC = visSzs.map(s => {
+              const rawOvp = ovpMap[`${art}_${s}`];
+              const ovpDisplay = rawOvp ? `${rawOvp % 1 === 0 ? rawOvp : rawOvp.toFixed(2).replace('.', ',')} €` : '';
+              return `
+                <td style="white-space:nowrap;">
+                  <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
+                    <div class="qty-ctrl ${cnts[s]===0 ? 'is-zero' : ''}">
+                      <button type="button" onclick="window.changeBestaTuerQty('${safeJsStr(art)}','${s}','${safeJsStr(sel)}',-1)">-</button>
+                      <span>${cnts[s]}</span>
+                      <button type="button" onclick="window.changeBestaTuerQty('${safeJsStr(art)}','${s}','${safeJsStr(sel)}',1)">+</button>
+                    </div>
+                    <input type="text" inputmode="decimal" class="ovp-input" placeholder="OVP €" value="${ovpDisplay}" 
+                           onfocus="window.onOvpFocus(this)" 
+                           onblur="window.onOvpBlur('${safeJsStr(art)}','${s}',this)" 
+                           onkeydown="if(event.key==='Enter') this.blur();"
+                           title="OVP / Neupreis bei IKEA">
+                  </div>
+                </td>
+              `;
+            }).join('');
+
+            const trBg = (rowIdx % 2 === 0) ? 'background:var(--surface2);' : 'background:transparent;';
+            rowIdx++;
+            tb += '<tr style="'+trBg+'" class="'+(tR === 0 ? 'is-zero' : '')+'"><td>'+imH+'</td><td style="font-weight:800; font-size:1.15rem; text-align:left;">'+esc(art)+'</td><td style="text-align:left;"><div class="chips" style="gap:4px;">'+cChips+'</div></td>'+qC+'</tr>';
+          });
+
+          tt.innerHTML = th + '<tbody>'+(tb || '<tr><td colspan="6" class="empty">Alle Türen 0.</td></tr>')+'</tbody>';
+        }
+
+        const kt = g('bestaKorpusTable'), bc = g('bestaBauteileContainer');
+        if(kt && bc && window.bestaActiveTab === 'korpus'){
+          const gc = new Set(['Weiß','Schwarzbraun']);
+          state.open.forEach(i => { if(i && i.group==='Besta' && (i.productType||'').toLowerCase().includes('bauteil') && i.color) gc.add(i.color); });
+          if(bCat['Korpus Bauteil']?.colors) bCat['Korpus Bauteil'].colors.forEach(c => gc.add(c));
+          const gCA = Array.from(gc).sort(sortKeys);
+          if(!gCA.includes(window.bestaGlobalKorpusColor)) window.bestaGlobalKorpusColor = gCA[0] || 'Weiß';
+
+          const topBar = g('bestaKorpusTopBar');
+          if(topBar){
+            const mOpts = Object.keys(BESTA_KORPUS_MODELS).map(m => '<option value="'+esc(m)+'">'+esc(m)+' ('+esc(BESTA_KORPUS_MODELS[m].dim)+')</option>').join('');
+            const colorPills = gCA.map(c => '<div class="color-dot-btn '+(c === window.bestaGlobalKorpusColor ? 'active' : '')+'" onclick="window.onBestaKorpusColorChange(\''+safeJsStr(c)+'\')"><span class="color-swatch-circle" style="'+getColorStyle(c)+'"></span><b>'+esc(c)+'</b></div>').join('');
+
+            topBar.innerHTML = '<div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap;"><span style="font-size:12px; font-weight:800; color:var(--muted); text-transform:uppercase;">Aktive Korpus-Farbe:</span>'+colorPills+'<button type="button" class="btn btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="window.addBestaKorpusColor()">✚ Neue Farbe</button></div><div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;"><div style="display:flex; align-items:center; gap:4px;"><span style="font-weight:800; font-size:12px; color:var(--text); white-space:nowrap;">Modell:</span><select id="bestaQuickModel" class="select" style="min-width:180px; padding:6px; font-size:12px;">'+mOpts+'</select></div><div style="display:flex; align-items:center; gap:4px;"><span style="font-weight:800; font-size:12px; color:var(--text); white-space:nowrap;">Anzahl:</span><input type="number" id="bestaQuickQty" class="input" style="width:50px; padding:6px; text-align:center; font-size:12px;" min="1" value="1"></div><div style="display:flex; align-items:center; gap:4px;"><span style="font-weight:800; font-size:12px; color:var(--text); white-space:nowrap;">EK (€):</span><input type="number" step="0.01" id="bestaQuickPrice" class="input" style="width:70px; padding:6px; font-size:12px;" placeholder="0.00"></div><span id="bestaQuickPsBtn" class="ps-badge-btn" style="padding:4px 10px; font-size:11px;" onclick="window.toggleBestaKorpusPs()">🤝 PS: Aus</span><input type="hidden" id="bestaQuickPs" value="false"><button type="button" class="btn btn-primary" style="width:auto; min-height:32px; padding:4px 12px; font-size:12px; font-weight:700; white-space:nowrap; margin-left:auto;" onclick="window.addBestaKorpusDirect()">✚ Einpflegen</button></div>';
+          }
+
+          let kth = '<thead><tr><th style="width:50px;">Bild</th><th style="text-align:left;">Modell & Maße</th><th style="text-align:center;">Baubar ('+esc(window.bestaGlobalKorpusColor)+')</th><th style="text-align:right;">Status</th></tr></thead>', ktb='', kRowIdx = 0;
+
+          Object.keys(BESTA_KORPUS_MODELS).forEach(m => {
+            const def = BESTA_KORPUS_MODELS[m], poss = getBestaPoss(m, window.bestaGlobalKorpusColor);
+            if(window.bestaHideZero && poss === 0) return;
+            const isZero = poss === 0;
+            const al = getEntityImage('Besta','Korpus',m);
+            const imH = al ? '<img src="'+al+'" style="width:40px;height:40px;border-radius:6px;object-fit:cover;cursor:pointer;" onclick="window.setArticleLogo(\'Besta\',\'Korpus\',\''+safeJsStr(m)+'\')">' : '<div style="width:40px;height:40px;border-radius:6px;background:var(--surface2);display:grid;place-items:center;cursor:pointer;border:1px dashed var(--border);" onclick="window.setArticleLogo(\'Besta\',\'Korpus\',\''+safeJsStr(m)+'\')">🗄</div>';
+            const trBg = (kRowIdx % 2 === 0) ? 'background:var(--surface2);' : 'background:transparent;';
+            kRowIdx++;
+
+            ktb += '<tr style="'+trBg+'" class="'+(isZero ? 'is-zero' : '')+'"><td>'+imH+'</td><td style="text-align:left;"><div style="font-weight:800; font-size:1.15rem; color:var(--text);">'+esc(m)+'</div><div style="font-size:var(--text-xs); color:var(--muted);">'+esc(def.dim)+' cm</div></td><td style="text-align:center;"><div class="qty-ctrl '+(isZero ? 'is-zero' : '')+'"><button type="button" onclick="window.reduceBestaKorpus(\''+safeJsStr(m)+'\', \''+safeJsStr(window.bestaGlobalKorpusColor)+'\')" title="1x abbauen (− Bauteile)">−</button><span style="min-width:32px;">'+poss+'</span><button type="button" onclick="window.increaseBestaKorpus(\''+safeJsStr(m)+'\', \''+safeJsStr(window.bestaGlobalKorpusColor)+'\')" title="1x aufbauen (+ Bauteile)">+</button></div></td><td style="text-align:right;"><span style="font-size:var(--text-xs); color:'+(poss>0?'var(--success)':'var(--muted)')+'; font-weight:700;">'+(poss>0 ? '✓ Vorrätig' : '– Unvollständig')+'</span></td></tr>';
+          });
+          kt.innerHTML = kth + '<tbody>'+(ktb || '<tr><td colspan="4" class="empty">Aus den vorhandenen Einzelteilen ist in dieser Farbe aktuell kein vollständiger Korpus baubar.</td></tr>')+'</tbody>';
+
+          const psz = {'Seite':['193','128','64','64s','38','38s'],'Oben/Unten':['180','120','120s','60','60s'],'Oben/Unten TV':['180','120'],'Mitte':['64','64s','38','38s'],'Mitte TV':['64','38']};
+          let bHtml = '';
+          Object.keys(psz).forEach(p => {
+            bHtml += '<div style="margin-bottom:12px;background:var(--surface2);padding:10px;border-radius:8px;border:1px solid var(--border);"><div style="font-weight:800;color:var(--text);margin-bottom:8px;font-size:13px;text-transform:uppercase;">'+p+' ('+esc(window.bestaGlobalKorpusColor)+')</div><div style="display:flex;gap:10px;flex-wrap:wrap;">';
+            let hA = false;
+            psz[p].forEach(sz => {
+              const cnt = getBestaComp(p, sz, window.bestaGlobalKorpusColor);
+              if(window.bestaHideZero && cnt === 0) return;
+              hA = true;
+              bHtml += '<div style="display:flex;align-items:center;gap:6px;background:var(--bg);padding:4px 8px;border-radius:6px;border:1px solid var(--border);" class="'+(cnt===0 ? 'is-zero' : '')+'"><span style="font-size:12px;font-weight:700;color:var(--muted);width:45px;">Gr. '+sz+'</span><div class="qty-ctrl"><button type="button" onclick="window.changeBestaBauteilQty(\''+p+'\',\''+sz+'\',-1)">-</button><span>'+cnt+'</span><button type="button" onclick="window.changeBestaBauteilQty(\''+p+'\',\''+sz+'\',1)">+</button></div></div>';
+            });
+            if(!hA) bHtml += '<div class="muted" style="font-size:12px;">Keine Bestände in dieser Farbe vorhanden.</div>';
+            bHtml += '</div></div>';
+          });
+          bc.innerHTML = bHtml;
+        }
+      }catch(err){console.error(err);}
+    };
+
+    window.renderAllQuick = function(){
+      try{
+        const gv=gVal('group'), pv=gVal('productType'), av=gVal('article');
+        const fpt=g('field-productType'); if(fpt)fpt.style.display=gv?'grid':'none';
+        const fa=g('field-article'); if(fa)fa.style.display=(gv&&pv)?'grid':'none'; 
+        const ag=new Set(Object.keys(state.master.catalog||{})); state.open.forEach(i=>{if(i.group)ag.add(i.group);}); renderQChips('group',Array.from(ag).sort(sortKeys),gv);
+        const at=new Set(); if(gv&&state.master.catalog[gv])Object.keys(state.master.catalog[gv]).forEach(t=>at.add(t)); state.open.forEach(i=>{if(i.group===gv&&i.productType)at.add(i.productType);}); renderQChips('productType',Array.from(at).sort(sortKeys),pv);
+        const aa=new Set(); if(gv&&pv&&state.master.catalog[gv]&&state.master.catalog[gv][pv]&&state.master.catalog[gv][pv].articles) state.master.catalog[gv][pv].articles.forEach(a=>aa.add(a)); state.open.forEach(i=>{if(i.group===gv&&i.productType===pv&&i.article)aa.add(i.article);}); renderQChips('article',Array.from(aa).sort(sortKeys),av);
+        const na=aa.size>0, ssc=gv&&pv&&(!na||av), fsc=g('field-size-color'); if(fsc)fsc.style.display=ssc?'grid':'none';
+        const sz=new Set(), cl=new Set(); if(ssc){ const tg=state.master.catalog[gv]?.[pv]||{}; if(na&&av){if(tg.articleData&&tg.articleData[av]){(tg.articleData[av].sizes||[]).forEach(s=>sz.add(s));(tg.articleData[av].colors||[]).forEach(c=>cl.add(c));}}else if(!na){(tg.sizes||[]).forEach(s=>sz.add(s));(tg.colors||[]).forEach(c=>cl.add(c));} state.open.forEach(i=>{if(i.group===gv&&i.productType===pv){if(!na||i.article===av){if(i.size)sz.add(i.size);if(i.color)cl.add(i.color);}}}); }
+        renderQChips('size',Array.from(sz).sort(sortKeys),gVal('size')); renderQChips('color',Array.from(cl).sort(sortKeys),gVal('color'));
+      }catch(e){console.error(e);}
+    };
+
+    function renderQChips(id, vals, sel){
+      const sEl = g(id);
+      if(sEl){ fillSel(sEl, vals, ''); sEl.value = sel || ''; }
+      const cont = g('qb-'+id);
+      if(!cont) return;
+      const lvl = id === 'group' ? 'grp' : (id === 'productType' ? 'typ' : (id === 'article' ? 'art' : 'var'));
+      
+      let html = (vals || []).map(v => {
+        const isAct = v === sel;
+        let img = '';
+        if(id === 'group' && state.master.groupLogos && isValidImage(state.master.groupLogos[v])) {
+          img = '<img src="'+state.master.groupLogos[v]+'" class="grp-logo-thumb">';
+        }
+        return '<div class="qb-chip lvl-'+lvl+' '+(isAct ? 'active' : '')+'" onclick="window.selectFormChip(\''+id+'\', \''+safeJsStr(v)+'\')">'+img+'<span>'+esc(v)+'</span></div>';
+      }).join('');
+
+      html += '<div class="qb-chip qb-add" onclick="window.promptAddNewChip(\''+id+'\')" style="cursor:pointer; border-style:dashed; color:var(--primary); font-weight:bold;"><span>✚ Neu</span></div>';
+      cont.innerHTML = html;
+    }
+
+    window.selectFormChip = function(id, val){
+      const el = g(id);
+      if(!el) return;
+      el.value = (el.value === val) ? '' : val;
+      if(id === 'group'){
+        const pt = g('productType'); if(pt) pt.value = '';
+        const ar = g('article'); if(ar) ar.value = '';
+        const sz = g('size'); if(sz) sz.value = '';
+        const cl = g('color'); if(cl) cl.value = '';
+      } else if(id === 'productType'){
+        const ar = g('article'); if(ar) ar.value = '';
+        const sz = g('size'); if(sz) sz.value = '';
+        const cl = g('color'); if(cl) cl.value = '';
+      } else if(id === 'article'){
+        const sz = g('size'); if(sz) sz.value = '';
+        const cl = g('color'); if(cl) cl.value = '';
+      }
+      window.renderAllQuick();
+    };
+
+    window.promptAddNewChip = function(type){
+      if(!state.master) state.master = {};
+      if(!state.master.catalog) state.master.catalog = {};
+      const cat = state.master.catalog;
+
+      if(type === 'group'){
+        const val = prompt('Neue Gruppe:'); if(!val || !val.trim()) return;
+        const v = val.trim(); if(!cat[v]) cat[v] = {};
+        save(); window.autoSaveToCloud?.(); g('group').value = v; window.renderAllQuick(); toast('Gruppe hinzugefügt');
+      } else if(type === 'productType'){
+        const grp = gVal('group'); if(!grp) return toast('Bitte zuerst Gruppe wählen.');
+        const val = prompt('Neuer Produkttyp für "'+grp+'":'); if(!val || !val.trim()) return;
+        const v = val.trim(); if(!cat[grp]) cat[grp] = {}; if(!cat[grp][v]) cat[grp][v] = { articles: [], sizes: [], colors: [] };
+        save(); window.autoSaveToCloud?.(); g('productType').value = v; window.renderAllQuick(); toast('Produkttyp hinzugefügt');
+      } else if(type === 'article'){
+        const grp = gVal('group'), typ = gVal('productType'); if(!grp || !typ) return toast('Bitte Gruppe & Typ wählen.');
+        const val = prompt('Neuer Artikelname:'); if(!val || !val.trim()) return;
+        const v = val.trim(); if(!cat[grp]) cat[grp] = {}; if(!cat[grp][typ]) cat[grp][typ] = { articles: [], sizes: [], colors: [] };
+        if(!cat[grp][typ].articles) cat[grp][typ].articles = [];
+        if(!cat[grp][typ].articles.includes(v)){ cat[grp][typ].articles.push(v); cat[grp][typ].articles.sort(sortKeys); }
+        save(); window.autoSaveToCloud?.(); g('article').value = v; window.renderAllQuick(); toast('Artikel hinzugefügt');
+      } else if(type === 'size' || type === 'color'){
+        const grp = gVal('group'), typ = gVal('productType'), art = gVal('article'); if(!grp || !typ) return toast('Bitte Gruppe & Typ wählen.');
+        const label = type === 'size' ? 'Größe (z.B. 60x60)' : 'Farbe (z.B. Weiß)';
+        const val = prompt('Neuer Wert für '+label+':'); if(!val || !val.trim()) return;
+        const v = val.trim(); if(!cat[grp]) cat[grp] = {}; if(!cat[grp][typ]) cat[grp][typ] = { articles: [], sizes: [], colors: [] };
+        let target = cat[grp][typ];
+        if(art){
+          if(!target.articleData) target.articleData = {};
+          if(!target.articleData[art]) target.articleData[art] = { sizes: [], colors: [] };
+          target = target.articleData[art];
+        }
+        const list = type === 'size' ? (target.sizes = target.sizes || []) : (target.colors = target.colors || []);
+        if(!list.includes(v)){ list.push(v); list.sort(sortKeys); }
+        save(); window.autoSaveToCloud?.(); g(type).value = v; window.renderAllQuick(); toast('Gespeichert ✓');
+      }
+    };
+
+    window.onGroupChange = function(){ const pt=g('productType'); if(pt)pt.value=''; const ar=g('article'); if(ar)ar.value=''; window.renderAllQuick(); };
+    window.onProductTypeChange = function(){ const ar=g('article'); if(ar)ar.value=''; window.renderAllQuick(); };
+    window.onArticleChange = function(){ window.renderAllQuick(); };
+
+    window.toggleProfitshareNew = function(){
+      const b = g('profitshareBtn'), v = g('profitshare'); if(!b || !v) return;
+      const isPs = v.value === 'true'; v.value = isPs ? 'false' : 'true';
+      b.classList.toggle('active', !isPs); b.textContent = !isPs ? '🤝 Profitshare: An' : '🤝 Profitshare: Aus';
+    };
+
+    window.resetItemForm = function(){
+      const f = g('itemForm'); if(f) f.reset();
+      const ps = g('profitshare'), psb = g('profitshareBtn');
+      if(ps) ps.value = 'false';
+      if(psb) { psb.classList.remove('active'); psb.textContent = '🤝 Profitshare: Aus'; }
+      ['group','productType','article','size','color'].forEach(id => { const el = g(id); if(el) el.value = ''; });
+      window.renderAllQuick();
+    };
+
+    const itemFrm = g('itemForm');
+    if(itemFrm){
+      itemFrm.addEventListener('submit', e => {
+        e.preventDefault();
+        const grp = gVal('group'), typ = gVal('productType'), art = gVal('article');
+        const sz = gVal('size'), col = gVal('color');
+        const ek = parseFloat(gVal('purchasePrice').replace(',', '.')) || 0;
+        const qty = parseInt(gVal('quantity')) || 1;
+        const def = gVal('defect').trim();
+        const ps = gVal('profitshare') === 'true';
+
+        if(!grp) return toast('Bitte Gruppe wählen.');
+        const pl = { group: grp, productType: typ, article: art, size: sz, color: col, defect: def, purchasePrice: ek, profitshare: ps, entryDate: today() };
+        const k = stackKey(pl);
+        let ex = state.open.find(x => stackKey(x) === k);
+
+        for(let i=0; i<qty; i++){
+          const inst = { id: uid(), purchasePrice: ek, profitshare: ps, entryDate: today(), defect: def };
+          if(ex) ex.instances.push(inst);
+          else { ex = { id: uid(), ...pl, instances: [inst] }; state.open.unshift(ex); }
+        }
+        save(); window.autoSaveToCloud?.(); toast(qty+'x eingepflegt ✓'); window.resetItemForm(); window.renderOpen();
+      });
+    }
+
+    // BESTAND
+    window.renderOpenFilters = function(){
+      const f=state.openFilters, ct=state.master.catalog||{}, ag=new Set(Object.keys(ct)); state.open.forEach(i=>{if(i.group)ag.add(i.group);});
+      const gc=g('qb-open-group'); if(gc) gc.innerHTML=Array.from(ag).sort(sortKeys).map(g=>'<div class="qb-chip lvl-grp '+(f.group===g?'active':'')+'" onclick="window.handleOpenFilterChip(\'group\',\''+safeJsStr(g)+'\')">'+((state.master.groupLogos&&isValidImage(state.master.groupLogos[g]))?'<img src="'+state.master.groupLogos[g]+'" class="grp-logo-thumb">':'')+'<span>'+esc(g)+'</span></div>').join('');
+      const fpt=g('open-field-productType'); if(fpt) fpt.style.display=f.group?'grid':'none';
+      const tc=g('qb-open-productType'); if(tc&&f.group){ const at=new Set(); if(ct[f.group])Object.keys(ct[f.group]).forEach(t=>at.add(t)); state.open.forEach(i=>{if(i.group===f.group&&i.productType)at.add(i.productType);}); tc.innerHTML=Array.from(at).sort(sortKeys).map(t=>'<div class="qb-chip lvl-typ '+(f.type===t?'active':'')+'" onclick="window.handleOpenFilterChip(\'type\',\''+safeJsStr(t)+'\')"><span>'+esc(t)+'</span></div>').join(''); }
+      const aa=new Set(); if(f.group&&f.type){ if(ct[f.group]&&ct[f.group][f.type]&&ct[f.group][f.type].articles)ct[f.group][f.type].articles.forEach(a=>aa.add(a)); state.open.forEach(i=>{if(i.group===f.group&&i.productType===f.type&&i.article)aa.add(i.article);}); }
+      const fa=g('open-field-article'); if(fa) fa.style.display=(f.group&&f.type&&aa.size>0)?'grid':'none';
+      const ac=g('qb-open-article'); if(ac&&f.group&&f.type) ac.innerHTML=Array.from(aa).sort(sortKeys).map(a=>'<div class="qb-chip lvl-art '+(f.article===a?'active':'')+'" onclick="window.handleOpenFilterChip(\'article\',\''+safeJsStr(a)+'\')">'+((state.master.articleLogos&&isValidImage(state.master.articleLogos[`${f.group}||${f.type}||${a}`]))?'<img src="'+state.master.articleLogos[`${f.group}||${f.type}||${a}`]+'" class="grp-logo-thumb" style="width:36px;height:36px;border-radius:6px;object-fit:cover;margin-right:6px;">':'')+'<span>'+esc(a)+'</span></div>').join('');
+      const na=aa.size>0, ssc=f.group&&f.type&&(!na||f.article), fsc=g('open-field-size-color'); if(fsc) fsc.style.display=ssc?'grid':'none';
+      const sz=new Set(), cl=new Set(); if(ssc){ const tg=ct[f.group]?.[f.type]||{}; if(na){if(f.article&&tg.articleData&&tg.articleData[f.article]){(tg.articleData[f.article].sizes||[]).forEach(s=>sz.add(s));(tg.articleData[av].colors||[]).forEach(c=>cl.add(c));}}else{(tg.sizes||[]).forEach(s=>sz.add(s));(tg.colors||[]).forEach(c=>cl.add(c));} state.open.forEach(i=>{if(i.group===f.group&&i.productType===f.type){if(!na||i.article===f.article){if(i.size)sz.add(i.size);if(i.color)cl.add(i.color);}}}); }
+      const szc=g('qb-open-size'); if(szc&&ssc) szc.innerHTML=Array.from(sz).sort(sortKeys).map(s=>'<div class="qb-chip lvl-var '+(f.size===s?'active':'')+'" onclick="window.handleOpenFilterChip(\'size\',\''+safeJsStr(s)+'\')"><span>Gr. '+esc(s)+'</span></div>').join('');
+      const clc=g('qb-open-color'); if(clc&&ssc) clc.innerHTML=Array.from(cl).sort(sortKeys).map(c=>'<div class="qb-chip lvl-var '+(f.color===c?'active':'')+'" onclick="window.handleOpenFilterChip(\'color\',\''+safeJsStr(c)+'\')"><span>'+esc(c)+'</span></div>').join('');
+    };
+
+    window.handleOpenFilterChip = function(type, val){
+      const f = state.openFilters;
+      f[type] = (f[type] === val) ? '' : val;
+      if(type === 'group'){ f.type = ''; f.article = ''; f.size = ''; f.color = ''; }
+      else if(type === 'type'){ f.article = ''; f.size = ''; f.color = ''; }
+      else if(type === 'article'){ f.size = ''; f.color = ''; }
+      window.renderOpenFilters(); window.renderOpen();
+    };
+
+    window.setInlineFilter = function(key, val){
+      const f = state.openFilters; f[key] = f[key] === val ? '' : val;
+      window.renderOpenFilters(); window.renderOpen();
+    };
+
+    window.toggleZeroFilter = function(){ state.hideZero=!state.hideZero; save(); window.renderOpen(); };
+    window.updateOpenFilters = function(){ const sf=g('openSearchText'); state.openFilters.text=sf?sf.value.trim():''; window.renderOpen(); };
+    window.clearOpenSearch = function(){ const sf=g('openSearchText'); if(sf)sf.value=''; state.openFilters.text=''; window.renderOpen(); };
+
+    window.renderOpen = function(){
+      const tr=g('zeroFilterBtn'), kn=g('zeroFilterKnob'); if(tr)tr.style.background=state.hideZero?'var(--primary)':'#ccc'; if(kn)kn.style.left=state.hideZero?'22px':'2px';
+      const oc=g('openContent'); if(!oc)return; if(!state.open||!state.open.length){oc.innerHTML='<div class="empty">Keine offenen Artikel.</div>';return;}
+      const tree={}, f=state.openFilters, st=f.text.toLowerCase().split(' ').filter(Boolean);
+      state.open.forEach(i=>{ if(state.hideZero&&(!i.instances||!i.instances.length))return; if(f.group&&i.group!==f.group)return; if(f.type&&i.productType!==f.type)return; if(f.article&&i.article!==f.article)return; if(f.size&&i.size!==f.size)return; if(f.color&&i.color!==f.color)return; if(st.length>0){const ss=String(i.group||''+' '+i.productType||''+' '+i.article||''+' '+i.size||''+' '+i.color||'').toLowerCase();if(!st.every(t=>ss.includes(t)))return;} const gp=i.group||'–', pt=i.productType||'–', ar=i.article||'', col=i.color||'–'; if(!tree[gp])tree[gp]={}; if(!tree[gp][pt])tree[gp][pt]={}; if(!tree[gp][pt][ar])tree[gp][pt][ar]={}; if(!tree[gp][pt][ar][col])tree[gp][pt][ar][col]=[]; tree[gp][pt][ar][col].push(i); });
+      let html='';
+      Object.keys(tree).sort(sortKeys).forEach(gp=>{
+        let gh='', grpTotal=0; const gl=(state.master.groupLogos&&isValidImage(state.master.groupLogos[gp]))?state.master.groupLogos[gp]:'';
+        Object.keys(tree[gp]).sort(sortKeys).forEach(pt=>{
+          let ph='', ptT=0; const pl=(state.master.typeLogos&&isValidImage(state.master.typeLogos[`${gp}||${pt}`]))?state.master.typeLogos[`${gp}||${pt}`]:''; const pS=new Set(), pC=new Set();
+          Object.keys(tree[gp][pt]).sort(sortKeys).forEach(ar=>{
+            let aT=0, ah=''; const al=(state.master.articleLogos&&isValidImage(state.master.articleLogos[`${gp}||${pt}||${ar}`]))?state.master.articleLogos[`${gp}||${pt}||${ar}`]:''; const aS=new Set(), aC=new Set();
+            Object.keys(tree[gp][pt][ar]).sort(sortKeys).forEach(col=>{
+              const it=tree[gp][pt][ar][col], ct=it.reduce((s,i)=>s+(i.instances?i.instances.length:0),0); if(ct===0&&state.hideZero)return; aT+=ct; const sm={}; it.forEach(i=>{const k=i.size||'–'; if(!sm[k])sm[k]=[]; sm[k].push(i);}); let ch='';
+              Object.values(sm).forEach(si=>{
+                let ai=[]; si.forEach(sItem=>{if(sItem.instances&&sItem.instances.length){if(sItem.size){aS.add(sItem.size);pS.add(sItem.size);}if(sItem.color){aC.add(sItem.color);pC.add(sItem.color);}sItem.instances.forEach(x=>ai.push({...x,_itemId:sItem.id}));}});
+                if(ai.length===0&&state.hideZero)return;
+                const fi=si[0], img=al||pl||gl||'', es=ai.reduce((s,x)=>s+(+x.purchasePrice||0),0), mg=ai.length, ez=mg>0?es/mg:(+fi.purchasePrice||0), hp=mg>0?ai.some(x=>x.profitshare):fi.profitshare, od=ai.length?Math.max(...ai.map(x=>calcDays(x.entryDate,today()))):0;
+                ch+='<div class="item-card '+(mg===0?'is-zero':'')+'"><div class="item-card-main"><div class="thumb">'+(img?'<img src="'+img+'" loading="lazy">':'📦')+'</div><div class="item-info"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div class="item-title" style="color:var(--text);">'+(esc(fi.article)||esc(fi.productType)||'–')+' · <span style="font-weight:normal;color:var(--muted);">'+(esc(fi.color)||'-')+'</span></div></div><div style="font-size:var(--text-xs);color:var(--muted);font-weight:bold;text-align:right;">'+mg+' × Ø'+euro(ez)+' = <b style="color:var(--text);font-size:var(--text-sm);">'+euro(es)+'</b></div></div><div class="chips" style="margin-top:6px;"><span class="chip">Gr. '+(esc(fi.size)||'-')+'</span><span class="chip days">⏱ '+od+' Tage im Bestand</span></div></div></div><div class="item-footer"><div class="item-actions"><span class="chip" style="cursor:pointer;" onclick="window.editEK(\''+fi.id+'\')">EK '+euro(ez)+' ✎</span><button type="button" class="chip" style="cursor:pointer;border:none" onclick="window.toggleItemProfitshare(\''+fi.id+'\')">'+(hp?'PS ✓':'PS ✎')+'</button><span class="chip stack" style="display:inline-flex;gap:3px;align-items:center;padding:0 6px"><button type="button" onclick="window.changeQty(\''+fi.id+'\',1)" style="width:16px;height:16px;border-radius:50%;background:#4CAF50;color:white;font-size:10px;border:none;cursor:pointer">+</button>'+mg+'<button type="button" onclick="window.changeQty(\''+fi.id+'\',-1)" style="width:16px;height:16px;border-radius:50%;background:#f44336;color:white;font-size:10px;border:none;cursor:pointer">−</button></span><button type="button" class="btn-icon-subtle danger" onclick="window.deleteItem(\''+fi.id+'\')" title="Löschen">🗑️</button></div></div></div>';
+              });
+              if(ch) ah+='<div style="margin-bottom:var(--sp2); margin-left:var(--sp2);">'+ch+'</div>';
+            });
+            if(ah){
+              ptT+=aT;
+              if(!ar||!ar.trim()) ph+=ah;
+              else{
+                const ak='a_'+Math.abs(String(gp+pt+ar).split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36);
+                let ic='<div style="display:inline-flex; gap:4px; margin-left:8px; flex-wrap:wrap;">';
+                aS.forEach(s=>ic+='<span class="inline-filter-chip '+(f.size===s?'active':'')+'" style="border-color:rgba(245,158,11,0.4);" onclick="event.stopPropagation(); window.setInlineFilter(\'size\',\''+safeJsStr(s)+'\')">Gr. '+esc(s)+'</span>');
+                aC.forEach(c=>ic+='<span class="inline-filter-chip '+(f.color===c?'active':'')+'" style="border-color:rgba(245,158,11,0.4);" onclick="event.stopPropagation(); window.setInlineFilter(\'color\',\''+safeJsStr(c)+'\')">'+esc(c)+'</span>');
+                ic+='</div>';
+                const io=state.openCollapse[ak]!==undefined?state.openCollapse[ak]:globalExpandState;
+                ph+='<div style="margin-bottom:var(--sp3); margin-left:var(--sp2);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="'+ak+'" style="cursor:pointer; border-left:4px solid var(--c-art-border); background:var(--c-art-bg); border-radius:8px;"><div style="display:flex; align-items:center; flex-wrap:nowrap;">'+(al?'<img src="'+al+'" class="tree-thumb">':'')+'<h4 class="group-title" style="font-size:1.15rem; color:#fef3c7;">'+(io?"▼":"▶")+' '+esc(ar)+' <span style="font-weight:normal;color:var(--muted);font-size:var(--text-xs);">('+aT+' Stk)</span></h4>'+ic+'</div></div><div class="grp-body" data-body="'+ak+'" style="display:'+(io?"block":"none")+'">'+ah+'</div></div>';
+              }
+            }
+          });
+          if(ph){
+            grpTotal+=ptT;
+            const pk='p_'+Math.abs(String(gp+pt).split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36);
+            let ic='<div style="display:inline-flex; gap:4px; margin-left:8px; flex-wrap:wrap;">';
+            pS.forEach(s=>ic+='<span class="inline-filter-chip '+(f.size===s?'active':'')+'" style="border-color:rgba(99,102,241,0.4);" onclick="event.stopPropagation(); window.setInlineFilter(\'size\',\''+safeJsStr(s)+'\')">Gr. '+esc(s)+'</span>');
+            pC.forEach(c=>ic+='<span class="inline-filter-chip '+(f.color===c?'active':'')+'" style="border-color:rgba(99,102,241,0.4);" onclick="event.stopPropagation(); window.setInlineFilter(\'color\',\''+safeJsStr(c)+'\')">'+esc(c)+'</span>');
+            ic+='</div>';
+            const io=state.openCollapse[pk]!==undefined?state.openCollapse[pk]:globalExpandState;
+            gh+='<div style="margin-bottom:var(--sp4); margin-left:var(--sp2);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="'+pk+'" style="cursor:pointer; border-left:4px solid var(--c-typ-border); background:var(--c-typ-bg); border-radius:8px;"><div style="display:flex; align-items:center; flex-wrap:nowrap;">'+(pl?'<img src="'+pl+'" class="tree-thumb">':'')+'<h3 class="group-title" style="font-size:1.2rem; color:#e0e7ff;">'+(io?"▼":"▶")+' 🏷 '+esc(pt)+' <span style="font-weight:normal;color:var(--muted);font-size:var(--text-xs);">('+ptT+' Stk)</span></h3>'+ic+'</div></div><div class="grp-body" data-body="'+pk+'" style="display:'+(io?"block":"none")+'">'+ph+'</div></div>';
+          }
+        });
+        if(gh){
+          const gk='g_'+Math.abs(String(gp).split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36);
+          const io=state.openCollapse[gk]!==undefined?state.openCollapse[gk]:globalExpandState;
+          html+='<div style="margin-bottom:var(--sp6);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="'+gk+'" style="cursor:pointer; border-left:4px solid var(--c-grp-border); background:var(--c-grp-bg); border-radius:8px;"><div style="display:flex;align-items:center; flex-wrap:nowrap;">'+(gl?'<img src="'+gl+'" class="grp-header-logo">':'')+'<h2 class="group-title" style="font-size:1.45rem; color:#f0f9ff;">'+(io?"▼":"▶")+' '+esc(gp)+' <span style="font-weight:normal;color:var(--muted);font-size:var(--text-sm);">('+grpTotal+' Stk)</span></h2></div><span class="chip stack" style="background:var(--c-grp);color:#fff;">'+grpTotal+' Stk</span></div><div class="grp-body" data-body="'+gk+'" style="display:'+(io?"block":"none")+'">'+gh+'</div></div>';
+        }
+      });
+      oc.innerHTML=html||'<div class="empty">Keine Treffer.</div>';
+    };
+
+    window.toggleGrp = function(el){
+      const k = el.dataset.key;
+      const b = document.querySelector(`[data-body="${k}"]`);
+      if(!b) return;
+      const o = b.style.display !== 'none';
+      b.style.display = o ? 'none' : 'block';
+      state.openCollapse[k] = !o;
+      const h = el.querySelector('h2,h3,h4');
+      if(h) h.innerHTML = h.innerHTML.replace(o ? '▼' : '▶', o ? '▶' : '▼');
+    };
+
+    window.toggleAllGroups = function(){
+      globalExpandState = !globalExpandState;
+      state.openCollapse = {};
+      window.renderOpen();
+    };
+
+    window.changeQty = function(id, delta){
+      const it = state.open.find(x => x.id === id); if(!it) return;
+      if(!it.instances) it.instances = [];
+      if(delta > 0){ it.instances.push({ id: uid(), purchasePrice: it.purchasePrice || 0, profitshare: it.profitshare || false, entryDate: today() }); toast('Menge erhöht ✓'); }
+      else if(delta < 0 && it.instances.length > 0){ it.instances.pop(); toast('Menge verringert'); }
+      save(); window.renderOpen();
+    };
+
+    window.editEK = function(id){
+      const it = state.open.find(x => x.id === id); if(!it) return;
+      const cur = it.instances?.length ? (it.instances.reduce((s,x)=>s+(+x.purchasePrice||0),0)/it.instances.length) : it.purchasePrice;
+      const val = prompt('Neuer Ø Einkaufspreis (€):', cur || 0);
+      if(val !== null){
+        const p = parseFloat(val.replace(',', '.')) || 0;
+        it.purchasePrice = p;
+        (it.instances||[]).forEach(x => x.purchasePrice = p);
+        save(); window.renderOpen();
+        toast('EK aktualisiert ✓');
+      }
+    };
+
+    window.toggleItemProfitshare = function(id){
+      const it = state.open.find(x => x.id === id); if(!it) return;
+      it.profitshare = !it.profitshare;
+      (it.instances||[]).forEach(x => x.profitshare = it.profitshare);
+      save(); window.renderOpen();
+      toast('Profitshare geändert');
+    };
+
+    window.deleteItem = function(id){
+      if(!confirm('Artikel löschen?')) return;
+      state.open = state.open.filter(x => x.id !== id);
+      save(); window.renderOpen(); toast('Artikel gelöscht');
+    };
+
+    // EXPORT-FUNKTIONEN
+    function triggerDownload(data, filename){
+      const b = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = filename;
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); document.body.removeChild(a); }, 1000);
+    }
+    window.exportData = function(){ triggerDownload({open:state.open,sold:state.sold,termine:state.termine,master:state.master,year:state.year,deletedIds:state.deletedIds,deletedGroups:state.deletedGroups}, 'kleinanzeigen-hero-backup-'+today()+'.json'); toast('Gesamt-Backup exportiert ✓'); };
+    window.exportBestand = function(){ triggerDownload({open:state.open}, 'bestand-'+today()+'.json'); toast('Bestand exportiert ✓'); };
+    window.exportBesta = function(){ triggerDownload({bestaInventory: state.open.filter(i=>i.group==='Besta'), catalog: state.master?.catalog?.Besta||{}, models: BESTA_KORPUS_MODELS}, 'besta-korpusse-'+today()+'.json'); toast('Besta & Korpusse exportiert ✓'); };
+    window.exportSold = function(){ triggerDownload({sold:state.sold}, 'historie-'+today()+'.json'); toast('Historie exportiert ✓'); };
+    window.importData = function(file){ if(!file)return; toast('Lese Datei...'); const r=new FileReader(); r.onload=e=>{try{let d=JSON.parse(e.target.result);if(Array.isArray(d))d={open:d};else if(d.state)d=d.state;else if(d.data)d=d.data;applyState(d);save();window.updateMasterForm();window.renderAllQuick();window.renderMaster();window.render();toast('Import erfolgreich ✓');}catch(err){alert('Fehler: '+err.message);}}; r.readAsText(file); };
+
+    // CLOUD SYNC
+    window.autoSaveToCloud = function(){ const gasUrl=localStorage.getItem('gasUrl')||gVal('gasUrl'); if(!gasUrl)return; fetch(gasUrl,{method:'POST',body:JSON.stringify({open:state.open,sold:state.sold,termine:state.termine,master:state.master,year:state.year,deletedIds:state.deletedIds,deletedGroups:state.deletedGroups}),keepalive:true}).catch(()=>{}); };
+    window.saveToCloud = async function(){ const gasUrl=gVal('gasUrl').trim()||localStorage.getItem('gasUrl'); if(!gasUrl)return toast('Bitte Script-URL eintragen.'); localStorage.setItem('gasUrl',gasUrl); try{ toast('Speichere...'); await fetch(gasUrl,{method:'POST',body:JSON.stringify({open:state.open,sold:state.sold,termine:state.termine,master:state.master,year:state.year,deletedIds:state.deletedIds,deletedGroups:state.deletedGroups})}); toast('In Cloud gespeichert ✓'); }catch(e){toast('Fehler beim Cloud-Upload');} };
+    window.loadFromCloud = async function(){
+      const gasUrl=gVal('gasUrl').trim()||localStorage.getItem('gasUrl'); if(!gasUrl)return toast('Bitte Script-URL eintragen.');
+      localStorage.setItem('gasUrl',gasUrl);
+      try{
+        toast('Lade...');
+        const res = await fetch(gasUrl + (gasUrl.includes('?') ? '&' : '?') + 'nocache=' + Date.now());
+        const d = await res.json();
+        if(d && !d.error){
+          applyState(d); save();
+          window.updateMasterForm(); window.renderAllQuick(); window.renderMaster(); window.renderOpenFilters(); window.renderOpen();
+          toast('Erfolgreich aus Cloud geladen ✓');
+        }
+      }catch(e){ toast('Fehler beim Laden'); }
+    };
+
+    window.cleanCorruptedImagesAndGhostGroups = function(){
+      let c=0; if(Array.isArray(state.master.images)){const ol=state.master.images.length; state.master.images=state.master.images.filter(isValidImage); c+=(ol-state.master.images.length);}
+      ['groupLogos','typeLogos','articleLogos'].forEach(coll=>{ if(state.master[coll]){Object.keys(state.master[coll]).forEach(k=>{if(!isValidImage(state.master[coll][k])){delete state.master[coll][k]; c++;}});} });
+      (state.sold||[]).forEach(s=>{if(s.previewImage&&!isValidImage(s.previewImage)){s.previewImage=''; c++;}});
+      const dg=new Set(state.deletedGroups||[]); dg.forEach(grp=>{ if(state.master.catalog&&state.master.catalog[grp]){delete state.master.catalog[grp];} if(state.master.groupLogos&&state.master.groupLogos[grp]){delete state.master.groupLogos[grp];} });
+      save(); window.autoSaveToCloud?.(); window.updateMasterForm(); window.renderAllQuick(); window.renderMaster(); window.renderOpenFilters(); window.renderOpen(); toast('Bereinigt: '+c+' defekte Einträge entfernt');
+    };
+
+    // VERKAUF
+    window.renderSellQuick = function(){
+      const sel = state.sellSelection;
+      const cIds = new Set(state.sellCart.filter(c => !c.isBestaKorpusVirtual).map(c => c.inst.id));
+      const aI = [];
+      state.open.forEach(i => {
+        const vI = (i.instances || []).filter(x => !cIds.has(x.id));
+        if (vI.length > 0) aI.push({ ...i, validInsts: vI });
+      });
+
+      const groupSet = new Set();
+      aI.forEach(i => { if (i.group) groupSet.add(i.group); });
+      state.open.forEach(i => { if (i.group) groupSet.add(i.group); });
+      if (state.master && state.master.catalog) Object.keys(state.master.catalog).forEach(gName => groupSet.add(gName));
+      if (state.open.some(i => i && i.group === 'Besta')) groupSet.add('Besta');
+
+      const aG = Array.from(groupSet).sort(sortKeys);
+      const gc = g('qb-sell-group');
+      if (gc) {
+        gc.innerHTML = aG.map(grp => '<div class="qb-chip lvl-grp '+(sel.group === grp ? 'active' : '')+'" onclick="window.handleSellChipSelect(\'group\',\''+safeJsStr(grp)+'\')">'+(state.master.groupLogos && isValidImage(state.master.groupLogos[grp]) ? '<img src="'+state.master.groupLogos[grp]+'" class="grp-logo-thumb">' : '')+'<span>'+esc(grp)+'</span></div>').join('') || '<span class="muted" style="font-size:var(--text-xs);">Keine Gruppen angelegt</span>';
+      }
+
+      const iG = sel.group ? aI.filter(i => i.group === sel.group) : [];
+      let aTRaw = [...new Set(iG.map(i => i.productType).filter(Boolean))].filter(t => !t.toLowerCase().includes('bauteil') && t !== 'Korpus');
+      if (sel.group === 'Besta' && !aTRaw.includes('Korpus (Komplett)')) {
+        aTRaw.push('Korpus (Komplett)');
+      }
+      const aT = aTRaw.sort(sortKeys);
+
+      const fpt = g('sell-field-productType'); if (fpt) fpt.style.display = sel.group ? 'grid' : 'none';
+      const tc = g('qb-sell-productType');
+      if (tc && sel.group) {
+        tc.innerHTML = aT.map(t => '<div class="qb-chip lvl-typ '+(sel.type === t ? 'active' : '')+'" onclick="window.handleSellChipSelect(\'type\',\''+safeJsStr(t)+'\')">'+(state.master.typeLogos && isValidImage(state.master.typeLogos[`${sel.group}||${t}`]) ? '<img src="'+state.master.typeLogos[`${sel.group}||${t}`]+'" class="grp-logo-thumb" style="width:36px;height:36px;border-radius:6px;object-fit:cover;margin-right:6px;">' : '')+'<span>'+esc(t)+'</span></div>').join('') || '<span class="muted" style="font-size:var(--text-xs);">Keine Typen</span>';
+      }
+
+      const ik = (sel.group === 'Besta' && sel.type === 'Korpus (Komplett)');
+      const fa = g('sell-field-article'); if (fa) fa.style.display = (sel.group && sel.type) ? 'grid' : 'none';
+      const ac = g('qb-sell-article');
+
+      if (ac && sel.group && sel.type) {
+        if (ik) {
+          let catHtml = '';
+          Object.entries(BESTA_KORPUS_CATEGORIES).forEach(([catTitle, models]) => {
+            catHtml += '<div style="width:100%; margin:6px 0 2px; font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase;">'+esc(catTitle)+'</div><div class="chips" style="gap:6px; margin-bottom:8px;">';
+            models.forEach(a => {
+              const isAct = sel.article === a;
+              catHtml += '<div class="qb-chip lvl-art '+(isAct ? 'active' : '')+'" onclick="window.handleSellChipSelect(\'article\',\''+safeJsStr(a)+'\')"><span>'+esc(a)+'</span></div>';
+            });
+            catHtml += '</div>';
+          });
+          ac.innerHTML = catHtml;
+        } else {
+          const iT = (sel.group && sel.type) ? iG.filter(i => i.productType === sel.type) : [];
+          const aA = [...new Set(iT.map(i => String(i.article || '')).filter(Boolean))].sort(sortKeys);
+          ac.innerHTML = aA.map(a => '<div class="qb-chip lvl-art '+(sel.article === a ? 'active' : '')+'" onclick="window.handleSellChipSelect(\'article\',\''+safeJsStr(a)+'\')">'+(state.master.articleLogos && isValidImage(state.master.articleLogos[`${sel.group}||${sel.type}||${a}`]) ? '<img src="'+state.master.articleLogos[`${sel.group}||${sel.type}||${a}`]+'" class="grp-logo-thumb" style="width:36px;height:36px;border-radius:6px;object-fit:cover;margin-right:6px;">' : '')+'<span>'+esc(a)+'</span></div>').join('') || '<span class="muted" style="font-size:var(--text-xs);">Keine Artikel</span>';
+        }
+      }
+
+      const fsc = g('sell-field-size-color'); let aS = [], aC = [];
+      if (ik) {
+        if (sel.article) {
+          const cS = new Set();
+          state.open.forEach(i => {
+            if (i && i.group === 'Besta' && (i.productType || '').toLowerCase().includes('bauteil') && i.color) cS.add(i.color);
+          });
+          aC = Array.from(cS).sort(sortKeys);
+          if (!aC.length) aC.push('Weiß');
+        }
+        if (fsc) fsc.style.display = (sel.group && sel.type && aC.length > 0) ? 'grid' : 'none';
+      } else {
+        const iT = (sel.group && sel.type) ? iG.filter(i => i.productType === sel.type) : [];
+        const iA = (sel.group && sel.type) ? iT.filter(i => !sel.article || i.article === sel.article) : [];
+        aS = [...new Set(iA.map(i => String(i.size || '')).filter(Boolean))].sort(sortKeys);
+        aC = [...new Set(iA.map(i => String(i.color || '')).filter(Boolean))].sort(sortKeys);
+        if (fsc) fsc.style.display = (sel.group && sel.type && (aS.length > 0 || aC.length > 0)) ? 'grid' : 'none';
+      }
+      const sc = g('qb-sell-size'); if (sc && sel.group && sel.type) sc.innerHTML = aS.map(s => '<div class="qb-chip lvl-var '+(sel.size === s ? 'active' : '')+'" onclick="window.handleSellChipSelect(\'size\',\''+safeJsStr(s)+'\')"><span>Gr. '+esc(s)+'</span></div>').join('') || '<span class="muted" style="font-size:var(--text-xs);">–</span>';
+      const cc = g('qb-sell-color'); if (cc && sel.group && sel.type) cc.innerHTML = aC.map(c => '<div class="qb-chip lvl-var '+(sel.color === c ? 'active' : '')+'" onclick="window.handleSellChipSelect(\'color\',\''+safeJsStr(c)+'\')"><span>'+esc(c)+'</span></div>').join('') || '<span class="muted" style="font-size:var(--text-xs);">–</span>';
+      window.renderSellInstanceList();
+    };
+
+    window.handleSellChipSelect = function(t, v){
+      const s = state.sellSelection; s[t] = (s[t] === v) ? '' : v;
+      if(t==='group'){ s.type=''; s.article=''; s.color=''; }
+      else if(t==='type'){ s.article=''; s.color=''; }
+      window.renderSellQuick();
+    };
+
+    window.renderSellInstanceList = function(){
+      const l = g('sellInstanceList'); if(!l) return;
+      const s = state.sellSelection;
+      if(s.group==='Besta' && s.type==='Korpus (Komplett)'){
+        if(!s.article || !s.color){ l.innerHTML = '<div class="empty" style="padding:8px;">Bitte Modell und Farbe wählen.</div>'; return; }
+        const p = getBestaPoss(s.article, s.color);
+        if(p > 0){
+          l.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(16,185,129,0.1); border:1px dashed var(--c-var-border); padding:6px 10px; border-radius:6px;"><div><b>'+esc(s.article)+' ('+esc(s.color)+')</b><div style="font-size:12px; color:var(--success);">'+p+' Stück baubar</div></div><button type="button" class="btn btn-primary" onclick="window.addSellKorpusComplete(\''+safeJsStr(s.article)+'\', \''+safeJsStr(s.color)+'\')">✚ Set Hinzufügen</button></div>';
+        } else {
+          l.innerHTML = '<div class="empty" style="color:var(--err);">Nicht genügend Bauteile vorhanden.</div>';
+        }
+        return;
+      }
+      const cid=new Set(state.sellCart.filter(c=>!c.isBestaKorpusVirtual).map(c=>c.inst.id)), m=[];
+      state.open.forEach(i=>{ if(s.group&&i.group!==s.group)return; if(s.type&&i.productType!==s.type)return; if(s.article&&i.article!==s.article)return; if(s.size&&i.size!==s.size)return; if(s.color&&i.color!==s.color)return; (i.instances||[]).forEach(x=>{if(!cid.has(x.id))m.push({item:i,inst:x});}); });
+      l.innerHTML=m.length?m.map(x=>'<div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface2); padding:6px 10px; border-radius:var(--rad-sm); margin-bottom:6px;"><div><b style="font-size:var(--text-sm);">'+esc(x.item.article||x.item.productType)+' · '+esc(x.item.color||'–')+' '+(x.item.size?'(Gr. '+esc(x.item.size)+')':'')+'</b><div style="font-size:var(--text-xs); color:var(--muted);">EK: '+euro(x.inst.purchasePrice)+' · ⏱️ '+calcDays(x.inst.entryDate)+' Tage</div></div><button type="button" class="btn btn-primary" style="width:auto; min-height:28px; padding:2px 10px;" onclick="window.addSellDirect(\''+x.item.id+'\', \''+x.inst.id+'\')">✚</button></div>').join(''):'<div class="empty">Keine Lager-Exemplare vorrätig.</div>';
+    };
+
+    window.addSellKorpusComplete = function(m, c){
+      const r = BESTA_BOM[m]; let p = 0;
+      for(const[pt,d] of Object.entries(r)){
+        let f=0;
+        state.open.forEach(i=>{
+          if(i.group==='Besta'&&i.productType==='Korpus Bauteil'&&String(i.article||'').toLowerCase().trim()===String(pt).toLowerCase().trim()&&String(i.size||'').trim()===String(d.s).trim()&&String(i.color||'').toLowerCase().trim()===String(c).toLowerCase().trim()){
+            (i.instances||[]).forEach(x=>{ if(f<d.q){ p+=(x.purchasePrice||0); f++; } });
+          }
+        });
+      }
+      state.sellCart.push({ isBestaKorpusVirtual:true, model:m, color:c, reqs:r, item:{group:'Besta',productType:'Korpus',article:m,color:c}, inst:{id:'virt_'+uid(), purchasePrice:p, entryDate:today(), profitshare:false} });
+      window.renderSellCart(); toast('Korpus "'+m+'" im Warenkorb ✓');
+    };
+
+    window.addSellDirect = function(iId, inId){ const i=state.open.find(x=>x.id===iId), x=i?i.instances.find(y=>y.id===inId):null; if(i&&x){state.sellCart.push({item:i,inst:x}); state.psManualOverride=false; window.renderSellCart(); window.renderSellQuick(); toast('Position in Warenkorb');} };
+    window.removeSellPosition = function(i){ state.sellCart.splice(i,1); window.renderSellCart(); };
+    window.renderSellCart = function(){
+      const c = g('sellCartContainer'); if(!c) return;
+      if(state.sellCart.length === 0){ c.innerHTML = '<div class="empty">Warenkorb leer.</div>'; window.updateSellPreview(); return; }
+      c.innerHTML = state.sellCart.map((p,i) => '<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border);"><div><b>'+(i+1)+'.</b> '+(p.isBestaKorpusVirtual?esc(p.model)+' ('+esc(p.color)+') [BAUSATZ]':esc(p.item.article||p.item.productType)+' ('+esc(p.item.color||'')+(p.item.size?', '+esc(p.item.size):'')+')')+' <span style="color:var(--primary);">'+euro(p.inst.purchasePrice)+'</span></div><button type="button" class="btn btn-danger" onclick="window.removeSellPosition('+i+')">✕</button></div>').join('');
+      window.updateSellPreview();
+    };
+
+    window.openSellSetImgPicker = function(){ imagePickCallback=url=>{ const v=g('sellSetImgValue'),p=g('sellSetImgPreview'),l=g('sellSetImgLabel'); if(v)v.value=url; if(p)p.innerHTML=url?'<img src="'+url+'" style="width:36px;height:36px;object-fit:cover;border-radius:6px;">':'🖼'; if(l)l.textContent=url?'Set-Bild gewählt ✓':'Set-Bild wählen…'; }; window.openImagePicker(gVal('sellSetImgValue')); };
+
+    window.onPsPctInput = function(){ 
+      state.psMode = 'pct'; 
+      window.updateSellPreview(); 
+    };
+
+    window.onPsEuroInput = function(){ 
+      state.psMode = 'euro'; 
+      window.updateSellPreview(); 
+    };
+
+    window.updateSellPreview = function(){
+      const p = g('sellPrice'), pi = g('sellPsInput'), pe = g('sellPsEuroInput');
+      const eT = g('sellEKTotal'), nT = g('sellNetto'), fP = g('sellFinalProfit');
+      if(!p || !eT || !nT || !fP) return;
+
+      let ekGesamt = 0;
+      state.sellCart.forEach(c => ekGesamt += (+c.inst.purchasePrice || 0));
+      eT.textContent = euro(ekGesamt);
+
+      const sp = parseFloat(p.value.replace(',', '.')) || 0;
+      const rohertrag = sp - ekGesamt;
+
+      nT.textContent = euro(rohertrag);
+      nT.style.color = rohertrag < 0 ? 'var(--err)' : 'var(--text)';
+
+      let psEuro = 0;
+      let psPct = 0;
+
+      if(rohertrag > 0){
+        if(state.psMode === 'euro'){
+          psEuro = parseFloat(pe.value.replace(',', '.')) || 0;
+          if(psEuro > rohertrag) psEuro = rohertrag;
+          psPct = (psEuro / rohertrag) * 100;
+          if(pi) pi.value = Math.round(psPct);
+        } else {
+          psPct = parseFloat(pi.value.replace(',', '.')) || 0;
+          if(psPct > 100) psPct = 100;
+          psEuro = rohertrag * (psPct / 100);
+          if(pe) pe.value = psEuro > 0 ? psEuro.toFixed(2) : '';
+        }
+      } else {
+        if(pe) pe.value = '';
+        if(pi) pi.value = 0;
+      }
+
+      const meinGewinn = rohertrag - psEuro;
+      if(sp > 0){
+        if(psEuro > 0){
+          fP.innerHTML = `Dein Reingewinn: <b style="color:var(--success); font-size:14px;">${euro(meinGewinn)}</b> <span style="color:var(--muted); font-size:11px;">(Partner erhält: ${euro(psEuro)} / ${Math.round(psPct)}%)</span>`;
+        } else {
+          fP.innerHTML = `Dein Reingewinn: <b style="color:${meinGewinn >= 0 ? 'var(--success)' : 'var(--err)'}; font-size:14px;">${euro(meinGewinn)}</b>`;
+        }
+      } else {
+        fP.innerHTML = '';
+      }
+    };
+
+    window.executeSale = function(){
+      if(state.sellCart.length === 0) return alert('Warenkorb leer.');
+      const sp = parseFloat(gVal('sellPrice').replace(',', '.')) || 0;
+      if(sp <= 0) return alert('Bitte Verkaufspreis angeben.');
+
+      let pt = 0;
+      state.sellCart.forEach(c => pt += (+c.inst.purchasePrice || 0));
+      const rohertrag = sp - pt;
+
+      let pe = 0;
+      if(rohertrag > 0){
+        if(state.psMode === 'euro'){
+          pe = parseFloat(gVal('sellPsEuroInput').replace(',', '.')) || 0;
+        } else {
+          const pp = parseFloat(gVal('sellPsInput').replace(',', '.')) || 0;
+          pe = rohertrag * (pp / 100);
+        }
+      }
+
+      const netProfit = rohertrag - pe;
+      const cd = [];
+      state.sellCart.forEach(c => {
+        if(c.isBestaKorpusVirtual){
+          for(const[p,d] of Object.entries(c.reqs)) cd.push({ p:p, s:d.s, c:c.color, q:d.q });
+        }
+      });
+
+      const bn = gVal('sellBaseName').trim() || 'Set';
+      state.sold.unshift({
+        id: uid(),
+        setName: bn,
+        isSet: state.sellCart.length > 1,
+        salePrice: sp,
+        purchaseTotal: pt,
+        netProfit: netProfit,
+        saleDate: today(),
+        hasProfitshare: pe > 0,
+        previewImage: gVal('sellSetImgValue') || '',
+        avgDaysInStock: Math.round(state.sellCart.reduce((s,c)=>s+calcDays(c.inst.entryDate),0)/state.sellCart.length),
+        items: state.sellCart.map(c => ({
+          article: c.item.article || c.model || '',
+          productType: c.item.productType || 'Korpus',
+          group: c.item.group,
+          size: c.item.size || '',
+          color: c.color || c.item.color || '',
+          quantity: 1,
+          entryDate: c.inst.entryDate
+        }))
+      });
+
+      cd.forEach(c => remBestaInst(c.p, c.s, c.c, c.q));
+      state.sellCart = [];
+      ['sellBaseName','sellPrice','sellPsEuroInput','sellSetImgValue'].forEach(id => { const el = g(id); if(el) el.value = ''; });
+      g('sellPsInput').value = '0';
+
+      save(); window.autoSaveToCloud?.(); toast('Verkauf gebucht ✓');
+      state.page = 'sold'; window.render();
+    };
+
+    window.renderSold = function(){
+      const sc = g('soldContent'); if(!sc) return;
+      if(!state.sold.length){ sc.innerHTML='<div class="empty">Keine Verkäufe vorhanden.</div>'; return; }
+      sc.innerHTML = state.sold.map(s => '<div class="sold-card"><div style="display:flex; justify-content:space-between; align-items:center;"><div><b>'+esc(s.setName)+'</b><div style="font-size:12px; color:var(--muted);">'+fmtDate(s.saleDate)+'</div></div><div style="text-align:right;"><b style="color:var(--success);">+'+euro(s.netProfit)+'</b><div style="font-size:12px; color:var(--muted);">VK '+euro(s.salePrice)+'</div></div></div><div style="display:flex; justify-content:flex-end; gap:6px; margin-top:8px;"><button type="button" class="btn-icon-subtle danger" onclick="window.deleteSoldSet(\''+s.id+'\')">🗑️ Löschen</button></div></div>').join('');
+    };
+
+    window.deleteSoldSet = function(id){ if(!confirm('Löschen?'))return; if(!state.deletedIds)state.deletedIds=[]; state.deletedIds.push(id); state.sold=state.sold.filter(x=>x.id!==id); save(); window.autoSaveToCloud?.(); window.renderSold(); toast('Eintrag gelöscht'); };
+
+    // STATISTIK
+    window.onStatsFilterChange = function(t){ if(t==='grp'){g('statsFilterTyp').value='';g('statsFilterArt').value='';g('statsFilterSize').value='';g('statsFilterCol').value='';}else if(t==='typ'){g('statsFilterArt').value='';g('statsFilterSize').value='';g('statsFilterCol').value='';}else if(t==='art'){g('statsFilterSize').value='';g('statsFilterCol').value='';} window.renderStats(); };
+    function populateStatsFilters(){ const gS=g('statsFilterGrp'), tS=g('statsFilterTyp'), aS=g('statsFilterArt'), szS=g('statsFilterSize'), cS=g('statsFilterCol'); if(!gS)return; const cg=gS.value, ct=tS.value, ca=aS.value, cSz=szS?szS.value:'', cc=cS?cS.value:''; const gr=new Set(), ty=new Set(), ar=new Set(), si=new Set(), cl=new Set(); state.sold.forEach(s=>{(s.items||[]).forEach(i=>{ if(i.group)gr.add(i.group); if(!cg||i.group===cg){if(i.productType)ty.add(i.productType); if(!ct||i.productType===ct){if(i.article)ar.add(i.article); if(i.size)si.add(i.size); if(i.color)cl.add(i.color);}} });}); fillSel(gS,[...gr].sort(sortKeys),'Gruppe'); gS.value=cg; fillSel(tS,[...ty].sort(sortKeys),'Produkttyp'); tS.value=ct; fillSel(aS,[...ar].sort(sortKeys),'Artikelname'); aS.value=ca; if(szS){fillSel(szS,[...si].sort(sortKeys),'Größe'); szS.value=cSz;} if(cS){fillSel(cS,[...cl].sort(sortKeys),'Farbe'); cS.value=cc;} }
+    window.renderStats = function(){ populateStatsFilters(); const fg=gVal('statsFilterGrp'), ft=gVal('statsFilterTyp'), fa=gVal('statsFilterArt'), fs=gVal('statsFilterSize'), fc=gVal('statsFilterCol'); const y=[...new Set(state.sold.map(s=>(s.saleDate||today()).slice(0,4)))].sort((a,b)=>b-a); if(y.length>0&&!y.includes(state.year))state.year=y[0]; const sy=g('statsYear'); if(sy)sy.innerHTML=(y.length?y:[state.year]).map(yr=>'<option value="'+yr+'" '+(yr===state.year?'selected':'')+'>'+yr+'</option>').join(''); let ys=state.sold.filter(s=>(s.saleDate||today()).startsWith(state.year)); if(ys.length===0&&state.sold.length>0)ys=state.sold; if(fg||ft||fa||fs||fc) ys=ys.filter(s=>(s.items||[]).some(i=>(!fg||i.group===fg)&&(!ft||i.productType===ft)&&(!fa||i.article===fa)&&(!fs||i.size===fs)&&(!fc||i.color===fc))); const ts=ys.length, tp=ys.reduce((s,x)=>s+(x.netProfit||0),0), tr=ys.reduce((s,x)=>s+(x.salePrice||0),0), td=ys.reduce((s,x)=>s+(x.avgDaysInStock||0),0), ad=ts?Math.round(td/ts):0; const sc=g('statsCards'); if(sc)sc.innerHTML=[{k:'Gefilterte Sets',v:ts},{k:'Gewinn',v:euro(tp)},{k:'Umsatz',v:euro(tr)},{k:'Ø Standzeit',v:ad+' Tage'}].map(c=>'<div class="stat-card"><div class="k">'+c.k+'</div><div class="v">'+c.v+'</div></div>').join(''); };
+
+    // KALENDER
+    window.renderTermine = function(){
+      const c=g('terminContent'); if(!c)return;
+      if(!state.termine||state.termine.length===0){c.innerHTML='<div class="empty">Keine Termine.</div>';return;}
+      const s=[...state.termine].sort((a,b)=>new Date(`${b.datum}T${b.uhrzeit||'00:00'}:00`)-new Date(`${a.datum}T${a.uhrzeit||'00:00'}:00`));
+      c.innerHTML=s.map(t=>'<div class="card" style="margin-bottom:var(--sp3);"><div class="card-body" style="padding:var(--sp3);"><div style="display:flex; justify-content:space-between;"><b>'+esc(t.name)+'</b><span>'+fmtDate(t.datum)+' '+t.uhrzeit+' Uhr</span></div><div style="font-size:12px; color:var(--muted); margin-top:4px;">'+esc(t.art)+' · Ort: '+esc(t.ort||'–')+'</div><button type="button" class="btn btn-danger" style="margin-top:6px; padding:2px 8px; font-size:11px;" onclick="window.deleteTermin(\''+t.id+'\')">🗑 Löschen</button></div></div>').join('');
+    };
+    window.deleteTermin = function(id){ state.termine=state.termine.filter(t=>t.id!==id); save(); window.autoSaveToCloud?.(); window.renderTermine(); };
+
+    const tfrm=g('terminForm');
+    if(tfrm){
+      tfrm.addEventListener('submit',e=>{
+        e.preventDefault();
+        state.termine.unshift({id:uid(),art:gVal('terminArt'),name:gVal('terminName'),datum:gVal('terminDatum'),uhrzeit:gVal('terminUhrzeit'),ort:''});
+        save(); window.autoSaveToCloud?.(); toast('Termin gespeichert ✓'); tfrm.reset(); g('terminDatum').value=today(); window.renderTermine();
+      });
+    }
+
+    function populateUhrzeit(){
+      const s=g('terminUhrzeit'); if(!s)return; let h='<option value="" disabled selected>Zeit wählen</option>';
+      for(let i=9;i<=23;i++) h+=`<option value="${i<10?'0'+i:i}:00">${i<10?'0'+i:i}:00</option><option value="${i<10?'0'+i:i}:30">${i<10?'0'+i:i}:30</option>`;
+      s.innerHTML=h;
+    }
+
+    // ROUTENPLANER
+    let routeWaypoints = [];
+    window.setRouteStart = function(type){
+      ['routeStartHome','routeStartGps','routeStartCustom'].forEach(id => { const el = g(id); if(el) el.classList.remove('active'); });
+      const inP = g('routeStartInput');
+      if(type === 'home'){ g('routeStartHome')?.classList.add('active'); if(inP){ inP.style.display = 'none'; inP.value = 'Josephstr. 14, 22041 Hamburg'; } }
+      else if(type === 'gps'){ g('routeStartGps')?.classList.add('active'); if(inP){ inP.style.display = 'none'; inP.value = 'GPS: Aktueller Standort'; } }
+      else { g('routeStartCustom')?.classList.add('active'); if(inP){ inP.style.display = 'block'; inP.focus(); } }
+    };
+    window.addRouteWaypoint = function(){ routeWaypoints.push(''); window.renderRouteWaypoints(); };
+    window.removeRouteWaypoint = function(idx){ routeWaypoints.splice(idx, 1); window.renderRouteWaypoints(); };
+    window.renderRouteWaypoints = function(){
+      const c = g('routeWaypointsContainer'); if(!c) return;
+      c.innerHTML = routeWaypoints.map((w, idx) => `<div style="display:flex; gap:6px; margin-top:6px; align-items:center;"><input type="text" class="input" style="font-size:12px;" value="${esc(w)}" placeholder="Zwischenstopp..." onchange="routeWaypoints[${idx}]=this.value"><button type="button" class="btn btn-danger" style="width:auto; padding:4px 8px;" onclick="window.removeRouteWaypoint(${idx})">✕</button></div>`).join('');
+    };
+    window.calcRoutePage = function(){
+      const dest = gVal('routeDestInput').trim(); if(!dest) return toast('Bitte Ziel angeben.');
+      const start = gVal('routeStartInput').trim() || 'Josephstr. 14, 22041 Hamburg';
+      const distKm = Math.round(28 + (routeWaypoints.filter(Boolean).length * 14));
+      const cost = distKm * 0.15 * 0.33;
+      const res = g('routeCalculationResult');
+      if(res){
+        res.innerHTML = `<div style="background:var(--surface2); padding:10px; border-radius:6px; border:1px solid var(--border); font-size:12px;"><b>Rundreise: ca. ${distKm} km</b><br>⚡ Fahrtkosten (15 kWh/100km @ 0,33€): <b>${euro(cost)}</b><br><button type="button" class="btn btn-primary" style="margin-top:8px; width:100%;" onclick="window.open('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(start)}&destination=${encodeURIComponent(start)}&waypoints=${encodeURIComponent(dest)}','_blank')">🗺️ In Google Maps öffnen</button></div>`;
+      }
+    };
+    window.renderFavoriteSpotsManager = function(){
+      const c = g('routeFavoriteSpotsManager'); if(!c) return;
+      const spots = state.master?.favoriteSpots || [];
+      c.innerHTML = spots.map((s, idx) => `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:6px 10px; margin-bottom:4px;"><div><b>${esc(s.name)}</b> <span style="font-size:11px; color:var(--muted);">${esc(s.addr)}</span></div><button type="button" class="btn btn-danger" style="padding:2px 6px; font-size:10px;" onclick="state.master.favoriteSpots.splice(${idx},1);save();window.renderFavoriteSpotsManager();">🗑</button></div>`).join('');
+    };
+    window.addNewFavoriteSpot = function(){
+      const n = prompt('Name:'); const a = prompt('Adresse:');
+      if(n && a){ state.master.favoriteSpots.push({name:n, addr:a}); save(); window.renderFavoriteSpotsManager(); }
+    };
+
+    // MÖGLICHE SETS & SET-REGELN MODAL
+    window.openSetBadgesModal = function(){
+      const m = g('setBadgesModal'); if(!m) return;
+      const selMod = g('ruleKorpusModel');
+      if(selMod) selMod.innerHTML = Object.keys(BESTA_KORPUS_MODELS).map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('');
+      window.setSetBadgesTab('matches');
+      m.classList.add('show'); m.style.display = 'flex';
+    };
+    window.closeSetBadgesModal = function(){ const m = g('setBadgesModal'); if(m){ m.classList.remove('show'); m.style.display = 'none'; } };
+
+    window.setSetBadgesTab = function(tab){
+      const btnM = g('tabBtnPossibleSets'), btnR = g('tabBtnSetRules');
+      const viewM = g('viewPossibleSetsMatches'), viewR = g('viewPossibleSetsRules');
+      if(btnM) btnM.className = tab === 'matches' ? 'btn btn-primary' : 'btn btn-ghost';
+      if(btnR) btnR.className = tab === 'rules' ? 'btn btn-primary' : 'btn btn-ghost';
+      if(viewM) viewM.style.display = tab === 'matches' ? 'block' : 'none';
+      if(viewR) viewR.style.display = tab === 'rules' ? 'block' : 'none';
+      if(tab === 'matches') window.renderPossibleSetsMatches();
+      if(tab === 'rules') window.renderSetRulesManager();
+    };
+
+    window.renderPossibleSetsMatches = function(){
+      const cont = g('setBadgesContent'); if(!cont) return;
+      const rules = state.master?.setRules || [];
+      let matches = [];
+
+      const allKorpusColors = ['Weiß','Schwarzbraun'];
+      state.open.forEach(i => { if(i && i.group==='Besta' && (i.productType||'').includes('bauteil') && i.color) allKorpusColors.push(i.color); });
+      const uniqueKColors = [...new Set(allKorpusColors)];
+
+      rules.forEach(rule => {
+        uniqueKColors.forEach(kc => {
+          const possKorpus = getBestaPoss(rule.model, kc);
+          if(possKorpus <= 0) return;
+
+          const doors = state.open.filter(i => i && i.group==='Besta' && (i.productType||'').toLowerCase().includes('tür') && i.instances?.length > 0);
+          const doorsByArtCol = {};
+          doors.forEach(d => {
+            const k = `${d.article}||${d.color}`;
+            if(!doorsByArtCol[k]) doorsByArtCol[k] = { '64': 0, '38': 0, '26': 0, art: d.article, col: d.color };
+            if(doorsByArtCol[k][d.size] !== undefined){
+              doorsByArtCol[k][d.size] += (d.instances ? d.instances.length : 0);
+            }
+          });
+
+          Object.values(doorsByArtCol).forEach(entry => {
+            const r64 = rule.reqs['64'] || 0, r38 = rule.reqs['38'] || 0, r26 = rule.reqs['26'] || 0;
+            let setsPossible = possKorpus;
+            if(r64 > 0) setsPossible = Math.min(setsPossible, Math.floor(entry['64'] / r64));
+            if(r38 > 0) setsPossible = Math.min(setsPossible, Math.floor(entry['38'] / r38));
+            if(r26 > 0) setsPossible = Math.min(setsPossible, Math.floor(entry['26'] / r26));
+
+            if(setsPossible > 0){
+              const title = (rule.pattern || '{Korpus} {Tür} ({Farbe})')
+                .replace('{Korpus}', rule.model)
+                .replace('{Tür}', entry.art)
+                .replace('{Farbe}', entry.col);
+
+              matches.push({
+                ruleId: rule.id,
+                title: title,
+                model: rule.model,
+                korpusColor: kc,
+                doorArt: entry.art,
+                doorColor: entry.col,
+                count: setsPossible,
+                reqs: rule.reqs
+              });
+            }
+          });
+        });
+      });
+
+      if(!matches.length){
+        cont.innerHTML = '<div class="empty">Aus den aktuellen Lagerbeständen sind keine vollständigen Sets nach Regeln baubar.</div>';
+        return;
+      }
+
+      cont.innerHTML = matches.map((m, idx) => `
+        <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:800; font-size:1.05rem; color:var(--text);">${esc(m.title)}</div>
+            <div style="font-size:12px; color:var(--muted); margin-top:3px;">
+              Korpus: ${esc(m.model)} (${esc(m.korpusColor)}) · Türen: ${esc(m.doorArt)} ${esc(m.doorColor)}
+            </div>
+            <span class="chip stack" style="margin-top:6px; display:inline-block;">✨ ${m.count}x komplett baubar</span>
+          </div>
+          <button type="button" class="btn btn-primary" style="width:auto; padding:6px 14px;" onclick="window.addSellFromPossibleSet(${idx})">🛍 In den Verkauf</button>
+        </div>
+      `).join('');
+      window._lastPossibleMatches = matches;
+    };
+
+    window.addSellFromPossibleSet = function(idx){
+      const m = window._lastPossibleMatches?.[idx]; if(!m) return;
+      window.closeSetBadgesModal();
+      window.switchPage('sell');
+      state.sellCart = [];
+      window.addSellKorpusComplete(m.model, m.korpusColor);
+
+      ['64', '38', '26'].forEach(sz => {
+        const need = m.reqs[sz] || 0;
+        if(need > 0){
+          const doorItem = state.open.find(i => i.group==='Besta' && (i.productType||'').toLowerCase().includes('tür') && i.article===m.doorArt && String(i.size)===sz && String(i.color).toLowerCase()===String(m.doorColor).toLowerCase());
+          if(doorItem && doorItem.instances){
+            for(let j=0; j<need && j<doorItem.instances.length; j++){
+              state.sellCart.push({ item: doorItem, inst: doorItem.instances[j] });
+            }
+          }
+        }
+      });
+
+      const bn = g('sellBaseName'); if(bn) bn.value = m.title;
+      window.renderSellCart();
+      toast(`Set "${m.title}" in Verkauf übernommen ✓`);
+    };
+
+    window.renderSetRulesManager = function(){
+      const cont = g('setRulesList'); if(!cont) return;
+      const rules = state.master?.setRules || [];
+      cont.innerHTML = rules.map(r => `
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <b>${esc(r.pattern)}</b>
+            <div style="font-size:12px; color:var(--muted);">Korpus: ${esc(r.model)} · Benötigt: 64er: ${r.reqs['64']||0}, 38er: ${r.reqs['38']||0}, 26er: ${r.reqs['26']||0}</div>
+          </div>
+          <button type="button" class="btn btn-danger" style="padding:2px 8px; font-size:11px;" onclick="window.deleteSetRule('${r.id}')">🗑</button>
+        </div>
+      `).join('');
+    };
+
+    window.saveNewSetRule = function(){
+      const pat = gVal('ruleNamePattern').trim() || '{Korpus} {Tür} ({Farbe})';
+      const mod = gVal('ruleKorpusModel');
+      const r64 = parseInt(gVal('ruleReq64')) || 0;
+      const r38 = parseInt(gVal('ruleReq38')) || 0;
+      const r26 = parseInt(gVal('ruleReq26')) || 0;
+      const same = gVal('ruleSameArtCol') === 'true';
+
+      if(!state.master.setRules) state.master.setRules = [];
+      state.master.setRules.push({
+        id: 'rule_' + uid(),
+        pattern: pat,
+        model: mod,
+        reqs: { '64': r64, '38': r38, '26': r26 },
+        sameArtCol: same
+      });
+      save(); window.autoSaveToCloud?.();
+      window.renderSetRulesManager();
+      toast('Set-Regel hinzugefügt ✓');
+    };
+
+    window.deleteSetRule = function(id){
+      state.master.setRules = (state.master.setRules || []).filter(r => r.id !== id);
+      save(); window.autoSaveToCloud?.(); window.renderSetRulesManager(); toast('Regel gelöscht');
+    };
+
+    // STAMMDATEN
+    window.updateMasterForm = function(){
+      const cat = gVal('masterType'), grpSel = g('masterGroup'), typSel = g('masterProdType'), artSel = g('masterArticle');
+      const mfG = document.querySelector('.mf-grp'), mfT = document.querySelector('.mf-typ'), mfA = document.querySelector('.mf-art');
+      const catObj = state.master?.catalog || {};
+      if(grpSel) fillSel(grpSel, Object.keys(catObj).sort(sortKeys), 'Gruppe wählen…');
+      if(mfG) mfG.style.display = (cat !== 'groups') ? 'grid' : 'none';
+      const selGrp = grpSel ? grpSel.value : '';
+      const typs = (selGrp && catObj[selGrp]) ? Object.keys(catObj[selGrp]).sort(sortKeys) : [];
+      if(typSel) fillSel(typSel, typs, 'Produkttyp wählen…');
+      if(mfT) mfT.style.display = (cat === 'articles' || cat === 'sizes' || cat === 'colors') ? 'grid' : 'none';
+      const selTyp = typSel ? typSel.value : '';
+      const arts = (selGrp && selTyp && catObj[selGrp]?.[selTyp]?.articles) ? catObj[selGrp][selTyp].articles : [];
+      if(artSel) fillSel(artSel, arts, 'Artikel wählen…');
+      if(mfA) mfA.style.display = (cat === 'sizes' || cat === 'colors') ? 'grid' : 'none';
+    };
+
+    const masterFrm = g('masterForm');
+    if(masterFrm){
+      masterFrm.addEventListener('submit', e => {
+        e.preventDefault();
+        const cat = gVal('masterType'), val = gVal('masterValue').trim();
+        if(!val) return toast('Bitte Wert eingeben.');
+        if(!state.master) state.master = {};
+        if(!state.master.catalog) state.master.catalog = {};
+        const c = state.master.catalog;
+
+        if(cat === 'groups'){ if(!c[val]) c[val] = {}; }
+        else if(cat === 'producttypes'){
+          const gr = gVal('masterGroup'); if(!gr) return toast('Bitte Gruppe wählen.');
+          if(!c[gr]) c[gr] = {}; if(!c[gr][val]) c[gr][val] = { articles: [], sizes: [], colors: [] };
+        } else if(cat === 'articles'){
+          const gr = gVal('masterGroup'), t = gVal('masterProdType'); if(!gr || !t) return toast('Gruppe & Typ nötig.');
+          if(!c[gr]) c[gr] = {}; if(!c[gr][t]) c[gr][t] = { articles: [], sizes: [], colors: [] };
+          if(!c[gr][t].articles.includes(val)) c[gr][t].articles.push(val);
+        } else if(cat === 'sizes' || cat === 'colors'){
+          const gr = gVal('masterGroup'), t = gVal('masterProdType'); if(!gr || !t) return toast('Gruppe & Typ nötig.');
+          if(!c[gr]) c[gr] = {}; if(!c[gr][t]) c[gr][t] = { articles: [], sizes: [], colors: [] };
+          const list = cat === 'sizes' ? (c[gr][t].sizes = c[gr][t].sizes || []) : (c[gr][t].colors = c[gr][t].colors || []);
+          if(!list.includes(val)) list.push(val);
+        }
+        save(); window.autoSaveToCloud?.(); window.updateMasterForm(); window.renderAllQuick(); window.renderMaster();
+        toast('Stammdaten gespeichert ✓'); g('masterValue').value = '';
+      });
+    }
+
+    window.renderMaster = function(){
+      const c = g('masterContent'); if(!c) return;
+      const cat = state.master?.catalog || {}; let h = '';
+      Object.keys(cat).sort(sortKeys).forEach(grp => {
+        h += `<div class="card" style="margin-bottom:var(--sp3);"><div class="card-head"><b>${esc(grp)}</b></div><div class="card-body">`;
+        Object.keys(cat[grp] || {}).sort(sortKeys).forEach(tp => {
+          h += `<div style="margin-bottom:6px;"><b>🏷 ${esc(tp)}:</b> <span class="muted">${(cat[grp][tp].articles||[]).join(', ')}</span></div>`;
+        });
+        h += `</div></div>`;
+      });
+      c.innerHTML = h;
+    };
+
+    // GLOBAL LISTENERS
+    document.addEventListener('click', e=>{
+      const t=e.target; if(!t)return;
+      const el=t.nodeType===3?t.parentElement:t; if(!el||typeof el.closest!=='function')return;
+      const rm=el.closest('[data-rm]');
+      if(rm){
+        const k=rm.dataset.rm, gp=rm.dataset.grp, tp=rm.dataset.typ, ix=rm.dataset.idx;
+        if(k==='group'){if(state.master.catalog[gp])delete state.master.catalog[gp]; if(!state.deletedGroups)state.deletedGroups=[]; if(!state.deletedGroups.includes(gp))state.deletedGroups.push(gp);}
+        else if(k==='prodtype'){if(state.master.catalog[gp])delete state.master.catalog[gp][tp];}
+        else{if(state.master.catalog[gp]&&state.master.catalog[gp][tp]&&state.master.catalog[gp][tp][k])state.master.catalog[gp][tp][k].splice(+ix,1);}
+        save(); window.autoSaveToCloud?.(); window.updateMasterForm(); window.renderAllQuick(); window.renderMaster(); window.renderBestaManager();
+      }
+    });
+
+    function initApp(){
+      ensureCatalogIntegrity();
+      populateUhrzeit();
+      window.updateMasterForm();
+      window.renderAllQuick();
+      const gEl = document.getElementById('gasUrl'); 
+      if(gEl) gEl.value = localStorage.getItem('gasUrl') || '';
+      window.render();
+    }
+
+    function applyState(d){
+      try{
+        const delSet=new Set(d.deletedIds||state.deletedIds||[]); state.deletedIds=Array.from(delSet);
+        const delGrps=new Set(d.deletedGroups||state.deletedGroups||[]); state.deletedGroups=Array.from(delGrps);
+        state.open=Array.isArray(d.open)?d.open.filter(i=>i&&!delSet.has(i.id)&&!delGrps.has(i.group)):[];
+        if(Array.isArray(d.sold)) state.sold=d.sold.filter(s=>s&&!delSet.has(s.id));
+        if(Array.isArray(d.termine)) state.termine=d.termine.filter(t=>t&&!delSet.has(t.id));
+        if(d.master&&typeof d.master==='object') state.master=d.master;
+        ensureCatalogIntegrity();
+      }catch(e){console.error(e);}
+    }
+
+    window.render = function(){
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn, .icon-btn[data-page]').forEach(b => b.classList.toggle('active', b.dataset.page === state.page));
+      const a = g('page-' + state.page); if(a) a.classList.add('active');
+      if(state.page === 'new') window.renderAllQuick();
+      if(state.page === 'besta') window.renderBestaManager();
+      if(state.page === 'sell'){ window.renderSellQuick(); window.renderSellCart(); }
+      if(state.page === 'open'){ window.renderOpenFilters(); window.renderOpen(); }
+      if(state.page === 'sold') window.renderSold();
+      if(state.page === 'route') window.renderFavoriteSpotsManager();
+      if(state.page === 'master') window.renderMaster();
+      if(state.page === 'termin') window.renderTermine();
+      if(state.page === 'stats') window.renderStats();
+    };
+
+    load();
+  </script>
 </body>
 </html>
