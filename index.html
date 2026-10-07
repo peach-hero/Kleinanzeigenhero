@@ -91,10 +91,10 @@
     .chip.stack { background: rgba(1, 105, 111, 0.15); border-color: var(--primary); color: #23b2b8; font-weight: 700; cursor:default; }
 
     .qb-chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--rad-sm); font-size: 0.95rem; cursor: pointer; user-select: none; transition: all 0.15s; }
-    .qb-chip.lvl-grp { border-color: rgba(14, 165, 233, 0.35); } .qb-chip.lvl-grp.active { background: var(--c-grp); color: #fff; border-color: var(--c-grp-border); box-shadow: 0 0 10px rgba(14, 165, 233, 0.3); }
-    .qb-chip.lvl-typ { border-color: rgba(99, 102, 241, 0.35); } .qb-chip.lvl-typ.active { background: var(--c-typ); color: #fff; border-color: var(--c-typ-border); box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
-    .qb-chip.lvl-art { border-color: rgba(245, 158, 11, 0.35); } .qb-chip.lvl-art.active { background: var(--c-art); color: #fff; border-color: var(--c-art-border); box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
-    .qb-chip.lvl-var { border-color: rgba(16, 185, 129, 0.35); } .qb-chip.lvl-var.active { background: var(--c-var); color: #fff; border-color: var(--c-var-border); box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+    .qb-chip.lvl-grp { border-color: rgba(14, 165, 233, 0.35); } .qb-chip.lvl-grp.active { background: var(--c-grp); color: #fff; border-color: var(--c-grp-border); }
+    .qb-chip.lvl-typ { border-color: rgba(99, 102, 241, 0.35); } .qb-chip.lvl-typ.active { background: var(--c-typ); color: #fff; border-color: var(--c-typ-border); }
+    .qb-chip.lvl-art { border-color: rgba(245, 158, 11, 0.35); } .qb-chip.lvl-art.active { background: var(--c-art); color: #fff; border-color: var(--c-art-border); }
+    .qb-chip.lvl-var { border-color: rgba(16, 185, 129, 0.35); } .qb-chip.lvl-var.active { background: var(--c-var); color: #fff; border-color: var(--c-var-border); }
 
     .filter-badge-title { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; padding: 2px 8px; border-radius: 6px; }
     .filter-badge-title.grp { background: var(--c-grp-bg); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.3); }
@@ -102,9 +102,7 @@
     .filter-badge-title.art { background: var(--c-art-bg); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
     .filter-badge-title.var { background: var(--c-var-bg); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
 
-    .tree-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; margin-right: 12px; border: 1px solid var(--border); flex-shrink: 0; }
-    .grp-header-logo { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; margin-right: 14px; border: 1px solid var(--border); flex-shrink: 0; }
-    .grp-logo-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; margin-right: 8px; vertical-align: middle; border: 1px solid var(--border); }
+    .grp-logo-thumb { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; margin-right: 6px; vertical-align: middle; border: 1px solid var(--border); }
     
     .img-grid-select { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
     .img-pick-item { border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid var(--border); background: var(--bg); height: 95px; position: relative; }
@@ -115,29 +113,9 @@
     .matrix-table th { background: var(--surface2); color: var(--muted); font-size: 11px; text-transform: uppercase; font-weight: 700; }
     .matrix-table td:first-child { text-align: left; }
     
-    /* OVP-Feld: Keine Pfeile (Spinner) */
-    .ovp-input {
-      width: 62px;
-      padding: 4px 6px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text);
-      font-size: 11px;
-      text-align: center;
-      font-weight: 700;
-      -moz-appearance: textfield;
-      appearance: textfield;
-    }
-    .ovp-input::-webkit-outer-spin-button,
-    .ovp-input::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    .ovp-input:focus {
-      border-color: var(--primary);
-      outline: none;
-    }
+    .ovp-input { width: 62px; padding: 4px 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 11px; text-align: center; font-weight: 700; -moz-appearance: textfield; appearance: textfield; }
+    .ovp-input::-webkit-outer-spin-button, .ovp-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .ovp-input:focus { border-color: var(--primary); outline: none; }
 
     .qty-ctrl { display: inline-flex; align-items: center; background: var(--bg); border-radius: 6px; border: 1px solid var(--border); overflow: hidden; }
     .qty-ctrl button { background: transparent; border: none; color: var(--text); padding: 4px 10px; cursor: pointer; font-weight: bold; font-size: 14px; }
@@ -153,17 +131,24 @@
     .color-btn-actions { display: inline-flex; align-items: center; gap: 3px; margin-left: 2px; }
     .color-btn-del { color: var(--muted); font-size: 10px; font-weight: 700; padding: 1px 4px; border-radius: 3px; cursor: pointer; transition: all 0.15s; }
     .color-btn-del:hover { color: #fff; background: var(--err); }
-    .color-btn-img { font-size: 10px; opacity: 0.45; cursor: pointer; transition: opacity 0.15s; }
+    .color-btn-img { font-size: 10px; opacity: 0.45; cursor: pointer; }
     .color-btn-img:hover { opacity: 1; }
+
+    .sold-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); margin-bottom: var(--sp3); }
+    .sold-card .thumb { width: 52px; height: 52px; border-radius: 8px; overflow: hidden; background: var(--surface2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--border); cursor: pointer; }
+    .sold-card .thumb img { width: 100%; height: 100%; object-fit: cover; }
 
     #toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-30px); background: #10b981; color: #ffffff; padding: 10px 22px; border-radius: 24px; font-size: 13px; font-weight: 700; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); opacity: 0; pointer-events: none; z-index: 3000; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; gap: 8px; }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .mini-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+    .mini-table th, .mini-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+    .mini-table th { background: var(--surface2); color: var(--muted); text-transform: uppercase; font-weight: 700; }
 
     .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--sp2); }
     .kpi-card, .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rad-md); padding: var(--sp3); }
     .kpi-card .k, .stat-card .k { font-size: 11px; text-transform: uppercase; color: var(--muted); font-weight: 700; }
     .kpi-card .v, .stat-card .v { font-size: 1.25rem; font-weight: 800; color: var(--text); margin-top: 4px; }
-    .kpi-card .d { font-size: 10px; color: var(--muted); margin-top: 2px; }
 
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; height: 60px; z-index: 100; }
     .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: transparent; border: none; color: var(--muted); font-size: 11px; cursor: pointer; }
@@ -288,7 +273,6 @@
       <div style="display:flex; gap:8px; margin-bottom:var(--sp3); align-items:center;">
         <div class="search-wrap"><input type="text" id="openSearchText" class="input" placeholder="🔍 Suche im Bestand..." oninput="window.updateOpenFilters()"><button type="button" class="search-clear" onclick="window.clearOpenSearch()">✕</button></div>
         <button type="button" id="toggleAllBtn" class="btn btn-ghost" style="width:auto; white-space:nowrap;" onclick="window.toggleAllGroups()">↕ Alle</button>
-        <button type="button" class="btn btn-ghost" style="width:auto; white-space:nowrap; border-color:var(--primary); color:var(--text);" onclick="window.openSetBadgesModal()">🏆 Mögliche Sets</button>
       </div>
 
       <div class="card" style="margin-bottom:var(--sp3); background:var(--surface2);">
@@ -345,7 +329,10 @@
 
     <!-- PAGE: Historie -->
     <section id="page-sold" class="page">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);"><input type="text" id="soldSearch" class="input" placeholder="🔍 Verkaufte Durchsuchen..." oninput="window.renderSold()"></div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3); gap: 10px;">
+        <input type="text" id="soldSearch" class="input" placeholder="🔍 Verkäufe durchsuchen..." oninput="window.renderSold()">
+        <span class="chip stack" id="soldCountBadge" style="white-space:nowrap;">0 Verkäufe</span>
+      </div>
       <div id="soldContent"></div>
     </section>
 
@@ -355,33 +342,27 @@
         <div class="card-head"><h3 class="card-title">🧭 Routenplaner & Rentabilität</h3></div>
         <div class="card-body">
           <div class="form-group">
-            <label class="form-label">1. Start- & Endpunkt (Ausgangsort)</label>
+            <label class="form-label">1. Start- & Endpunkt</label>
             <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
-              <span class="chip active" id="routeStartHome" onclick="window.setRouteStart('home')">🏠 Zuhause (Josephstr. 14)</span>
+              <span class="chip active" id="routeStartHome" onclick="window.setRouteStart('home')">🏠 Zuhause</span>
               <span class="chip" id="routeStartGps" onclick="window.setRouteStart('gps')">📍 Standort</span>
               <span class="chip" id="routeStartCustom" onclick="window.setRouteStart('custom')">✏️ Eigene</span>
             </div>
             <input type="text" id="routeStartInput" class="input" style="font-size:13px; display:none;" value="Josephstr. 14, 22041 Hamburg">
           </div>
           <div class="form-group">
-            <label class="form-label">2. Zieladresse (Haupt-Abholort)</label>
+            <label class="form-label">2. Zieladresse</label>
             <input type="text" id="routeDestInput" class="input" placeholder="z.B. Kieler Straße 400, Hamburg">
           </div>
           <div class="form-group">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <label class="form-label" style="margin-bottom:0;">3. Zwischenstationen (Optionale Stopps)</label>
+              <label class="form-label" style="margin-bottom:0;">3. Zwischenstationen</label>
               <button type="button" class="btn btn-ghost" style="padding:2px 8px; font-size:11px;" onclick="window.addRouteWaypoint()">✚ Stopp</button>
             </div>
             <div id="routeWaypointsContainer"></div>
           </div>
-          <button type="button" class="btn btn-primary" onclick="window.calcRoutePage()">🚀 Optimale Rundreise & Fahrtkosten berechnen</button>
+          <button type="button" class="btn btn-primary" onclick="window.calcRoutePage()">🚀 Optimale Rundreise berechnen</button>
           <div id="routeCalculationResult" style="margin-top:10px;"></div>
-          <hr style="border:none; border-top:1px solid var(--border); margin:var(--sp4) 0;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <label class="form-label" style="margin-bottom:0;">⭐ Meine Favorite Spots für Abstecher</label>
-            <button type="button" class="btn btn-ghost" style="padding:2px 8px; font-size:11px;" onclick="window.addNewFavoriteSpot()">✚ Neuer Spot</button>
-          </div>
-          <div id="routeFavoriteSpotsManager"></div>
         </div>
       </div>
     </section>
@@ -409,16 +390,53 @@
 
     <!-- PAGE: Statistik -->
     <section id="page-stats" class="page">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);"><h2>Statistik</h2><select id="statsYear" class="select" style="width:auto;"></select></div>
-      <div class="card" style="margin-bottom:var(--sp3);"><div class="card-head"><h3 class="card-title">🔍 Dynamischer KPI Filter</h3></div><div class="card-body"><div class="grid3" style="margin-bottom:6px;"><select id="statsFilterGrp" class="select" onchange="window.onStatsFilterChange('grp')"></select><select id="statsFilterTyp" class="select" onchange="window.onStatsFilterChange('typ')"></select><select id="statsFilterArt" class="select" onchange="window.onStatsFilterChange('art')"></select></div><div class="grid2"><select id="statsFilterSize" class="select" onchange="window.onStatsFilterChange('size')"></select><select id="statsFilterCol" class="select" onchange="window.onStatsFilterChange('col')"></select></div></div></div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3); gap: 10px;">
+        <h2 style="font-size:1.3rem;">Finanzstatistik</h2>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="font-size:12px; color:var(--muted); font-weight:bold;">Jahr:</span>
+          <select id="statsYear" class="select" style="width:auto; padding:6px 10px; font-size:13px; font-weight:bold;"></select>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:var(--sp3); background:var(--surface2);">
+        <div class="card-body" style="padding:10px;">
+          <div class="grid3" style="margin-bottom:6px;">
+            <select id="statsFilterGrp" class="select" onchange="window.onStatsFilterChange('grp')"></select>
+            <select id="statsFilterTyp" class="select" onchange="window.onStatsFilterChange('typ')"></select>
+            <select id="statsFilterArt" class="select" onchange="window.onStatsFilterChange('art')"></select>
+          </div>
+          <div class="grid2">
+            <select id="statsFilterSize" class="select" onchange="window.onStatsFilterChange('size')"></select>
+            <select id="statsFilterCol" class="select" onchange="window.onStatsFilterChange('col')"></select>
+          </div>
+        </div>
+      </div>
       <div id="statsCards" class="grid2" style="margin-bottom:var(--sp3);"></div>
-      <div id="dynamicKpis" class="kpi-grid" style="margin-bottom:var(--sp4);"></div>
-      <div id="topRankings" style="margin-bottom:var(--sp4);"></div>
-      <div class="card" style="margin-bottom:var(--sp3);"><div class="card-head"><h3 class="card-title">Monatsübersicht</h3></div><div class="card-body" style="padding:0; overflow-x:auto;"><table id="monthTable" class="mini-table" style="margin:0;"></table></div></div>
+      
+      <div class="card" style="margin-bottom:var(--sp3);">
+        <div class="card-head">
+          <h3 class="card-title">📅 Monatsübersicht (Umsatz & Profitshare)</h3>
+        </div>
+        <div class="card-body" style="padding:0; overflow-x:auto;">
+          <table id="monthTable" class="mini-table" style="margin:0;"></table>
+        </div>
+      </div>
     </section>
 
-    <!-- PAGE: Stammdaten & Exporte -->
+    <!-- PAGE: Stammdaten & Exporte & BILDER-GRUPPEN -->
     <section id="page-master" class="page">
+      <!-- NEU: BILDER-GRUPPEN VERWALTEN -->
+      <div class="card">
+        <div class="card-head" style="display:flex; justify-content:space-between; align-items:center;">
+          <h3 class="card-title">🖼️ Bilder-Gruppen & Upload-Pool</h3>
+          <button type="button" class="btn btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="window.addNewImageCategory()">✚ Neue Gruppe</button>
+        </div>
+        <div class="card-body">
+          <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">Verwalte deine Bildersammlung nach Gruppen (z. B. Türen, Korpusse, Farben):</div>
+          <div id="masterImageCategoriesBar" class="chips" style="margin-bottom:12px;"></div>
+          <div id="masterImagesGrid" class="img-grid-select" style="max-height:220px; overflow-y:auto; padding:4px;"></div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-head"><h3 class="card-title">✚ Stammdaten hinzufügen</h3></div>
         <div class="card-body">
@@ -438,16 +456,15 @@
         <div class="card-body">
           <div class="form-group"><label class="form-label">Google Apps Script WebApp URL</label><input type="text" id="gasUrl" class="input" placeholder="https://script.google.com/macros/s/.../exec"></div>
           <div class="grid2" style="margin-bottom:var(--sp3);"><button type="button" class="btn btn-primary" onclick="window.saveToCloud()">☁️ In Cloud</button><button type="button" class="btn btn-ghost" style="width:100%" onclick="window.loadFromCloud()">⬇ Aus Cloud</button></div>
-          
-          <div style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; margin-bottom:6px;">Gezielte Exporte</div>
           <div class="grid3" style="margin-bottom:var(--sp3);">
             <button type="button" class="btn btn-ghost" onclick="window.exportBestand()">📦 Nur Bestand</button>
             <button type="button" class="btn btn-ghost" onclick="window.exportBesta()">🗄️ Besta & Korpus</button>
             <button type="button" class="btn btn-ghost" onclick="window.exportSold()">📜 Nur Historie</button>
           </div>
-
-          <div class="grid2" style="margin-bottom:var(--sp3);"><button type="button" id="exportBtn" class="btn btn-ghost" style="width:100%" onclick="window.exportData()">💾 Gesamt-Backup</button><label class="btn btn-ghost" style="cursor:pointer; text-align:center; width:100%">📂 Import<input type="file" style="display:none;" onchange="window.importData(this.files[0])"></label></div>
-          <button type="button" class="btn btn-danger" style="width:100%;" onclick="window.cleanCorruptedImagesAndGhostGroups()">🧹 Defekte Bilder & Geister-Gruppen bereinigen</button>
+          <div class="grid2">
+            <button type="button" id="exportBtn" class="btn btn-primary" onclick="window.exportData()">💾 Gesamt-Backup</button>
+            <label class="btn btn-ghost" style="cursor:pointer; text-align:center;">📂 Import<input type="file" style="display:none;" onchange="window.importData(this.files[0])"></label>
+          </div>
         </div>
       </div>
       <div id="masterContent"></div>
@@ -466,80 +483,29 @@
 
   <div id="toast"></div>
 
+  <!-- ERWEITERTES BILD-PICKER MODAL MIT GRUPPEN-FILTER -->
   <div id="imagePickerModal" class="modal">
     <div class="modal-content">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
-        <h3>Bild auswählen</h3><button type="button" class="btn btn-ghost" style="width:auto; padding:4px 8px;" onclick="window.closeImagePicker()">✕</button>
+        <h3 style="font-size:1.15rem; font-weight:800;">Bild auswählen</h3>
+        <button type="button" class="btn btn-ghost" style="width:auto; padding:4px 8px;" onclick="window.closeImagePicker()">✕</button>
       </div>
-      <label class="btn btn-primary" style="font-size:var(--text-sm); cursor:pointer; width:100%;">
-        📷 Bild vom Gerät hochladen<input type="file" accept="image/*" style="display:none;" onchange="window.handleSingleModalUpload(this.files[0])">
-      </label>
-      <div id="imagePickerList" class="img-grid-select"></div>
-    </div>
-  </div>
 
-  <!-- MODAL: MÖGLICHE SETS & REGEL-EDITOR -->
-  <div id="setBadgesModal" class="modal">
-    <div class="modal-content" style="max-width: 640px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
-        <h3 style="font-size:1.2rem; font-weight:800;">🏆 Mögliche Sets & Set-Regeln</h3>
-        <button type="button" class="btn btn-ghost" style="width:auto; padding:4px 8px;" onclick="window.closeSetBadgesModal()">✕</button>
+      <!-- Bildergruppen Filter -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+        <span style="font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase;">Gruppe filtern:</span>
+        <button type="button" class="btn btn-ghost" style="padding:2px 6px; font-size:10px;" onclick="window.addNewImageCategory()">✚ Gruppe anlegen</button>
       </div>
+      <div id="imagePickerCategoryChips" class="chips" style="margin-bottom:12px;"></div>
 
       <div style="display:flex; gap:8px; margin-bottom:12px;">
-        <button type="button" id="tabBtnPossibleSets" class="btn btn-primary" style="flex:1;" onclick="window.setSetBadgesTab('matches')">✨ Baubare Sets im Lager</button>
-        <button type="button" id="tabBtnSetRules" class="btn btn-ghost" style="flex:1;" onclick="window.setSetBadgesTab('rules')">⚙ Set-Regeln verwalten</button>
+        <label class="btn btn-primary" style="font-size:var(--text-sm); cursor:pointer; flex:1;">
+          📷 Neues Bild hochladen<input type="file" accept="image/*" style="display:none;" onchange="window.handleSingleModalUpload(this.files[0])">
+        </label>
+        <select id="modalUploadTargetCat" class="select" style="width:auto; font-size:12px;" title="Ziel-Gruppe für Upload"></select>
       </div>
 
-      <div id="viewPossibleSetsMatches">
-        <div id="setBadgesContent"></div>
-      </div>
-
-      <div id="viewPossibleSetsRules" style="display:none;">
-        <div style="background:var(--surface2); padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom:12px;">
-          <h4 style="font-size:13px; font-weight:800; margin-bottom:8px; text-transform:uppercase; color:var(--primary);">✚ Neue Set-Regel definieren</h4>
-          
-          <div class="form-group" style="margin-bottom:6px;">
-            <label class="form-label">Set-Name Vorlage (Nutze {Korpus}, {Tür}, {Farbe})</label>
-            <input type="text" id="ruleNamePattern" class="input" placeholder="z.B. {Korpus} {Tür} ({Farbe})">
-          </div>
-
-          <div class="grid2" style="margin-bottom:6px;">
-            <div class="form-group">
-              <label class="form-label">Korpus-Modell</label>
-              <select id="ruleKorpusModel" class="select"></select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Gleicher Türname & Farbe nötig?</label>
-              <select id="ruleSameArtCol" class="select">
-                <option value="true">Ja (gleicher Name & Farbe)</option>
-                <option value="false">Nein (Beliebige Türen)</option>
-              </select>
-            </div>
-          </div>
-
-          <div style="font-weight:700; font-size:11px; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">Benötigte Türen-Anzahl nach Größe:</div>
-          <div class="grid3" style="margin-bottom:8px;">
-            <div class="form-group">
-              <label class="form-label">Gr. 64 Türen</label>
-              <input type="number" id="ruleReq64" class="input" value="2" min="0">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Gr. 38 Türen</label>
-              <input type="number" id="ruleReq38" class="input" value="0" min="0">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Gr. 26 Türen / Blenden</label>
-              <input type="number" id="ruleReq26" class="input" value="0" min="0">
-            </div>
-          </div>
-
-          <button type="button" class="btn btn-primary" onclick="window.saveNewSetRule()">✚ Regel speichern</button>
-        </div>
-
-        <div style="font-weight:800; font-size:12px; color:var(--muted); text-transform:uppercase; margin-bottom:6px;">Aktive Set-Regeln:</div>
-        <div id="setRulesList"></div>
-      </div>
+      <div id="imagePickerList" class="img-grid-select"></div>
     </div>
   </div>
 
@@ -590,26 +556,10 @@
       return "background-color: #64748b;";
     }
 
-    window.uploadColorSwatch = function(colorName){
-      const norm = String(colorName || '').toLowerCase().trim();
-      imagePickCallback = url => {
-        if(!state.master.colorImages) state.master.colorImages = {};
-        state.master.colorImages[norm] = url;
-        save(); window.autoSaveToCloud?.();
-        window.renderBestaManager();
-        toast('Farbmuster gespeichert ✓');
-      };
-      window.openImagePicker(state.master.colorImages?.[norm] || '');
-    };
-
     const DEFAULT_FAVORITE_SPOTS = [
       { name: 'IKEA Altona', addr: 'Große Bergstraße 164, 22767 Hamburg' },
       { name: 'IKEA Schnelsen', addr: 'Wunderbrunnen 1, 22457 Hamburg' },
-      { name: 'IKEA Moorfleet', addr: 'Unterer Landweg 77, 22113 Hamburg' },
-      { name: 'P3 Padel (Bergedorf)', addr: 'Havighorster Weg 16, 21031 Hamburg' },
-      { name: 'padel amigos (Halstenbek)', addr: 'Am Bahndamm 88, 25469 Halstenbek' },
-      { name: 'Holmes Place Bahrenfeld', addr: 'Gasstraße 6, 22761 Hamburg' },
-      { name: 'Sports Club Alsterdorf', addr: 'Heubergredder 34, 22297 Hamburg' }
+      { name: 'IKEA Moorfleet', addr: 'Unterer Landweg 77, 22113 Hamburg' }
     ];
 
     const DEFAULT_BESTA_TUEREN = ['Björköviken','Djupviken','Förvaltare','Glassvik','Grundsviken','Hammarsmed','Hanviken','Hedeviken','Hjortviken','Kallviken','Krukmakare','Lappviken','Laxviken','Mjörtviken','Norum','Novum','Pippmakare','Riksviken','Selsviken','Sindvik','Smeviken','Studsviken','Sutterviken','Tofta','Tombo','Vara','Vassbo'];
@@ -646,8 +596,22 @@
       BESTA_BOM[def.dim.replace(/\s+/g, '')] = def.bom;
     });
 
-    const state = { page:'new', sellCart:[], psMode:'pct', open:[], openFilters:{text:'',group:'',type:'',article:'',size:'',color:''}, sellSelection:{group:'',type:'',article:'',size:'',color:''}, sold:[], soldFilter:'', termine:[], year:String(new Date().getFullYear()), deletedIds:[], deletedGroups:[], master:{catalog:{}, badgeRules:[], groupLogos:{}, typeLogos:{}, articleLogos:{}, images:[], setImages:[], colorImages:{}, doorOVP:{}, favoriteSpots:[...DEFAULT_FAVORITE_SPOTS]}, openCollapse:{}, hideZero:false };
-    let globalExpandState=false, db=null, imagePickCallback=null;
+    const DEFAULT_IMAGE_CATEGORIES = ['Türen Bilder', 'Korpus Bilder', 'Farbbilder', 'Set Bilder', 'Sonstige'];
+
+    const state = { 
+      page:'new', sellCart:[], psMode:'pct', open:[], 
+      openFilters:{text:'',group:'',type:'',article:'',size:'',color:''}, 
+      sellSelection:{group:'',type:'',article:'',size:'',color:''}, 
+      sold:[], soldFilter:'', termine:[], year:'ALL', deletedIds:[], deletedGroups:[], 
+      master:{
+        catalog:{}, badgeRules:[], groupLogos:{}, typeLogos:{}, articleLogos:{}, 
+        images:[], imageCategories:[...DEFAULT_IMAGE_CATEGORIES], categorizedImages:{}, 
+        colorImages:{}, doorOVP:{}, favoriteSpots:[...DEFAULT_FAVORITE_SPOTS]
+      }, 
+      openCollapse:{}, hideZero:false 
+    };
+
+    let globalExpandState=false, db=null, imagePickCallback=null, activeImageCategoryFilter='Alle';
     const DB_NAME='amp3db', DB_VER=1, STORE='data';
 
     window.bestaHideZero = false;
@@ -661,8 +625,15 @@
     function fallbackLoad(){ try{const ls=JSON.parse(localStorage.getItem('amp3'));if(ls)applyState(ls);}catch(e){} initApp(); }
 
     function isValidImage(url){ if(!url||typeof url!=='string')return false; const s=url.trim(); if(s.startsWith('http'))return true; if(s.startsWith('data:image/'))return s.length>500&&s.includes(';base64,'); return false; }
-    function compressImage(file, callback){ const reader=new FileReader(); reader.onload=e=>{ const img=new Image(); img.onload=()=>{ const canvas=document.createElement('canvas'); let w=img.width,h=img.height; const MAX=250; if(w>h&&w>MAX){h=Math.round(h*MAX/w);w=MAX;}else if(h>MAX){w=Math.round(w*MAX/h);h=MAX;} canvas.width=w; canvas.height=h; canvas.getContext('2d').drawImage(img,0,0,w,h); callback(canvas.toDataURL('image/jpeg',0.45)); }; img.src=e.target.result; }; reader.readAsDataURL(file); }
-    function getEntityImage(grp, pt, art){ const m=state.master; if(grp&&pt&&art&&m.articleLogos&&isValidImage(m.articleLogos[`${grp}||${pt}||${art}`])) return m.articleLogos[`${grp}||${pt}||${art}`]; if(grp&&pt&&!art&&m.typeLogos&&isValidImage(m.typeLogos[`${grp}||${pt}`])) return m.typeLogos[`${grp}||${pt}`]; if(grp&&!pt&&!art&&m.groupLogos&&isValidImage(m.groupLogos[grp])) return m.groupLogos[grp]; return ''; }
+    function compressImage(file, callback){ const reader=new FileReader(); reader.onload=e=>{ const img=new Image(); img.onload=()=>{ const canvas=document.createElement('canvas'); let w=img.width,h=img.height; const MAX=300; if(w>h&&w>MAX){h=Math.round(h*MAX/w);w=MAX;}else if(h>MAX){w=Math.round(w*MAX/h);h=MAX;} canvas.width=w; canvas.height=h; canvas.getContext('2d').drawImage(img,0,0,w,h); callback(canvas.toDataURL('image/jpeg',0.5)); }; img.src=e.target.result; }; reader.readAsDataURL(file); }
+
+    function getEntityImage(grp, pt, art){ 
+      const m = state.master; 
+      if(grp && pt && art && m.articleLogos && isValidImage(m.articleLogos[`${grp}||${pt}||${art}`])) return m.articleLogos[`${grp}||${pt}||${art}`]; 
+      if(grp && pt && !art && m.typeLogos && isValidImage(m.typeLogos[`${grp}||${pt}`])) return m.typeLogos[`${grp}||${pt}`]; 
+      if(grp && !pt && !art && m.groupLogos && isValidImage(m.groupLogos[grp])) return m.groupLogos[grp]; 
+      return ''; 
+    }
 
     window.switchPage = function(pageName){
       state.page = pageName;
@@ -673,22 +644,209 @@
     function ensureCatalogIntegrity(){
       if(!state.master) state.master={};
       if(!state.master.catalog||typeof state.master.catalog!=='object') state.master.catalog={};
+      if(!state.master.articleLogos) state.master.articleLogos={};
+      if(!state.master.typeLogos) state.master.typeLogos={};
+      if(!state.master.groupLogos) state.master.groupLogos={};
       if(!state.master.colorImages) state.master.colorImages={};
       if(!state.master.doorOVP) state.master.doorOVP={};
+      if(!Array.isArray(state.master.images)) state.master.images=[];
+      if(!Array.isArray(state.master.imageCategories) || state.master.imageCategories.length===0) state.master.imageCategories=[...DEFAULT_IMAGE_CATEGORIES];
+      if(!state.master.categorizedImages || typeof state.master.categorizedImages!=='object') state.master.categorizedImages={};
+      
+      // Bestehende Bilder in "Sonstige" überführen falls noch nicht gruppiert
+      if(state.master.images.length > 0 && Object.keys(state.master.categorizedImages).length === 0){
+        state.master.categorizedImages['Sonstige'] = [...state.master.images];
+      }
       if(!state.master.catalog.Besta) state.master.catalog.Besta={};
       if(!state.master.catalog.Besta['Tür']) state.master.catalog.Besta['Tür']={articles:[...DEFAULT_BESTA_TUEREN],sizes:['64','38','26'],colors:['Weiß','Schwarzbraun']};
       if(!state.master.catalog.Besta['Korpus Bauteil']) state.master.catalog.Besta['Korpus Bauteil']={articles:['Seite','Oben/Unten','Oben/Unten TV','Mitte','Mitte TV'],sizes:[],colors:['Weiß','Schwarzbraun']};
       if(!Array.isArray(state.master.favoriteSpots) || state.master.favoriteSpots.length === 0) state.master.favoriteSpots = [...DEFAULT_FAVORITE_SPOTS];
     }
 
-    window.openImagePicker = function(cur=''){ const m=g('imagePickerModal'), l=g('imagePickerList'); if(!m||!l)return; const p=(Array.isArray(state.master.images)?state.master.images:[]).filter(isValidImage); l.innerHTML=p.length?p.map(u=>'<div class="img-pick-item" style="border-color:'+(u===cur?'var(--primary)':'var(--border)')+';" onclick="window.selectPoolImage(\''+safeJsStr(u)+'\')"><img src="'+u+'" loading="lazy"></div>').join(''):'<div class="empty" style="grid-column:1/-1;">Pool leer.</div>'; m.style.display='flex'; m.classList.add('show'); };
-    window.closeImagePicker = function(){ const m=g('imagePickerModal'); if(m){m.classList.remove('show');m.style.display='none';} };
-    window.selectPoolImage = function(url){ if(imagePickCallback) imagePickCallback(url); window.closeImagePicker(); };
-    window.handleSingleModalUpload = function(file){ if(!file)return; compressImage(file, u=>{ if(!Array.isArray(state.master.images)) state.master.images=[]; state.master.images.unshift(u); save(); if(imagePickCallback) imagePickCallback(u); window.closeImagePicker(); toast('Bild hochgeladen ✓'); }); };
-    window.openSellSetImgPicker = function(){ imagePickCallback=url=>{ const v=g('sellSetImgValue'),p=g('sellSetImgPreview'),l=g('sellSetImgLabel'); if(v)v.value=url; if(p)p.innerHTML=url?'<img src="'+url+'" style="width:36px;height:36px;object-fit:cover;border-radius:6px;">':'🖼'; if(l)l.textContent=url?'Set-Bild gewählt ✓':'Set-Bild wählen…'; }; window.openImagePicker(gVal('sellSetImgValue')); };
-    window.setArticleLogo = function(grp,typ,art){ imagePickCallback=url=>{if(!state.master.articleLogos)state.master.articleLogos={};state.master.articleLogos[`${grp}||${typ}||${art}`]=url;save();window.renderMaster();window.renderAllQuick();window.renderOpenFilters();window.renderOpen();window.renderBestaManager();toast('Bild gespeichert ✓');}; window.openImagePicker(''); };
-    window.setGroupLogo = function(grp){ imagePickCallback=url=>{if(!state.master.groupLogos)state.master.groupLogos={};state.master.groupLogos[grp]=url;save();window.renderMaster();window.renderAllQuick();toast('Logo gespeichert ✓');}; window.openImagePicker(state.master.groupLogos?.[grp]||''); };
+    // ==================== BILD-VERWALTUNG & PICKER ====================
+    window.addNewImageCategory = function(){
+      const val = prompt('Name der neuen Bild-Gruppe (z.B. Türen Bilder, Korpus Bilder):');
+      if(!val || !val.trim()) return;
+      const cat = val.trim();
+      if(!state.master.imageCategories.includes(cat)){
+        state.master.imageCategories.push(cat);
+        if(!state.master.categorizedImages[cat]) state.master.categorizedImages[cat] = [];
+        save(); window.autoSaveToCloud?.();
+        window.renderMasterImageSection();
+        window.renderImagePickerCategories();
+        toast(`Gruppe "${cat}" angelegt ✓`);
+      }
+    };
 
+    window.openImagePicker = function(currentUrl = '', preferredCategory = ''){
+      const m = g('imagePickerModal'); if(!m) return;
+      activeImageCategoryFilter = preferredCategory || 'Alle';
+      window.renderImagePickerCategories();
+      window.renderImagePickerGrid(currentUrl);
+      m.classList.add('show'); m.style.display = 'flex';
+    };
+
+    window.closeImagePicker = function(){ 
+      const m = g('imagePickerModal'); 
+      if(m){ m.classList.remove('show'); m.style.display = 'none'; } 
+    };
+
+    window.selectPoolImage = function(url){ 
+      if(imagePickCallback){
+        imagePickCallback(url);
+      }
+      window.closeImagePicker(); 
+    };
+
+    window.renderImagePickerCategories = function(){
+      const cCont = g('imagePickerCategoryChips'), sEl = g('modalUploadTargetCat');
+      const cats = state.master.imageCategories || DEFAULT_IMAGE_CATEGORIES;
+      
+      if(cCont){
+        const allList = ['Alle', ...cats];
+        cCont.innerHTML = allList.map(c => `
+          <span class="chip ${c===activeImageCategoryFilter?'active':''}" onclick="window.setImagePickerFilter('${safeJsStr(c)}')">${esc(c)}</span>
+        `).join('');
+      }
+
+      if(sEl){
+        sEl.innerHTML = cats.map(c => `<option value="${esc(c)}" ${c===activeImageCategoryFilter?'selected':''}>Zu: ${esc(c)}</option>`).join('');
+      }
+    };
+
+    window.setImagePickerFilter = function(cat){
+      activeImageCategoryFilter = cat;
+      window.renderImagePickerCategories();
+      window.renderImagePickerGrid();
+    };
+
+    window.renderImagePickerGrid = function(currentUrl = ''){
+      const l = g('imagePickerList'); if(!l) return;
+      let displayImages = [];
+      const cats = state.master.categorizedImages || {};
+
+      if(activeImageCategoryFilter === 'Alle'){
+        const set = new Set();
+        Object.values(cats).forEach(arr => (arr||[]).forEach(u => set.add(u)));
+        (state.master.images||[]).forEach(u => set.add(u));
+        displayImages = Array.from(set).filter(isValidImage);
+      } else {
+        displayImages = (cats[activeImageCategoryFilter] || []).filter(isValidImage);
+      }
+
+      if(displayImages.length === 0){
+        l.innerHTML = '<div class="empty" style="grid-column:1/-1;">Keine Bilder in dieser Gruppe vorhanden. Lade oben ein neues Bild hoch!</div>';
+        return;
+      }
+
+      l.innerHTML = displayImages.map(u => `
+        <div class="img-pick-item" style="border-color:${u===currentUrl?'var(--primary)':'var(--border)'};" onclick="window.selectPoolImage('${safeJsStr(u)}')">
+          <img src="${u}" loading="lazy">
+        </div>
+      `).join('');
+    };
+
+    window.handleSingleModalUpload = function(file){
+      if(!file) return;
+      const targetCat = gVal('modalUploadTargetCat') || (activeImageCategoryFilter !== 'Alle' ? activeImageCategoryFilter : 'Sonstige');
+      compressImage(file, u => {
+        if(!state.master.images) state.master.images = [];
+        state.master.images.unshift(u);
+
+        if(!state.master.categorizedImages) state.master.categorizedImages = {};
+        if(!state.master.categorizedImages[targetCat]) state.master.categorizedImages[targetCat] = [];
+        state.master.categorizedImages[targetCat].unshift(u);
+
+        save(); window.autoSaveToCloud?.();
+        toast(`Bild zu "${targetCat}" hinzugefügt ✓`);
+        
+        if(imagePickCallback){
+          imagePickCallback(u);
+          window.closeImagePicker();
+        } else {
+          window.renderImagePickerGrid(u);
+        }
+        window.renderMasterImageSection();
+      });
+    };
+
+    // 1. TÜREN-BILD AUSWAHL (VOLLSTÄNDIG REPARIERT)
+    window.setArticleLogo = function(grp, typ, art){
+      imagePickCallback = url => {
+        if(!state.master.articleLogos) state.master.articleLogos = {};
+        const key = `${grp}||${typ}||${art}`;
+        state.master.articleLogos[key] = url;
+        save(); window.autoSaveToCloud?.();
+        window.renderBestaManager();
+        window.renderOpen();
+        toast(`Bild für "${art}" gespeichert ✓`);
+      };
+      const cur = getEntityImage(grp, typ, art);
+      window.openImagePicker(cur, 'Türen Bilder');
+    };
+
+    // FARBMUSTER AUSWAHL
+    window.uploadColorSwatch = function(colorName){
+      const norm = String(colorName || '').toLowerCase().trim();
+      imagePickCallback = url => {
+        if(!state.master.colorImages) state.master.colorImages = {};
+        state.master.colorImages[norm] = url;
+        save(); window.autoSaveToCloud?.();
+        window.renderBestaManager();
+        toast(`Farbmuster für "${colorName}" gespeichert ✓`);
+      };
+      window.openImagePicker(state.master.colorImages?.[norm] || '', 'Farbbilder');
+    };
+
+    window.openSellSetImgPicker = function(){ 
+      imagePickCallback = url => { 
+        const v = g('sellSetImgValue'), p = g('sellSetImgPreview'), l = g('sellSetImgLabel'); 
+        if(v) v.value = url; 
+        if(p) p.innerHTML = url ? `<img src="${url}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;">` : '🖼'; 
+        if(l) l.textContent = url ? 'Set-Bild gewählt ✓' : 'Set-Bild wählen…'; 
+      }; 
+      window.openImagePicker(gVal('sellSetImgValue'), 'Set Bilder'); 
+    };
+
+    // STAMMDATEN: BILDER-GRUPPEN ANSICHT
+    let activeMasterCatView = 'Türen Bilder';
+    window.renderMasterImageSection = function(){
+      const bCont = g('masterImageCategoriesBar'), gCont = g('masterImagesGrid');
+      if(!bCont || !gCont) return;
+      const cats = state.master.imageCategories || DEFAULT_IMAGE_CATEGORIES;
+      if(!cats.includes(activeMasterCatView)) activeMasterCatView = cats[0] || 'Türen Bilder';
+
+      bCont.innerHTML = cats.map(c => `
+        <span class="chip ${c===activeMasterCatView?'active':''}" onclick="window.switchMasterCatView('${safeJsStr(c)}')">${esc(c)}</span>
+      `).join('');
+
+      const imgs = (state.master.categorizedImages?.[activeMasterCatView] || []).filter(isValidImage);
+      if(imgs.length === 0){
+        gCont.innerHTML = `<div class="empty" style="grid-column:1/-1;">Keine Bilder in "${activeMasterCatView}".</div>`;
+      } else {
+        gCont.innerHTML = imgs.map((u, idx) => `
+          <div class="img-pick-item" style="position:relative;">
+            <img src="${u}">
+            <button type="button" class="btn btn-danger" style="position:absolute; top:4px; right:4px; padding:2px 5px; font-size:10px;" onclick="window.deleteImageFromCategory('${safeJsStr(activeMasterCatView)}', ${idx})">✕</button>
+          </div>
+        `).join('');
+      }
+    };
+
+    window.switchMasterCatView = function(cat){
+      activeMasterCatView = cat;
+      window.renderMasterImageSection();
+    };
+
+    window.deleteImageFromCategory = function(cat, idx){
+      if(!confirm('Bild aus dieser Gruppe entfernen?')) return;
+      state.master.categorizedImages[cat].splice(idx, 1);
+      save(); window.autoSaveToCloud?.();
+      window.renderMasterImageSection();
+      toast('Bild entfernt ✓');
+    };
+
+    // ==================== BESTA MANAGER ====================
     function getBestaComp(p,s,c){
       const cl=String(c||'').toLowerCase().trim();
       const artMatch = String(p).toLowerCase().trim();
@@ -737,25 +895,23 @@
       const bom = BESTA_BOM[model];
       if(!bom) return;
       for(const [p, d] of Object.entries(bom)){ addBestaInst(p, d.s, c, d.q, 0, false, ''); }
-      save(); window.autoSaveToCloud?.();
-      window.renderBestaManager(); window.renderOpen();
-      toast('+1 '+model+' ('+c+') aufgebaut ✓');
+      save(); window.autoSaveToCloud?.(); window.renderBestaManager(); window.renderOpen();
+      toast(`+1 ${model} (${c}) aufgebaut ✓`);
     };
 
     window.reduceBestaKorpus = function(model, color){
       const c = color || window.bestaGlobalKorpusColor || 'Weiß';
       const poss = getBestaPoss(model, c);
-      if(poss <= 0) return toast('Kein '+model+' ('+c+') zum Abbauen vorhanden.');
+      if(poss <= 0) return toast(`Kein ${model} (${c}) zum Abbauen vorhanden.`);
       const bom = BESTA_BOM[model];
       if(!bom) return;
       for(const [p, d] of Object.entries(bom)){ remBestaInst(p, d.s, c, d.q); }
-      save(); window.autoSaveToCloud?.();
-      window.renderBestaManager(); window.renderOpen();
-      toast('−1 '+model+' ('+c+') abgebaut ✓');
+      save(); window.autoSaveToCloud?.(); window.renderBestaManager(); window.renderOpen();
+      toast(`−1 ${model} (${c}) abgebaut ✓`);
     };
 
     window.deleteBestaTuerColor = function(art, color){
-      if(!confirm('Farbe "'+color+'" bei "'+art+'" wirklich entfernen?')) return;
+      if(!confirm(`Farbe "${color}" bei "${art}" wirklich entfernen?`)) return;
       const cl = String(color).toLowerCase().trim();
       const bCat = state.master?.catalog?.Besta?.['Tür'];
       if(bCat){
@@ -780,26 +936,21 @@
         const inst = { id: uid(), purchasePrice: 0, profitshare: false, entryDate: today() };
         if(ex) ex.instances.push(inst);
         else state.open.unshift({ id: uid(), group: 'Besta', productType: 'Tür', article: art, size: sz, color: col, purchasePrice: 0, profitshare: false, instances: [inst] });
-        toast('+1 '+art+' ('+col+', Gr. '+sz+')');
+        toast(`+1 ${art} (${col}, Gr. ${sz})`);
       } else if(d < 0 && ex && ex.instances && ex.instances.length > 0){
-        ex.instances.pop(); toast('-1 '+art+' ('+col+', Gr. '+sz+')');
+        ex.instances.pop(); toast(`-1 ${art} (${col}, Gr. ${sz})`);
       }
       save(); window.renderBestaManager();
     };
 
-    // OVP Hilfsfunktionen (Pfeile weg, automatisches €-Zeichen)
     window.updateDoorOVP = function(art, sz, val){
       if(!state.master.doorOVP) state.master.doorOVP = {};
       const key = `${art}_${sz}`;
       const cleanStr = String(val || '').replace('€', '').replace(',', '.').trim();
       const num = parseFloat(cleanStr) || 0;
-      if(num > 0) {
-        state.master.doorOVP[key] = num;
-      } else {
-        delete state.master.doorOVP[key];
-      }
-      save(); 
-      window.autoSaveToCloud?.();
+      if(num > 0) state.master.doorOVP[key] = num;
+      else delete state.master.doorOVP[key];
+      save(); window.autoSaveToCloud?.();
     };
 
     window.onOvpFocus = function(el){
@@ -834,12 +985,12 @@
 
       for(const [p, d] of Object.entries(bom)){ addBestaInst(p, d.s, c, d.q * q, pieceEk, isPs, ''); }
       save(); window.renderBestaManager(); window.renderOpen();
-      toast(q+'x '+m+' ('+c+') erfasst ✓'); const pin = g('bestaQuickPrice'); if(pin) pin.value = '';
+      toast(`${q}x ${m} (${c}) erfasst ✓`); const pin = g('bestaQuickPrice'); if(pin) pin.value = '';
     };
 
     window.changeBestaBauteilQty = function(p,s,d){
-      if(d > 0){ addBestaInst(p,s,window.bestaGlobalKorpusColor,1); toast('+1 '+p+' ('+s+')'); }
-      else { remBestaInst(p,s,window.bestaGlobalKorpusColor,1); toast('-1 '+p+' ('+s+')'); }
+      if(d > 0){ addBestaInst(p,s,window.bestaGlobalKorpusColor,1); toast(`+1 ${p} (${s})`); }
+      else { remBestaInst(p,s,window.bestaGlobalKorpusColor,1); toast(`-1 ${p} (${s})`); }
       save(); window.renderBestaManager();
     };
 
@@ -861,7 +1012,7 @@
       if(!state.master.catalog.Besta['Tür'].articles.includes(m)){ state.master.catalog.Besta['Tür'].articles.push(m); state.master.catalog.Besta['Tür'].articles.sort(sortKeys); save(); window.renderBestaManager(); toast('Hinzugefügt ✓'); }
     };
     window.addBestaColorToArticle = function(a){
-      const v=prompt('Neue Farbe für '+a+':'); if(!v||!v.trim())return; const c=v.trim();
+      const v=prompt(`Neue Farbe für ${a}:`); if(!v||!v.trim())return; const c=v.trim();
       const t=state.master.catalog.Besta['Tür']; if(!t.articleData) t.articleData={};
       if(!t.articleData[a]) t.articleData[a]={sizes:['64','38','26'],colors:['Weiß','Schwarzbraun']};
       if(!t.articleData[a].colors.includes(c)){ t.articleData[a].colors.push(c); t.articleData[a].colors.sort(sortKeys); window.bestaTuerColors[a]=c; save(); window.renderBestaManager(); toast('Farbe hinzugefügt ✓'); }
@@ -940,7 +1091,7 @@
             if(window.bestaHideZero && tR === 0) return;
 
             const al = getEntityImage('Besta','Tür',art);
-            const imH = al ? '<img src="'+al+'" style="width:40px;height:40px;border-radius:6px;object-fit:cover;cursor:pointer;" onclick="window.setArticleLogo(\'Besta\',\'Tür\',\''+safeJsStr(art)+'\')">' : '<div style="width:40px;height:40px;border-radius:6px;background:var(--surface2);display:grid;place-items:center;cursor:pointer;border:1px dashed var(--border);" onclick="window.setArticleLogo(\'Besta\',\'Tür\',\''+safeJsStr(art)+'\')">📷</div>';
+            const imH = al ? `<img src="${al}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;cursor:pointer;" onclick="window.setArticleLogo('Besta','Tür','${safeJsStr(art)}')" title="Bild ändern">` : `<div style="width:40px;height:40px;border-radius:6px;background:var(--surface2);display:grid;place-items:center;cursor:pointer;border:1px dashed var(--border);" onclick="window.setArticleLogo('Besta','Tür','${safeJsStr(art)}')" title="Bild auswählen">📷</div>`;
 
             const cChips = ac.map(c => {
               const isAct = c === sel;
@@ -948,8 +1099,8 @@
               const hasLogo = Boolean(state.master?.colorImages?.[norm]);
               const st = getColorStyle(c);
 
-              return '<div class="color-dot-btn '+(isAct ? 'active' : '')+' '+(hasLogo ? 'has-logo' : '')+'" onclick="window.onBestaTuerColorSelect(\''+safeJsStr(art)+'\',\''+safeJsStr(c)+'\')"><span class="color-swatch-circle" style="'+st+'" title="'+esc(c)+'"></span>'+(hasLogo ? '' : '<span>'+esc(c)+'</span>')+'<span class="color-btn-actions"><span class="color-btn-del" title="Farbe löschen" onclick="event.stopPropagation(); window.deleteBestaTuerColor(\''+safeJsStr(art)+'\',\''+safeJsStr(c)+'\')">✕</span><span class="color-btn-img" title="Logo/Muster wählen" onclick="event.stopPropagation(); window.uploadColorSwatch(\''+safeJsStr(c)+'\')">🖼</span></span></div>';
-            }).join('') + '<span class="chip" style="cursor:pointer; border-style:dashed;" onclick="window.addBestaColorToArticle(\''+safeJsStr(art)+'\')">✚</span>';
+              return `<div class="color-dot-btn ${isAct?'active':''} ${hasLogo?'has-logo':''}" onclick="window.onBestaTuerColorSelect('${safeJsStr(art)}','${safeJsStr(c)}')"><span class="color-swatch-circle" style="${st}" title="${esc(c)}"></span>${hasLogo?'':`<span>${esc(c)}</span>`}<span class="color-btn-actions"><span class="color-btn-del" title="Farbe löschen" onclick="event.stopPropagation(); window.deleteBestaTuerColor('${safeJsStr(art)}','${safeJsStr(c)}')">✕</span><span class="color-btn-img" title="Muster/Logo wählen" onclick="event.stopPropagation(); window.uploadColorSwatch('${safeJsStr(c)}')">🖼</span></span></div>`;
+            }).join('') + `<span class="chip" style="cursor:pointer; border-style:dashed;" onclick="window.addBestaColorToArticle('${safeJsStr(art)}')">✚</span>`;
 
             const qC = visSzs.map(s => {
               const rawOvp = ovpMap[`${art}_${s}`];
@@ -966,7 +1117,7 @@
                            onfocus="window.onOvpFocus(this)" 
                            onblur="window.onOvpBlur('${safeJsStr(art)}','${s}',this)" 
                            onkeydown="if(event.key==='Enter') this.blur();"
-                           title="OVP / Neupreis bei IKEA">
+                           title="OVP Neupreis">
                   </div>
                 </td>
               `;
@@ -974,10 +1125,10 @@
 
             const trBg = (rowIdx % 2 === 0) ? 'background:var(--surface2);' : 'background:transparent;';
             rowIdx++;
-            tb += '<tr style="'+trBg+'" class="'+(tR === 0 ? 'is-zero' : '')+'"><td>'+imH+'</td><td style="font-weight:800; font-size:1.15rem; text-align:left;">'+esc(art)+'</td><td style="text-align:left;"><div class="chips" style="gap:4px;">'+cChips+'</div></td>'+qC+'</tr>';
+            tb += `<tr style="${trBg}" class="${tR === 0 ? 'is-zero' : ''}"><td>${imH}</td><td style="font-weight:800; font-size:1.15rem; text-align:left;">${esc(art)}</td><td style="text-align:left;"><div class="chips" style="gap:4px;">${cChips}</div></td>${qC}</tr>`;
           });
 
-          tt.innerHTML = th + '<tbody>'+(tb || '<tr><td colspan="6" class="empty">Alle Türen 0.</td></tr>')+'</tbody>';
+          tt.innerHTML = th + '<tbody>' + (tb || '<tr><td colspan="6" class="empty">Alle Türen 0.</td></tr>') + '</tbody>';
         }
 
         const kt = g('bestaKorpusTable'), bc = g('bestaBauteileContainer');
@@ -990,37 +1141,37 @@
 
           const topBar = g('bestaKorpusTopBar');
           if(topBar){
-            const mOpts = Object.keys(BESTA_KORPUS_MODELS).map(m => '<option value="'+esc(m)+'">'+esc(m)+' ('+esc(BESTA_KORPUS_MODELS[m].dim)+')</option>').join('');
-            const colorPills = gCA.map(c => '<div class="color-dot-btn '+(c === window.bestaGlobalKorpusColor ? 'active' : '')+'" onclick="window.onBestaKorpusColorChange(\''+safeJsStr(c)+'\')"><span class="color-swatch-circle" style="'+getColorStyle(c)+'"></span><b>'+esc(c)+'</b></div>').join('');
+            const mOpts = Object.keys(BESTA_KORPUS_MODELS).map(m => `<option value="${esc(m)}">${esc(m)} (${esc(BESTA_KORPUS_MODELS[m].dim)})</option>`).join('');
+            const colorPills = gCA.map(c => `<div class="color-dot-btn ${c === window.bestaGlobalKorpusColor ? 'active' : ''}" onclick="window.onBestaKorpusColorChange('${safeJsStr(c)}')"><span class="color-swatch-circle" style="${getColorStyle(c)}"></span><b>${esc(c)}</b></div>`).join('');
 
-            topBar.innerHTML = '<div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap;"><span style="font-size:12px; font-weight:800; color:var(--muted); text-transform:uppercase;">Aktive Korpus-Farbe:</span>'+colorPills+'<button type="button" class="btn btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="window.addBestaKorpusColor()">✚ Neue Farbe</button></div><div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;"><div style="display:flex; align-items:center; gap:4px;"><span style="font-weight:800; font-size:12px; color:var(--text); white-space:nowrap;">Modell:</span><select id="bestaQuickModel" class="select" style="min-width:180px; padding:6px; font-size:12px;">'+mOpts+'</select></div><div style="display:flex; align-items:center; gap:4px;"><span style="font-weight:800; font-size:12px; color:var(--text); white-space:nowrap;">Anzahl:</span><input type="number" id="bestaQuickQty" class="input" style="width:50px; padding:6px; text-align:center; font-size:12px;" min="1" value="1"></div><div style="display:flex; align-items:center; gap:4px;"><span style="font-weight:800; font-size:12px; color:var(--text); white-space:nowrap;">EK (€):</span><input type="number" step="0.01" id="bestaQuickPrice" class="input" style="width:70px; padding:6px; font-size:12px;" placeholder="0.00"></div><span id="bestaQuickPsBtn" class="ps-badge-btn" style="padding:4px 10px; font-size:11px;" onclick="window.toggleBestaKorpusPs()">🤝 PS: Aus</span><input type="hidden" id="bestaQuickPs" value="false"><button type="button" class="btn btn-primary" style="width:auto; min-height:32px; padding:4px 12px; font-size:12px; font-weight:700; white-space:nowrap; margin-left:auto;" onclick="window.addBestaKorpusDirect()">✚ Einpflegen</button></div>';
+            topBar.innerHTML = `<div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap;"><span style="font-size:12px; font-weight:800; color:var(--muted); text-transform:uppercase;">Aktive Korpus-Farbe:</span>${colorPills}<button type="button" class="btn btn-ghost" style="padding:3px 8px; font-size:11px;" onclick="window.addBestaKorpusColor()">✚ Neue Farbe</button></div><div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;"><div style="display:flex; align-items:center; gap:4px;"><span style="font-weight:800; font-size:12px; color:var(--text); white-space:nowrap;">Modell:</span><select id="bestaQuickModel" class="select" style="min-width:180px; padding:6px; font-size:12px;">${mOpts}</select></div><div style="display:flex; align-items:center; gap:4px;"><span style="font-weight:800; font-size:12px; color:var(--text); white-space:nowrap;">Anzahl:</span><input type="number" id="bestaQuickQty" class="input" style="width:50px; padding:6px; text-align:center; font-size:12px;" min="1" value="1"></div><div style="display:flex; align-items:center; gap:4px;"><span style="font-weight:800; font-size:12px; color:var(--text); white-space:nowrap;">EK (€):</span><input type="number" step="0.01" id="bestaQuickPrice" class="input" style="width:70px; padding:6px; font-size:12px;" placeholder="0.00"></div><span id="bestaQuickPsBtn" class="ps-badge-btn" style="padding:4px 10px; font-size:11px;" onclick="window.toggleBestaKorpusPs()">🤝 PS: Aus</span><input type="hidden" id="bestaQuickPs" value="false"><button type="button" class="btn btn-primary" style="width:auto; min-height:32px; padding:4px 12px; font-size:12px; font-weight:700; white-space:nowrap; margin-left:auto;" onclick="window.addBestaKorpusDirect()">✚ Einpflegen</button></div>`;
           }
 
-          let kth = '<thead><tr><th style="width:50px;">Bild</th><th style="text-align:left;">Modell & Maße</th><th style="text-align:center;">Baubar ('+esc(window.bestaGlobalKorpusColor)+')</th><th style="text-align:right;">Status</th></tr></thead>', ktb='', kRowIdx = 0;
+          let kth = `<thead><tr><th style="width:50px;">Bild</th><th style="text-align:left;">Modell & Maße</th><th style="text-align:center;">Baubar (${esc(window.bestaGlobalKorpusColor)})</th><th style="text-align:right;">Status</th></tr></thead>`, ktb='', kRowIdx = 0;
 
           Object.keys(BESTA_KORPUS_MODELS).forEach(m => {
             const def = BESTA_KORPUS_MODELS[m], poss = getBestaPoss(m, window.bestaGlobalKorpusColor);
             if(window.bestaHideZero && poss === 0) return;
             const isZero = poss === 0;
             const al = getEntityImage('Besta','Korpus',m);
-            const imH = al ? '<img src="'+al+'" style="width:40px;height:40px;border-radius:6px;object-fit:cover;cursor:pointer;" onclick="window.setArticleLogo(\'Besta\',\'Korpus\',\''+safeJsStr(m)+'\')">' : '<div style="width:40px;height:40px;border-radius:6px;background:var(--surface2);display:grid;place-items:center;cursor:pointer;border:1px dashed var(--border);" onclick="window.setArticleLogo(\'Besta\',\'Korpus\',\''+safeJsStr(m)+'\')">🗄</div>';
+            const imH = al ? `<img src="${al}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:6px;background:var(--surface2);display:grid;place-items:center;border:1px dashed var(--border);">🗄</div>`;
             const trBg = (kRowIdx % 2 === 0) ? 'background:var(--surface2);' : 'background:transparent;';
             kRowIdx++;
 
-            ktb += '<tr style="'+trBg+'" class="'+(isZero ? 'is-zero' : '')+'"><td>'+imH+'</td><td style="text-align:left;"><div style="font-weight:800; font-size:1.15rem; color:var(--text);">'+esc(m)+'</div><div style="font-size:var(--text-xs); color:var(--muted);">'+esc(def.dim)+' cm</div></td><td style="text-align:center;"><div class="qty-ctrl '+(isZero ? 'is-zero' : '')+'"><button type="button" onclick="window.reduceBestaKorpus(\''+safeJsStr(m)+'\', \''+safeJsStr(window.bestaGlobalKorpusColor)+'\')" title="1x abbauen (− Bauteile)">−</button><span style="min-width:32px;">'+poss+'</span><button type="button" onclick="window.increaseBestaKorpus(\''+safeJsStr(m)+'\', \''+safeJsStr(window.bestaGlobalKorpusColor)+'\')" title="1x aufbauen (+ Bauteile)">+</button></div></td><td style="text-align:right;"><span style="font-size:var(--text-xs); color:'+(poss>0?'var(--success)':'var(--muted)')+'; font-weight:700;">'+(poss>0 ? '✓ Vorrätig' : '– Unvollständig')+'</span></td></tr>';
+            ktb += `<tr style="${trBg}" class="${isZero ? 'is-zero' : ''}"><td>${imH}</td><td style="text-align:left;"><div style="font-weight:800; font-size:1.15rem; color:var(--text);">${esc(m)}</div><div style="font-size:var(--text-xs); color:var(--muted);">${esc(def.dim)} cm</div></td><td style="text-align:center;"><div class="qty-ctrl ${isZero ? 'is-zero' : ''}"><button type="button" onclick="window.reduceBestaKorpus('${safeJsStr(m)}', '${safeJsStr(window.bestaGlobalKorpusColor)}')" title="1x abbauen">−</button><span style="min-width:32px;">${poss}</span><button type="button" onclick="window.increaseBestaKorpus('${safeJsStr(m)}', '${safeJsStr(window.bestaGlobalKorpusColor)}')" title="1x aufbauen">+</button></div></td><td style="text-align:right;"><span style="font-size:var(--text-xs); color:${poss>0?'var(--success)':'var(--muted)'}; font-weight:700;">${poss>0 ? '✓ Vorrätig' : '– Unvollständig'}</span></td></tr>`;
           });
-          kt.innerHTML = kth + '<tbody>'+(ktb || '<tr><td colspan="4" class="empty">Aus den vorhandenen Einzelteilen ist in dieser Farbe aktuell kein vollständiger Korpus baubar.</td></tr>')+'</tbody>';
+          kt.innerHTML = kth + `<tbody>${ktb || '<tr><td colspan="4" class="empty">Aus den vorhandenen Einzelteilen ist aktuell kein vollständiger Korpus baubar.</td></tr>'}</tbody>`;
 
           const psz = {'Seite':['193','128','64','64s','38','38s'],'Oben/Unten':['180','120','120s','60','60s'],'Oben/Unten TV':['180','120'],'Mitte':['64','64s','38','38s'],'Mitte TV':['64','38']};
           let bHtml = '';
           Object.keys(psz).forEach(p => {
-            bHtml += '<div style="margin-bottom:12px;background:var(--surface2);padding:10px;border-radius:8px;border:1px solid var(--border);"><div style="font-weight:800;color:var(--text);margin-bottom:8px;font-size:13px;text-transform:uppercase;">'+p+' ('+esc(window.bestaGlobalKorpusColor)+')</div><div style="display:flex;gap:10px;flex-wrap:wrap;">';
+            bHtml += `<div style="margin-bottom:12px;background:var(--surface2);padding:10px;border-radius:8px;border:1px solid var(--border);"><div style="font-weight:800;color:var(--text);margin-bottom:8px;font-size:13px;text-transform:uppercase;">${p} (${esc(window.bestaGlobalKorpusColor)})</div><div style="display:flex;gap:10px;flex-wrap:wrap;">`;
             let hA = false;
             psz[p].forEach(sz => {
               const cnt = getBestaComp(p, sz, window.bestaGlobalKorpusColor);
               if(window.bestaHideZero && cnt === 0) return;
               hA = true;
-              bHtml += '<div style="display:flex;align-items:center;gap:6px;background:var(--bg);padding:4px 8px;border-radius:6px;border:1px solid var(--border);" class="'+(cnt===0 ? 'is-zero' : '')+'"><span style="font-size:12px;font-weight:700;color:var(--muted);width:45px;">Gr. '+sz+'</span><div class="qty-ctrl"><button type="button" onclick="window.changeBestaBauteilQty(\''+p+'\',\''+sz+'\',-1)">-</button><span>'+cnt+'</span><button type="button" onclick="window.changeBestaBauteilQty(\''+p+'\',\''+sz+'\',1)">+</button></div></div>';
+              bHtml += `<div style="display:flex;align-items:center;gap:6px;background:var(--bg);padding:4px 8px;border-radius:6px;border:1px solid var(--border);" class="${cnt===0 ? 'is-zero' : ''}"><span style="font-size:12px;font-weight:700;color:var(--muted);width:45px;">Gr. ${sz}</span><div class="qty-ctrl"><button type="button" onclick="window.changeBestaBauteilQty('${p}','${sz}',-1)">-</button><span>${cnt}</span><button type="button" onclick="window.changeBestaBauteilQty('${p}','${sz}',1)">+</button></div></div>`;
             });
             if(!hA) bHtml += '<div class="muted" style="font-size:12px;">Keine Bestände in dieser Farbe vorhanden.</div>';
             bHtml += '</div></div>';
@@ -1030,6 +1181,7 @@
       }catch(err){console.error(err);}
     };
 
+    // ==================== FORMULAR NEU ====================
     window.renderAllQuick = function(){
       try{
         const gv=gVal('group'), pv=gVal('productType'), av=gVal('article');
@@ -1047,7 +1199,7 @@
     function renderQChips(id, vals, sel){
       const sEl = g(id);
       if(sEl){ fillSel(sEl, vals, ''); sEl.value = sel || ''; }
-      const cont = g('qb-'+id);
+      const cont = g(`qb-${id}`);
       if(!cont) return;
       const lvl = id === 'group' ? 'grp' : (id === 'productType' ? 'typ' : (id === 'article' ? 'art' : 'var'));
       
@@ -1055,12 +1207,12 @@
         const isAct = v === sel;
         let img = '';
         if(id === 'group' && state.master.groupLogos && isValidImage(state.master.groupLogos[v])) {
-          img = '<img src="'+state.master.groupLogos[v]+'" class="grp-logo-thumb">';
+          img = `<img src="${state.master.groupLogos[v]}" class="grp-logo-thumb">`;
         }
-        return '<div class="qb-chip lvl-'+lvl+' '+(isAct ? 'active' : '')+'" onclick="window.selectFormChip(\''+id+'\', \''+safeJsStr(v)+'\')">'+img+'<span>'+esc(v)+'</span></div>';
+        return `<div class="qb-chip lvl-${lvl} ${isAct ? 'active' : ''}" onclick="window.selectFormChip('${id}', '${safeJsStr(v)}')">${img}<span>${esc(v)}</span></div>`;
       }).join('');
 
-      html += '<div class="qb-chip qb-add" onclick="window.promptAddNewChip(\''+id+'\')" style="cursor:pointer; border-style:dashed; color:var(--primary); font-weight:bold;"><span>✚ Neu</span></div>';
+      html += `<div class="qb-chip qb-add" onclick="window.promptAddNewChip('${id}')" style="cursor:pointer; border-style:dashed; color:var(--primary); font-weight:bold;"><span>✚ Neu</span></div>`;
       cont.innerHTML = html;
     }
 
@@ -1092,23 +1244,23 @@
       if(type === 'group'){
         const val = prompt('Neue Gruppe:'); if(!val || !val.trim()) return;
         const v = val.trim(); if(!cat[v]) cat[v] = {};
-        save(); window.autoSaveToCloud?.(); g('group').value = v; window.renderAllQuick(); toast('Gruppe hinzugefügt');
+        save(); window.autoSaveToCloud?.(); g('group').value = v; window.renderAllQuick(); toast(`Gruppe "${v}" hinzugefügt`);
       } else if(type === 'productType'){
         const grp = gVal('group'); if(!grp) return toast('Bitte zuerst Gruppe wählen.');
-        const val = prompt('Neuer Produkttyp für "'+grp+'":'); if(!val || !val.trim()) return;
+        const val = prompt(`Neuer Produkttyp für "${grp}":`); if(!val || !val.trim()) return;
         const v = val.trim(); if(!cat[grp]) cat[grp] = {}; if(!cat[grp][v]) cat[grp][v] = { articles: [], sizes: [], colors: [] };
-        save(); window.autoSaveToCloud?.(); g('productType').value = v; window.renderAllQuick(); toast('Produkttyp hinzugefügt');
+        save(); window.autoSaveToCloud?.(); g('productType').value = v; window.renderAllQuick(); toast(`Produkttyp "${v}" hinzugefügt`);
       } else if(type === 'article'){
         const grp = gVal('group'), typ = gVal('productType'); if(!grp || !typ) return toast('Bitte Gruppe & Typ wählen.');
         const val = prompt('Neuer Artikelname:'); if(!val || !val.trim()) return;
         const v = val.trim(); if(!cat[grp]) cat[grp] = {}; if(!cat[grp][typ]) cat[grp][typ] = { articles: [], sizes: [], colors: [] };
         if(!cat[grp][typ].articles) cat[grp][typ].articles = [];
         if(!cat[grp][typ].articles.includes(v)){ cat[grp][typ].articles.push(v); cat[grp][typ].articles.sort(sortKeys); }
-        save(); window.autoSaveToCloud?.(); g('article').value = v; window.renderAllQuick(); toast('Artikel hinzugefügt');
+        save(); window.autoSaveToCloud?.(); g('article').value = v; window.renderAllQuick(); toast(`Artikel "${v}" hinzugefügt`);
       } else if(type === 'size' || type === 'color'){
         const grp = gVal('group'), typ = gVal('productType'), art = gVal('article'); if(!grp || !typ) return toast('Bitte Gruppe & Typ wählen.');
         const label = type === 'size' ? 'Größe (z.B. 60x60)' : 'Farbe (z.B. Weiß)';
-        const val = prompt('Neuer Wert für '+label+':'); if(!val || !val.trim()) return;
+        const val = prompt(`Neuer Wert für ${label}:`); if(!val || !val.trim()) return;
         const v = val.trim(); if(!cat[grp]) cat[grp] = {}; if(!cat[grp][typ]) cat[grp][typ] = { articles: [], sizes: [], colors: [] };
         let target = cat[grp][typ];
         if(art){
@@ -1162,36 +1314,30 @@
           if(ex) ex.instances.push(inst);
           else { ex = { id: uid(), ...pl, instances: [inst] }; state.open.unshift(ex); }
         }
-        save(); window.autoSaveToCloud?.(); toast(qty+'x eingepflegt ✓'); window.resetItemForm(); window.renderOpen();
+        save(); window.autoSaveToCloud?.(); toast(`${qty}x eingepflegt ✓`); window.resetItemForm(); window.renderOpen();
       });
     }
 
-    // BESTAND
+    // ==================== BESTAND ====================
     window.renderOpenFilters = function(){
       const f=state.openFilters, ct=state.master.catalog||{}, ag=new Set(Object.keys(ct)); state.open.forEach(i=>{if(i.group)ag.add(i.group);});
-      const gc=g('qb-open-group'); if(gc) gc.innerHTML=Array.from(ag).sort(sortKeys).map(g=>'<div class="qb-chip lvl-grp '+(f.group===g?'active':'')+'" onclick="window.handleOpenFilterChip(\'group\',\''+safeJsStr(g)+'\')">'+((state.master.groupLogos&&isValidImage(state.master.groupLogos[g]))?'<img src="'+state.master.groupLogos[g]+'" class="grp-logo-thumb">':'')+'<span>'+esc(g)+'</span></div>').join('');
+      const gc=g('qb-open-group'); if(gc) gc.innerHTML=Array.from(ag).sort(sortKeys).map(g=>`<div class="qb-chip lvl-grp ${f.group===g?'active':''}" onclick="window.handleOpenFilterChip('group','${safeJsStr(g)}')">${(state.master.groupLogos&&isValidImage(state.master.groupLogos[g]))?`<img src="${state.master.groupLogos[g]}" class="grp-logo-thumb">`:''}<span>${esc(g)}</span></div>`).join('');
       const fpt=g('open-field-productType'); if(fpt) fpt.style.display=f.group?'grid':'none';
-      const tc=g('qb-open-productType'); if(tc&&f.group){ const at=new Set(); if(ct[f.group])Object.keys(ct[f.group]).forEach(t=>at.add(t)); state.open.forEach(i=>{if(i.group===f.group&&i.productType)at.add(i.productType);}); tc.innerHTML=Array.from(at).sort(sortKeys).map(t=>'<div class="qb-chip lvl-typ '+(f.type===t?'active':'')+'" onclick="window.handleOpenFilterChip(\'type\',\''+safeJsStr(t)+'\')"><span>'+esc(t)+'</span></div>').join(''); }
+      const tc=g('qb-open-productType'); if(tc&&f.group){ const at=new Set(); if(ct[f.group])Object.keys(ct[f.group]).forEach(t=>at.add(t)); state.open.forEach(i=>{if(i.group===f.group&&i.productType)at.add(i.productType);}); tc.innerHTML=Array.from(at).sort(sortKeys).map(t=>`<div class="qb-chip lvl-typ ${f.type===t?'active':''}" onclick="window.handleOpenFilterChip('type','${safeJsStr(t)}')"><span>${esc(t)}</span></div>`).join(''); }
       const aa=new Set(); if(f.group&&f.type){ if(ct[f.group]&&ct[f.group][f.type]&&ct[f.group][f.type].articles)ct[f.group][f.type].articles.forEach(a=>aa.add(a)); state.open.forEach(i=>{if(i.group===f.group&&i.productType===f.type&&i.article)aa.add(i.article);}); }
       const fa=g('open-field-article'); if(fa) fa.style.display=(f.group&&f.type&&aa.size>0)?'grid':'none';
-      const ac=g('qb-open-article'); if(ac&&f.group&&f.type) ac.innerHTML=Array.from(aa).sort(sortKeys).map(a=>'<div class="qb-chip lvl-art '+(f.article===a?'active':'')+'" onclick="window.handleOpenFilterChip(\'article\',\''+safeJsStr(a)+'\')">'+((state.master.articleLogos&&isValidImage(state.master.articleLogos[`${f.group}||${f.type}||${a}`]))?'<img src="'+state.master.articleLogos[`${f.group}||${f.type}||${a}`]+'" class="grp-logo-thumb" style="width:36px;height:36px;border-radius:6px;object-fit:cover;margin-right:6px;">':'')+'<span>'+esc(a)+'</span></div>').join('');
+      const ac=g('qb-open-article'); if(ac&&f.group&&f.type) ac.innerHTML=Array.from(aa).sort(sortKeys).map(a=>`<div class="qb-chip lvl-art ${f.article===a?'active':''}" onclick="window.handleOpenFilterChip('article','${safeJsStr(a)}')">${(state.master.articleLogos&&isValidImage(state.master.articleLogos[`${f.group}||${f.type}||${a}`]))?`<img src="${state.master.articleLogos[`${f.group}||${f.type}||${a}`]}" class="grp-logo-thumb">`:''}<span>${esc(a)}</span></div>`).join('');
       const na=aa.size>0, ssc=f.group&&f.type&&(!na||f.article), fsc=g('open-field-size-color'); if(fsc) fsc.style.display=ssc?'grid':'none';
-      const sz=new Set(), cl=new Set(); if(ssc){ const tg=ct[f.group]?.[f.type]||{}; if(na){if(f.article&&tg.articleData&&tg.articleData[f.article]){(tg.articleData[f.article].sizes||[]).forEach(s=>sz.add(s));(tg.articleData[av].colors||[]).forEach(c=>cl.add(c));}}else{(tg.sizes||[]).forEach(s=>sz.add(s));(tg.colors||[]).forEach(c=>cl.add(c));} state.open.forEach(i=>{if(i.group===f.group&&i.productType===f.type){if(!na||i.article===f.article){if(i.size)sz.add(i.size);if(i.color)cl.add(i.color);}}}); }
-      const szc=g('qb-open-size'); if(szc&&ssc) szc.innerHTML=Array.from(sz).sort(sortKeys).map(s=>'<div class="qb-chip lvl-var '+(f.size===s?'active':'')+'" onclick="window.handleOpenFilterChip(\'size\',\''+safeJsStr(s)+'\')"><span>Gr. '+esc(s)+'</span></div>').join('');
-      const clc=g('qb-open-color'); if(clc&&ssc) clc.innerHTML=Array.from(cl).sort(sortKeys).map(c=>'<div class="qb-chip lvl-var '+(f.color===c?'active':'')+'" onclick="window.handleOpenFilterChip(\'color\',\''+safeJsStr(c)+'\')"><span>'+esc(c)+'</span></div>').join('');
+      const sz=new Set(), cl=new Set(); if(ssc){ const tg=ct[f.group]?.[f.type]||{}; if(na){if(f.article&&tg.articleData&&tg.articleData[f.article]){(tg.articleData[f.article].sizes||[]).forEach(s=>sz.add(s));(tg.articleData[f.article].colors||[]).forEach(c=>cl.add(c));}}else{(tg.sizes||[]).forEach(s=>sz.add(s));(tg.colors||[]).forEach(c=>cl.add(c));} state.open.forEach(i=>{if(i.group===f.group&&i.productType===f.type){if(!na||i.article===f.article){if(i.size)sz.add(i.size);if(i.color)cl.add(i.color);}}}); }
+      const szc=g('qb-open-size'); if(szc&&ssc) szc.innerHTML=Array.from(sz).sort(sortKeys).map(s=>`<div class="qb-chip lvl-var ${f.size===s?'active':''}" onclick="window.handleOpenFilterChip('size','${safeJsStr(s)}')"><span>Gr. ${esc(s)}</span></div>`).join('');
+      const clc=g('qb-open-color'); if(clc&&ssc) clc.innerHTML=Array.from(cl).sort(sortKeys).map(c=>`<div class="qb-chip lvl-var ${f.color===c?'active':''}" onclick="window.handleOpenFilterChip('color','${safeJsStr(c)}')"><span>${esc(c)}</span></div>`).join('');
     };
 
     window.handleOpenFilterChip = function(type, val){
-      const f = state.openFilters;
-      f[type] = (f[type] === val) ? '' : val;
+      const f = state.openFilters; f[type] = (f[type] === val) ? '' : val;
       if(type === 'group'){ f.type = ''; f.article = ''; f.size = ''; f.color = ''; }
       else if(type === 'type'){ f.article = ''; f.size = ''; f.color = ''; }
       else if(type === 'article'){ f.size = ''; f.color = ''; }
-      window.renderOpenFilters(); window.renderOpen();
-    };
-
-    window.setInlineFilter = function(key, val){
-      const f = state.openFilters; f[key] = f[key] === val ? '' : val;
       window.renderOpenFilters(); window.renderOpen();
     };
 
@@ -1203,7 +1349,7 @@
       const tr=g('zeroFilterBtn'), kn=g('zeroFilterKnob'); if(tr)tr.style.background=state.hideZero?'var(--primary)':'#ccc'; if(kn)kn.style.left=state.hideZero?'22px':'2px';
       const oc=g('openContent'); if(!oc)return; if(!state.open||!state.open.length){oc.innerHTML='<div class="empty">Keine offenen Artikel.</div>';return;}
       const tree={}, f=state.openFilters, st=f.text.toLowerCase().split(' ').filter(Boolean);
-      state.open.forEach(i=>{ if(state.hideZero&&(!i.instances||!i.instances.length))return; if(f.group&&i.group!==f.group)return; if(f.type&&i.productType!==f.type)return; if(f.article&&i.article!==f.article)return; if(f.size&&i.size!==f.size)return; if(f.color&&i.color!==f.color)return; if(st.length>0){const ss=String(i.group||''+' '+i.productType||''+' '+i.article||''+' '+i.size||''+' '+i.color||'').toLowerCase();if(!st.every(t=>ss.includes(t)))return;} const gp=i.group||'–', pt=i.productType||'–', ar=i.article||'', col=i.color||'–'; if(!tree[gp])tree[gp]={}; if(!tree[gp][pt])tree[gp][pt]={}; if(!tree[gp][pt][ar])tree[gp][pt][ar]={}; if(!tree[gp][pt][ar][col])tree[gp][pt][ar][col]=[]; tree[gp][pt][ar][col].push(i); });
+      state.open.forEach(i=>{ if(state.hideZero&&(!i.instances||!i.instances.length))return; if(f.group&&i.group!==f.group)return; if(f.type&&i.productType!==f.type)return; if(f.article&&i.article!==f.article)return; if(f.size&&i.size!==f.size)return; if(f.color&&i.color!==f.color)return; if(st.length>0){const ss=`${i.group||''} ${i.productType||''} ${i.article||''} ${i.size||''} ${i.color||''}`.toLowerCase();if(!st.every(t=>ss.includes(t)))return;} const gp=i.group||'–', pt=i.productType||'–', ar=i.article||'', col=i.color||'–'; if(!tree[gp])tree[gp]={}; if(!tree[gp][pt])tree[gp][pt]={}; if(!tree[gp][pt][ar])tree[gp][pt][ar]={}; if(!tree[gp][pt][ar][col])tree[gp][pt][ar][col]=[]; tree[gp][pt][ar][col].push(i); });
       let html='';
       Object.keys(tree).sort(sortKeys).forEach(gp=>{
         let gh='', grpTotal=0; const gl=(state.master.groupLogos&&isValidImage(state.master.groupLogos[gp]))?state.master.groupLogos[gp]:'';
@@ -1217,21 +1363,21 @@
                 let ai=[]; si.forEach(sItem=>{if(sItem.instances&&sItem.instances.length){if(sItem.size){aS.add(sItem.size);pS.add(sItem.size);}if(sItem.color){aC.add(sItem.color);pC.add(sItem.color);}sItem.instances.forEach(x=>ai.push({...x,_itemId:sItem.id}));}});
                 if(ai.length===0&&state.hideZero)return;
                 const fi=si[0], img=al||pl||gl||'', es=ai.reduce((s,x)=>s+(+x.purchasePrice||0),0), mg=ai.length, ez=mg>0?es/mg:(+fi.purchasePrice||0), hp=mg>0?ai.some(x=>x.profitshare):fi.profitshare, od=ai.length?Math.max(...ai.map(x=>calcDays(x.entryDate,today()))):0;
-                ch+='<div class="item-card '+(mg===0?'is-zero':'')+'"><div class="item-card-main"><div class="thumb">'+(img?'<img src="'+img+'" loading="lazy">':'📦')+'</div><div class="item-info"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div class="item-title" style="color:var(--text);">'+(esc(fi.article)||esc(fi.productType)||'–')+' · <span style="font-weight:normal;color:var(--muted);">'+(esc(fi.color)||'-')+'</span></div></div><div style="font-size:var(--text-xs);color:var(--muted);font-weight:bold;text-align:right;">'+mg+' × Ø'+euro(ez)+' = <b style="color:var(--text);font-size:var(--text-sm);">'+euro(es)+'</b></div></div><div class="chips" style="margin-top:6px;"><span class="chip">Gr. '+(esc(fi.size)||'-')+'</span><span class="chip days">⏱ '+od+' Tage im Bestand</span></div></div></div><div class="item-footer"><div class="item-actions"><span class="chip" style="cursor:pointer;" onclick="window.editEK(\''+fi.id+'\')">EK '+euro(ez)+' ✎</span><button type="button" class="chip" style="cursor:pointer;border:none" onclick="window.toggleItemProfitshare(\''+fi.id+'\')">'+(hp?'PS ✓':'PS ✎')+'</button><span class="chip stack" style="display:inline-flex;gap:3px;align-items:center;padding:0 6px"><button type="button" onclick="window.changeQty(\''+fi.id+'\',1)" style="width:16px;height:16px;border-radius:50%;background:#4CAF50;color:white;font-size:10px;border:none;cursor:pointer">+</button>'+mg+'<button type="button" onclick="window.changeQty(\''+fi.id+'\',-1)" style="width:16px;height:16px;border-radius:50%;background:#f44336;color:white;font-size:10px;border:none;cursor:pointer">−</button></span><button type="button" class="btn-icon-subtle danger" onclick="window.deleteItem(\''+fi.id+'\')" title="Löschen">🗑️</button></div></div></div>';
+                ch+=`<div class="item-card ${mg===0?'is-zero':''}"><div class="item-card-main"><div class="thumb">${img?`<img src="${img}" loading="lazy">`:'📦'}</div><div class="item-info"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div class="item-title" style="color:var(--text);">${esc(fi.article)||esc(fi.productType)||'–'} · <span style="font-weight:normal;color:var(--muted);">${esc(fi.color)||'-'}</span></div></div><div style="font-size:var(--text-xs);color:var(--muted);font-weight:bold;text-align:right;">${mg} × Ø${euro(ez)} = <b style="color:var(--text);font-size:var(--text-sm);">${euro(es)}</b></div></div><div class="chips" style="margin-top:6px;"><span class="chip">Gr. ${esc(fi.size)||'-'}</span><span class="chip days">⏱ ${od} Tage im Bestand</span></div></div></div><div class="item-footer"><div class="item-actions"><span class="chip" style="cursor:pointer;" onclick="window.editEK('${fi.id}')">EK ${euro(ez)} ✎</span><button type="button" class="chip" style="cursor:pointer;border:none" onclick="window.toggleItemProfitshare('${fi.id}')">${hp?'PS ✓':'PS ✎'}</button><span class="chip stack" style="display:inline-flex;gap:3px;align-items:center;padding:0 6px"><button type="button" onclick="window.changeQty('${fi.id}',1)" style="width:16px;height:16px;border-radius:50%;background:#4CAF50;color:white;font-size:10px;border:none;cursor:pointer">+</button>${mg}<button type="button" onclick="window.changeQty('${fi.id}',-1)" style="width:16px;height:16px;border-radius:50%;background:#f44336;color:white;font-size:10px;border:none;cursor:pointer">−</button></span><button type="button" class="btn-icon-subtle danger" onclick="window.deleteItem('${fi.id}')" title="Löschen">🗑️</button></div></div></div>`;
               });
-              if(ch) ah+='<div style="margin-bottom:var(--sp2); margin-left:var(--sp2);">'+ch+'</div>';
+              if(ch) ah+=`<div style="margin-bottom:var(--sp2); margin-left:var(--sp2);">${ch}</div>`;
             });
             if(ah){
               ptT+=aT;
               if(!ar||!ar.trim()) ph+=ah;
-              else{
+              else {
                 const ak='a_'+Math.abs(String(gp+pt+ar).split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36);
                 let ic='<div style="display:inline-flex; gap:4px; margin-left:8px; flex-wrap:wrap;">';
-                aS.forEach(s=>ic+='<span class="inline-filter-chip '+(f.size===s?'active':'')+'" style="border-color:rgba(245,158,11,0.4);" onclick="event.stopPropagation(); window.setInlineFilter(\'size\',\''+safeJsStr(s)+'\')">Gr. '+esc(s)+'</span>');
-                aC.forEach(c=>ic+='<span class="inline-filter-chip '+(f.color===c?'active':'')+'" style="border-color:rgba(245,158,11,0.4);" onclick="event.stopPropagation(); window.setInlineFilter(\'color\',\''+safeJsStr(c)+'\')">'+esc(c)+'</span>');
+                aS.forEach(s=>ic+=`<span class="inline-filter-chip ${f.size===s?'active':''}" style="border-color:rgba(245,158,11,0.4);" onclick="event.stopPropagation(); window.setInlineFilter('size','${safeJsStr(s)}')">Gr. ${esc(s)}</span>`);
+                aC.forEach(c=>ic+=`<span class="inline-filter-chip ${f.color===c?'active':''}" style="border-color:rgba(245,158,11,0.4);" onclick="event.stopPropagation(); window.setInlineFilter('color','${safeJsStr(c)}')">${esc(c)}</span>`);
                 ic+='</div>';
                 const io=state.openCollapse[ak]!==undefined?state.openCollapse[ak]:globalExpandState;
-                ph+='<div style="margin-bottom:var(--sp3); margin-left:var(--sp2);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="'+ak+'" style="cursor:pointer; border-left:4px solid var(--c-art-border); background:var(--c-art-bg); border-radius:8px;"><div style="display:flex; align-items:center; flex-wrap:nowrap;">'+(al?'<img src="'+al+'" class="tree-thumb">':'')+'<h4 class="group-title" style="font-size:1.15rem; color:#fef3c7;">'+(io?"▼":"▶")+' '+esc(ar)+' <span style="font-weight:normal;color:var(--muted);font-size:var(--text-xs);">('+aT+' Stk)</span></h4>'+ic+'</div></div><div class="grp-body" data-body="'+ak+'" style="display:'+(io?"block":"none")+'">'+ah+'</div></div>';
+                ph+=`<div style="margin-bottom:var(--sp3); margin-left:var(--sp2);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="${ak}" style="cursor:pointer; border-left:4px solid var(--c-art-border); background:var(--c-art-bg); border-radius:8px;"><div style="display:flex; align-items:center; flex-wrap:nowrap;">${al?`<img src="${al}" class="tree-thumb">`:''}<h4 class="group-title" style="font-size:1.15rem; color:#fef3c7;">${io?"▼":"▶"} ${esc(ar)} <span style="font-weight:normal;color:var(--muted);font-size:var(--text-xs);">(${aT} Stk)</span></h4>${ic}</div></div><div class="grp-body" data-body="${ak}" style="display:${io?"block":"none"}">${ah}</div></div>`;
               }
             }
           });
@@ -1239,38 +1385,29 @@
             grpTotal+=ptT;
             const pk='p_'+Math.abs(String(gp+pt).split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36);
             let ic='<div style="display:inline-flex; gap:4px; margin-left:8px; flex-wrap:wrap;">';
-            pS.forEach(s=>ic+='<span class="inline-filter-chip '+(f.size===s?'active':'')+'" style="border-color:rgba(99,102,241,0.4);" onclick="event.stopPropagation(); window.setInlineFilter(\'size\',\''+safeJsStr(s)+'\')">Gr. '+esc(s)+'</span>');
-            pC.forEach(c=>ic+='<span class="inline-filter-chip '+(f.color===c?'active':'')+'" style="border-color:rgba(99,102,241,0.4);" onclick="event.stopPropagation(); window.setInlineFilter(\'color\',\''+safeJsStr(c)+'\')">'+esc(c)+'</span>');
+            pS.forEach(s=>ic+=`<span class="inline-filter-chip ${f.size===s?'active':''}" style="border-color:rgba(99,102,241,0.4);" onclick="event.stopPropagation(); window.setInlineFilter('size','${safeJsStr(s)}')">Gr. ${esc(s)}</span>`);
+            pC.forEach(c=>ic+=`<span class="inline-filter-chip ${f.color===c?'active':''}" style="border-color:rgba(99,102,241,0.4);" onclick="event.stopPropagation(); window.setInlineFilter('color','${safeJsStr(c)}')">${esc(c)}</span>`);
             ic+='</div>';
             const io=state.openCollapse[pk]!==undefined?state.openCollapse[pk]:globalExpandState;
-            gh+='<div style="margin-bottom:var(--sp4); margin-left:var(--sp2);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="'+pk+'" style="cursor:pointer; border-left:4px solid var(--c-typ-border); background:var(--c-typ-bg); border-radius:8px;"><div style="display:flex; align-items:center; flex-wrap:nowrap;">'+(pl?'<img src="'+pl+'" class="tree-thumb">':'')+'<h3 class="group-title" style="font-size:1.2rem; color:#e0e7ff;">'+(io?"▼":"▶")+' 🏷 '+esc(pt)+' <span style="font-weight:normal;color:var(--muted);font-size:var(--text-xs);">('+ptT+' Stk)</span></h3>'+ic+'</div></div><div class="grp-body" data-body="'+pk+'" style="display:'+(io?"block":"none")+'">'+ph+'</div></div>';
+            gh+=`<div style="margin-bottom:var(--sp4); margin-left:var(--sp2);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="${pk}" style="cursor:pointer; border-left:4px solid var(--c-typ-border); background:var(--c-typ-bg); border-radius:8px;"><div style="display:flex; align-items:center; flex-wrap:nowrap;">${pl?`<img src="${pl}" class="tree-thumb">`:''}<h3 class="group-title" style="font-size:1.2rem; color:#e0e7ff;">${io?"▼":"▶"} 🏷 ${esc(pt)} <span style="font-weight:normal;color:var(--muted);font-size:var(--text-xs);">(${ptT} Stk)</span></h3>${ic}</div></div><div class="grp-body" data-body="${pk}" style="display:${io?"block":"none"}">${ph}</div></div>`;
           }
         });
         if(gh){
           const gk='g_'+Math.abs(String(gp).split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36);
           const io=state.openCollapse[gk]!==undefined?state.openCollapse[gk]:globalExpandState;
-          html+='<div style="margin-bottom:var(--sp6);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="'+gk+'" style="cursor:pointer; border-left:4px solid var(--c-grp-border); background:var(--c-grp-bg); border-radius:8px;"><div style="display:flex;align-items:center; flex-wrap:nowrap;">'+(gl?'<img src="'+gl+'" class="grp-header-logo">':'')+'<h2 class="group-title" style="font-size:1.45rem; color:#f0f9ff;">'+(io?"▼":"▶")+' '+esc(gp)+' <span style="font-weight:normal;color:var(--muted);font-size:var(--text-sm);">('+grpTotal+' Stk)</span></h2></div><span class="chip stack" style="background:var(--c-grp);color:#fff;">'+grpTotal+' Stk</span></div><div class="grp-body" data-body="'+gk+'" style="display:'+(io?"block":"none")+'">'+gh+'</div></div>';
+          html+=`<div style="margin-bottom:var(--sp6);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="${gk}" style="cursor:pointer; border-left:4px solid var(--c-grp-border); background:var(--c-grp-bg); border-radius:8px;"><div style="display:flex;align-items:center; flex-wrap:nowrap;">${gl?`<img src="${gl}" class="grp-header-logo">`:''}<h2 class="group-title" style="font-size:1.45rem; color:#f0f9ff;">${io?"▼":"▶"} ${esc(gp)} <span style="font-weight:normal;color:var(--muted);font-size:var(--text-sm);">(${grpTotal} Stk)</span></h2></div><span class="chip stack" style="background:var(--c-grp);color:#fff;">${grpTotal} Stk</span></div><div class="grp-body" data-body="${gk}" style="display:${io?"block":"none"}">${gh}</div></div>`;
         }
       });
       oc.innerHTML=html||'<div class="empty">Keine Treffer.</div>';
     };
 
     window.toggleGrp = function(el){
-      const k = el.dataset.key;
-      const b = document.querySelector(`[data-body="${k}"]`);
-      if(!b) return;
-      const o = b.style.display !== 'none';
-      b.style.display = o ? 'none' : 'block';
-      state.openCollapse[k] = !o;
-      const h = el.querySelector('h2,h3,h4');
-      if(h) h.innerHTML = h.innerHTML.replace(o ? '▼' : '▶', o ? '▶' : '▼');
+      const k = el.dataset.key; const b = document.querySelector(`[data-body="${k}"]`); if(!b) return;
+      const o = b.style.display !== 'none'; b.style.display = o ? 'none' : 'block';
+      state.openCollapse[k] = !o; const h = el.querySelector('h2,h3,h4'); if(h) h.innerHTML = h.innerHTML.replace(o ? '▼' : '▶', o ? '▶' : '▼');
     };
 
-    window.toggleAllGroups = function(){
-      globalExpandState = !globalExpandState;
-      state.openCollapse = {};
-      window.renderOpen();
-    };
+    window.toggleAllGroups = function(){ globalExpandState = !globalExpandState; state.openCollapse = {}; window.renderOpen(); };
 
     window.changeQty = function(id, delta){
       const it = state.open.find(x => x.id === id); if(!it) return;
@@ -1286,19 +1423,15 @@
       const val = prompt('Neuer Ø Einkaufspreis (€):', cur || 0);
       if(val !== null){
         const p = parseFloat(val.replace(',', '.')) || 0;
-        it.purchasePrice = p;
-        (it.instances||[]).forEach(x => x.purchasePrice = p);
-        save(); window.renderOpen();
-        toast('EK aktualisiert ✓');
+        it.purchasePrice = p; (it.instances||[]).forEach(x => x.purchasePrice = p);
+        save(); window.renderOpen(); toast('EK aktualisiert ✓');
       }
     };
 
     window.toggleItemProfitshare = function(id){
       const it = state.open.find(x => x.id === id); if(!it) return;
-      it.profitshare = !it.profitshare;
-      (it.instances||[]).forEach(x => x.profitshare = it.profitshare);
-      save(); window.renderOpen();
-      toast('Profitshare geändert');
+      it.profitshare = !it.profitshare; (it.instances||[]).forEach(x => x.profitshare = it.profitshare);
+      save(); window.renderOpen(); toast('Profitshare geändert');
     };
 
     window.deleteItem = function(id){
@@ -1307,20 +1440,20 @@
       save(); window.renderOpen(); toast('Artikel gelöscht');
     };
 
-    // EXPORT-FUNKTIONEN
+    // ==================== EXPORT-FUNKTIONEN ====================
     function triggerDownload(data, filename){
       const b = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
       const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = filename;
       document.body.appendChild(a); a.click();
       setTimeout(() => { URL.revokeObjectURL(a.href); document.body.removeChild(a); }, 1000);
     }
-    window.exportData = function(){ triggerDownload({open:state.open,sold:state.sold,termine:state.termine,master:state.master,year:state.year,deletedIds:state.deletedIds,deletedGroups:state.deletedGroups}, 'kleinanzeigen-hero-backup-'+today()+'.json'); toast('Gesamt-Backup exportiert ✓'); };
-    window.exportBestand = function(){ triggerDownload({open:state.open}, 'bestand-'+today()+'.json'); toast('Bestand exportiert ✓'); };
-    window.exportBesta = function(){ triggerDownload({bestaInventory: state.open.filter(i=>i.group==='Besta'), catalog: state.master?.catalog?.Besta||{}, models: BESTA_KORPUS_MODELS}, 'besta-korpusse-'+today()+'.json'); toast('Besta & Korpusse exportiert ✓'); };
-    window.exportSold = function(){ triggerDownload({sold:state.sold}, 'historie-'+today()+'.json'); toast('Historie exportiert ✓'); };
+    window.exportData = function(){ triggerDownload({open:state.open,sold:state.sold,termine:state.termine,master:state.master,year:state.year,deletedIds:state.deletedIds,deletedGroups:state.deletedGroups}, `kleinanzeigen-hero-backup-${today()}.json`); toast('Gesamt-Backup exportiert ✓'); };
+    window.exportBestand = function(){ triggerDownload({open:state.open}, `bestand-${today()}.json`); toast('Bestand exportiert ✓'); };
+    window.exportBesta = function(){ triggerDownload({bestaInventory: state.open.filter(i=>i.group==='Besta'), catalog: state.master?.catalog?.Besta||{}, models: BESTA_KORPUS_MODELS}, `besta-korpusse-${today()}.json`); toast('Besta & Korpusse exportiert ✓'); };
+    window.exportSold = function(){ triggerDownload({sold:state.sold}, `historie-${today()}.json`); toast('Historie exportiert ✓'); };
     window.importData = function(file){ if(!file)return; toast('Lese Datei...'); const r=new FileReader(); r.onload=e=>{try{let d=JSON.parse(e.target.result);if(Array.isArray(d))d={open:d};else if(d.state)d=d.state;else if(d.data)d=d.data;applyState(d);save();window.updateMasterForm();window.renderAllQuick();window.renderMaster();window.render();toast('Import erfolgreich ✓');}catch(err){alert('Fehler: '+err.message);}}; r.readAsText(file); };
 
-    // CLOUD SYNC
+    // ==================== CLOUD SYNC ====================
     window.autoSaveToCloud = function(){ const gasUrl=localStorage.getItem('gasUrl')||gVal('gasUrl'); if(!gasUrl)return; fetch(gasUrl,{method:'POST',body:JSON.stringify({open:state.open,sold:state.sold,termine:state.termine,master:state.master,year:state.year,deletedIds:state.deletedIds,deletedGroups:state.deletedGroups}),keepalive:true}).catch(()=>{}); };
     window.saveToCloud = async function(){ const gasUrl=gVal('gasUrl').trim()||localStorage.getItem('gasUrl'); if(!gasUrl)return toast('Bitte Script-URL eintragen.'); localStorage.setItem('gasUrl',gasUrl); try{ toast('Speichere...'); await fetch(gasUrl,{method:'POST',body:JSON.stringify({open:state.open,sold:state.sold,termine:state.termine,master:state.master,year:state.year,deletedIds:state.deletedIds,deletedGroups:state.deletedGroups})}); toast('In Cloud gespeichert ✓'); }catch(e){toast('Fehler beim Cloud-Upload');} };
     window.loadFromCloud = async function(){
@@ -1338,15 +1471,7 @@
       }catch(e){ toast('Fehler beim Laden'); }
     };
 
-    window.cleanCorruptedImagesAndGhostGroups = function(){
-      let c=0; if(Array.isArray(state.master.images)){const ol=state.master.images.length; state.master.images=state.master.images.filter(isValidImage); c+=(ol-state.master.images.length);}
-      ['groupLogos','typeLogos','articleLogos'].forEach(coll=>{ if(state.master[coll]){Object.keys(state.master[coll]).forEach(k=>{if(!isValidImage(state.master[coll][k])){delete state.master[coll][k]; c++;}});} });
-      (state.sold||[]).forEach(s=>{if(s.previewImage&&!isValidImage(s.previewImage)){s.previewImage=''; c++;}});
-      const dg=new Set(state.deletedGroups||[]); dg.forEach(grp=>{ if(state.master.catalog&&state.master.catalog[grp]){delete state.master.catalog[grp];} if(state.master.groupLogos&&state.master.groupLogos[grp]){delete state.master.groupLogos[grp];} });
-      save(); window.autoSaveToCloud?.(); window.updateMasterForm(); window.renderAllQuick(); window.renderMaster(); window.renderOpenFilters(); window.renderOpen(); toast('Bereinigt: '+c+' defekte Einträge entfernt');
-    };
-
-    // VERKAUF
+    // ==================== VERKAUF ====================
     window.renderSellQuick = function(){
       const sel = state.sellSelection;
       const cIds = new Set(state.sellCart.filter(c => !c.isBestaKorpusVirtual).map(c => c.inst.id));
@@ -1365,7 +1490,7 @@
       const aG = Array.from(groupSet).sort(sortKeys);
       const gc = g('qb-sell-group');
       if (gc) {
-        gc.innerHTML = aG.map(grp => '<div class="qb-chip lvl-grp '+(sel.group === grp ? 'active' : '')+'" onclick="window.handleSellChipSelect(\'group\',\''+safeJsStr(grp)+'\')">'+(state.master.groupLogos && isValidImage(state.master.groupLogos[grp]) ? '<img src="'+state.master.groupLogos[grp]+'" class="grp-logo-thumb">' : '')+'<span>'+esc(grp)+'</span></div>').join('') || '<span class="muted" style="font-size:var(--text-xs);">Keine Gruppen angelegt</span>';
+        gc.innerHTML = aG.map(grp => `<div class="qb-chip lvl-grp ${sel.group === grp ? 'active' : ''}" onclick="window.handleSellChipSelect('group','${safeJsStr(grp)}')">${state.master.groupLogos && isValidImage(state.master.groupLogos[grp]) ? `<img src="${state.master.groupLogos[grp]}" class="grp-logo-thumb">` : ''}<span>${esc(grp)}</span></div>`).join('') || '<span class="muted" style="font-size:var(--text-xs);">Keine Gruppen angelegt</span>';
       }
 
       const iG = sel.group ? aI.filter(i => i.group === sel.group) : [];
@@ -1378,7 +1503,7 @@
       const fpt = g('sell-field-productType'); if (fpt) fpt.style.display = sel.group ? 'grid' : 'none';
       const tc = g('qb-sell-productType');
       if (tc && sel.group) {
-        tc.innerHTML = aT.map(t => '<div class="qb-chip lvl-typ '+(sel.type === t ? 'active' : '')+'" onclick="window.handleSellChipSelect(\'type\',\''+safeJsStr(t)+'\')">'+(state.master.typeLogos && isValidImage(state.master.typeLogos[`${sel.group}||${t}`]) ? '<img src="'+state.master.typeLogos[`${sel.group}||${t}`]+'" class="grp-logo-thumb" style="width:36px;height:36px;border-radius:6px;object-fit:cover;margin-right:6px;">' : '')+'<span>'+esc(t)+'</span></div>').join('') || '<span class="muted" style="font-size:var(--text-xs);">Keine Typen</span>';
+        tc.innerHTML = aT.map(t => `<div class="qb-chip lvl-typ ${sel.type === t ? 'active' : ''}" onclick="window.handleSellChipSelect('type','${safeJsStr(t)}')"><span>${esc(t)}</span></div>`).join('') || '<span class="muted" style="font-size:var(--text-xs);">Keine Typen</span>';
       }
 
       const ik = (sel.group === 'Besta' && sel.type === 'Korpus (Komplett)');
@@ -1389,18 +1514,18 @@
         if (ik) {
           let catHtml = '';
           Object.entries(BESTA_KORPUS_CATEGORIES).forEach(([catTitle, models]) => {
-            catHtml += '<div style="width:100%; margin:6px 0 2px; font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase;">'+esc(catTitle)+'</div><div class="chips" style="gap:6px; margin-bottom:8px;">';
+            catHtml += `<div style="width:100%; margin:6px 0 2px; font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase;">${esc(catTitle)}</div><div class="chips" style="gap:6px; margin-bottom:8px;">`;
             models.forEach(a => {
               const isAct = sel.article === a;
-              catHtml += '<div class="qb-chip lvl-art '+(isAct ? 'active' : '')+'" onclick="window.handleSellChipSelect(\'article\',\''+safeJsStr(a)+'\')"><span>'+esc(a)+'</span></div>';
+              catHtml += `<div class="qb-chip lvl-art ${isAct ? 'active' : ''}" onclick="window.handleSellChipSelect('article','${safeJsStr(a)}')"><span>${esc(a)}</span></div>`;
             });
-            catHtml += '</div>';
+            catHtml += `</div>`;
           });
           ac.innerHTML = catHtml;
         } else {
           const iT = (sel.group && sel.type) ? iG.filter(i => i.productType === sel.type) : [];
           const aA = [...new Set(iT.map(i => String(i.article || '')).filter(Boolean))].sort(sortKeys);
-          ac.innerHTML = aA.map(a => '<div class="qb-chip lvl-art '+(sel.article === a ? 'active' : '')+'" onclick="window.handleSellChipSelect(\'article\',\''+safeJsStr(a)+'\')">'+(state.master.articleLogos && isValidImage(state.master.articleLogos[`${sel.group}||${sel.type}||${a}`]) ? '<img src="'+state.master.articleLogos[`${sel.group}||${sel.type}||${a}`]+'" class="grp-logo-thumb" style="width:36px;height:36px;border-radius:6px;object-fit:cover;margin-right:6px;">' : '')+'<span>'+esc(a)+'</span></div>').join('') || '<span class="muted" style="font-size:var(--text-xs);">Keine Artikel</span>';
+          ac.innerHTML = aA.map(a => `<div class="qb-chip lvl-art ${sel.article === a ? 'active' : ''}" onclick="window.handleSellChipSelect('article','${safeJsStr(a)}')">${state.master.articleLogos && isValidImage(state.master.articleLogos[`${sel.group}||${sel.type}||${a}`]) ? `<img src="${state.master.articleLogos[`${sel.group}||${sel.type}||${a}`]}" class="grp-logo-thumb">` : ''}<span>${esc(a)}</span></div>`).join('') || '<span class="muted" style="font-size:var(--text-xs);">Keine Artikel</span>';
         }
       }
 
@@ -1422,8 +1547,8 @@
         aC = [...new Set(iA.map(i => String(i.color || '')).filter(Boolean))].sort(sortKeys);
         if (fsc) fsc.style.display = (sel.group && sel.type && (aS.length > 0 || aC.length > 0)) ? 'grid' : 'none';
       }
-      const sc = g('qb-sell-size'); if (sc && sel.group && sel.type) sc.innerHTML = aS.map(s => '<div class="qb-chip lvl-var '+(sel.size === s ? 'active' : '')+'" onclick="window.handleSellChipSelect(\'size\',\''+safeJsStr(s)+'\')"><span>Gr. '+esc(s)+'</span></div>').join('') || '<span class="muted" style="font-size:var(--text-xs);">–</span>';
-      const cc = g('qb-sell-color'); if (cc && sel.group && sel.type) cc.innerHTML = aC.map(c => '<div class="qb-chip lvl-var '+(sel.color === c ? 'active' : '')+'" onclick="window.handleSellChipSelect(\'color\',\''+safeJsStr(c)+'\')"><span>'+esc(c)+'</span></div>').join('') || '<span class="muted" style="font-size:var(--text-xs);">–</span>';
+      const sc = g('qb-sell-size'); if (sc && sel.group && sel.type) sc.innerHTML = aS.map(s => `<div class="qb-chip lvl-var ${sel.size === s ? 'active' : ''}" onclick="window.handleSellChipSelect('size','${safeJsStr(s)}')"><span>Gr. ${esc(s)}</span></div>`).join('') || '<span class="muted" style="font-size:var(--text-xs);">–</span>';
+      const cc = g('qb-sell-color'); if (cc && sel.group && sel.type) cc.innerHTML = aC.map(c => `<div class="qb-chip lvl-var ${sel.color === c ? 'active' : ''}" onclick="window.handleSellChipSelect('color','${safeJsStr(c)}')"><span>${esc(c)}</span></div>`).join('') || '<span class="muted" style="font-size:var(--text-xs);">–</span>';
       window.renderSellInstanceList();
     };
 
@@ -1441,7 +1566,7 @@
         if(!s.article || !s.color){ l.innerHTML = '<div class="empty" style="padding:8px;">Bitte Modell und Farbe wählen.</div>'; return; }
         const p = getBestaPoss(s.article, s.color);
         if(p > 0){
-          l.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(16,185,129,0.1); border:1px dashed var(--c-var-border); padding:6px 10px; border-radius:6px;"><div><b>'+esc(s.article)+' ('+esc(s.color)+')</b><div style="font-size:12px; color:var(--success);">'+p+' Stück baubar</div></div><button type="button" class="btn btn-primary" onclick="window.addSellKorpusComplete(\''+safeJsStr(s.article)+'\', \''+safeJsStr(s.color)+'\')">✚ Set Hinzufügen</button></div>';
+          l.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(16,185,129,0.1); border:1px dashed var(--c-var-border); padding:6px 10px; border-radius:6px;"><div><b>${esc(s.article)} (${esc(s.color)})</b><div style="font-size:12px; color:var(--success);">${p} Stück baubar</div></div><button type="button" class="btn btn-primary" onclick="window.addSellKorpusComplete('${safeJsStr(s.article)}', '${safeJsStr(s.color)}')">✚ Set Hinzufügen</button></div>`;
         } else {
           l.innerHTML = '<div class="empty" style="color:var(--err);">Nicht genügend Bauteile vorhanden.</div>';
         }
@@ -1449,7 +1574,7 @@
       }
       const cid=new Set(state.sellCart.filter(c=>!c.isBestaKorpusVirtual).map(c=>c.inst.id)), m=[];
       state.open.forEach(i=>{ if(s.group&&i.group!==s.group)return; if(s.type&&i.productType!==s.type)return; if(s.article&&i.article!==s.article)return; if(s.size&&i.size!==s.size)return; if(s.color&&i.color!==s.color)return; (i.instances||[]).forEach(x=>{if(!cid.has(x.id))m.push({item:i,inst:x});}); });
-      l.innerHTML=m.length?m.map(x=>'<div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface2); padding:6px 10px; border-radius:var(--rad-sm); margin-bottom:6px;"><div><b style="font-size:var(--text-sm);">'+esc(x.item.article||x.item.productType)+' · '+esc(x.item.color||'–')+' '+(x.item.size?'(Gr. '+esc(x.item.size)+')':'')+'</b><div style="font-size:var(--text-xs); color:var(--muted);">EK: '+euro(x.inst.purchasePrice)+' · ⏱️ '+calcDays(x.inst.entryDate)+' Tage</div></div><button type="button" class="btn btn-primary" style="width:auto; min-height:28px; padding:2px 10px;" onclick="window.addSellDirect(\''+x.item.id+'\', \''+x.inst.id+'\')">✚</button></div>').join(''):'<div class="empty">Keine Lager-Exemplare vorrätig.</div>';
+      l.innerHTML=m.length?m.map(x=>`<div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface2); padding:6px 10px; border-radius:var(--rad-sm); margin-bottom:6px;"><div><b style="font-size:var(--text-sm);">${esc(x.item.article||x.item.productType)} · ${esc(x.item.color||'–')} ${x.item.size?'(Gr. '+esc(x.item.size)+')':''}</b><div style="font-size:var(--text-xs); color:var(--muted);">EK: ${euro(x.inst.purchasePrice)} · ⏱️ ${calcDays(x.inst.entryDate)} Tage</div></div><button type="button" class="btn btn-primary" style="width:auto; min-height:28px; padding:2px 10px;" onclick="window.addSellDirect('${x.item.id}', '${x.inst.id}')">✚</button></div>`).join(''):'<div class="empty">Keine Lager-Exemplare vorrätig.</div>';
     };
 
     window.addSellKorpusComplete = function(m, c){
@@ -1463,29 +1588,20 @@
         });
       }
       state.sellCart.push({ isBestaKorpusVirtual:true, model:m, color:c, reqs:r, item:{group:'Besta',productType:'Korpus',article:m,color:c}, inst:{id:'virt_'+uid(), purchasePrice:p, entryDate:today(), profitshare:false} });
-      window.renderSellCart(); toast('Korpus "'+m+'" im Warenkorb ✓');
+      window.renderSellCart(); toast(`Korpus "${m}" im Warenkorb ✓`);
     };
 
-    window.addSellDirect = function(iId, inId){ const i=state.open.find(x=>x.id===iId), x=i?i.instances.find(y=>y.id===inId):null; if(i&&x){state.sellCart.push({item:i,inst:x}); state.psManualOverride=false; window.renderSellCart(); window.renderSellQuick(); toast('Position in Warenkorb');} };
+    window.addSellDirect = function(iId, inId){ const i=state.open.find(x=>x.id===iId), x=i?i.instances.find(y=>y.id===inId):null; if(i&&x){state.sellCart.push({item:i,inst:x}); window.renderSellCart(); window.renderSellQuick(); toast('Position in Warenkorb');} };
     window.removeSellPosition = function(i){ state.sellCart.splice(i,1); window.renderSellCart(); };
     window.renderSellCart = function(){
       const c = g('sellCartContainer'); if(!c) return;
       if(state.sellCart.length === 0){ c.innerHTML = '<div class="empty">Warenkorb leer.</div>'; window.updateSellPreview(); return; }
-      c.innerHTML = state.sellCart.map((p,i) => '<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border);"><div><b>'+(i+1)+'.</b> '+(p.isBestaKorpusVirtual?esc(p.model)+' ('+esc(p.color)+') [BAUSATZ]':esc(p.item.article||p.item.productType)+' ('+esc(p.item.color||'')+(p.item.size?', '+esc(p.item.size):'')+')')+' <span style="color:var(--primary);">'+euro(p.inst.purchasePrice)+'</span></div><button type="button" class="btn btn-danger" onclick="window.removeSellPosition('+i+')">✕</button></div>').join('');
+      c.innerHTML = state.sellCart.map((p,i) => `<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border);"><div><b>${i+1}.</b> ${p.isBestaKorpusVirtual?esc(p.model)+' ('+esc(p.color)+') [BAUSATZ]':esc(p.item.article||p.item.productType)+' ('+esc(p.item.color||'')+(p.item.size?', '+esc(p.item.size):'')+')'} <span style="color:var(--primary);">${euro(p.inst.purchasePrice)}</span></div><button type="button" class="btn btn-danger" onclick="window.removeSellPosition(${i})">✕</button></div>`).join('');
       window.updateSellPreview();
     };
 
-    window.openSellSetImgPicker = function(){ imagePickCallback=url=>{ const v=g('sellSetImgValue'),p=g('sellSetImgPreview'),l=g('sellSetImgLabel'); if(v)v.value=url; if(p)p.innerHTML=url?'<img src="'+url+'" style="width:36px;height:36px;object-fit:cover;border-radius:6px;">':'🖼'; if(l)l.textContent=url?'Set-Bild gewählt ✓':'Set-Bild wählen…'; }; window.openImagePicker(gVal('sellSetImgValue')); };
-
-    window.onPsPctInput = function(){ 
-      state.psMode = 'pct'; 
-      window.updateSellPreview(); 
-    };
-
-    window.onPsEuroInput = function(){ 
-      state.psMode = 'euro'; 
-      window.updateSellPreview(); 
-    };
+    window.onPsPctInput = function(){ state.psMode = 'pct'; window.updateSellPreview(); };
+    window.onPsEuroInput = function(){ state.psMode = 'euro'; window.updateSellPreview(); };
 
     window.updateSellPreview = function(){
       const p = g('sellPrice'), pi = g('sellPsInput'), pe = g('sellPsEuroInput');
@@ -1502,8 +1618,7 @@
       nT.textContent = euro(rohertrag);
       nT.style.color = rohertrag < 0 ? 'var(--err)' : 'var(--text)';
 
-      let psEuro = 0;
-      let psPct = 0;
+      let psEuro = 0, psPct = 0;
 
       if(rohertrag > 0){
         if(state.psMode === 'euro'){
@@ -1525,7 +1640,7 @@
       const meinGewinn = rohertrag - psEuro;
       if(sp > 0){
         if(psEuro > 0){
-          fP.innerHTML = `Dein Reingewinn: <b style="color:var(--success); font-size:14px;">${euro(meinGewinn)}</b> <span style="color:var(--muted); font-size:11px;">(Partner erhält: ${euro(psEuro)} / ${Math.round(psPct)}%)</span>`;
+          fP.innerHTML = `Dein Reingewinn: <b style="color:var(--success); font-size:14px;">${euro(meinGewinn)}</b> <span style="color:var(--muted); font-size:11px;">(Partner: ${euro(psEuro)} / ${Math.round(psPct)}%)</span>`;
         } else {
           fP.innerHTML = `Dein Reingewinn: <b style="color:${meinGewinn >= 0 ? 'var(--success)' : 'var(--err)'}; font-size:14px;">${euro(meinGewinn)}</b>`;
         }
@@ -1593,25 +1708,271 @@
       state.page = 'sold'; window.render();
     };
 
-    window.renderSold = function(){
-      const sc = g('soldContent'); if(!sc) return;
-      if(!state.sold.length){ sc.innerHTML='<div class="empty">Keine Verkäufe vorhanden.</div>'; return; }
-      sc.innerHTML = state.sold.map(s => '<div class="sold-card"><div style="display:flex; justify-content:space-between; align-items:center;"><div><b>'+esc(s.setName)+'</b><div style="font-size:12px; color:var(--muted);">'+fmtDate(s.saleDate)+'</div></div><div style="text-align:right;"><b style="color:var(--success);">+'+euro(s.netProfit)+'</b><div style="font-size:12px; color:var(--muted);">VK '+euro(s.salePrice)+'</div></div></div><div style="display:flex; justify-content:flex-end; gap:6px; margin-top:8px;"><button type="button" class="btn-icon-subtle danger" onclick="window.deleteSoldSet(\''+s.id+'\')">🗑️ Löschen</button></div></div>').join('');
+    // ==================== HISTORIE ====================
+    window.editSoldImage = function(id){
+      const s = state.sold.find(x => x.id === id); if(!s) return;
+      imagePickCallback = url => {
+        s.previewImage = url;
+        save(); window.autoSaveToCloud?.();
+        window.renderSold();
+        toast('Bild gespeichert ✓');
+      };
+      window.openImagePicker(s.previewImage || '', 'Set Bilder');
     };
 
-    window.deleteSoldSet = function(id){ if(!confirm('Löschen?'))return; if(!state.deletedIds)state.deletedIds=[]; state.deletedIds.push(id); state.sold=state.sold.filter(x=>x.id!==id); save(); window.autoSaveToCloud?.(); window.renderSold(); toast('Eintrag gelöscht'); };
+    window.editSoldName = function(id){
+      const s = state.sold.find(x => x.id === id); if(!s) return;
+      const n = prompt('Neuer Name:', s.setName || '');
+      if(n !== null){ s.setName = n.trim() || 'Set'; save(); window.autoSaveToCloud?.(); window.renderSold(); toast('Name aktualisiert ✓'); }
+    };
 
-    // STATISTIK
-    window.onStatsFilterChange = function(t){ if(t==='grp'){g('statsFilterTyp').value='';g('statsFilterArt').value='';g('statsFilterSize').value='';g('statsFilterCol').value='';}else if(t==='typ'){g('statsFilterArt').value='';g('statsFilterSize').value='';g('statsFilterCol').value='';}else if(t==='art'){g('statsFilterSize').value='';g('statsFilterCol').value='';} window.renderStats(); };
-    function populateStatsFilters(){ const gS=g('statsFilterGrp'), tS=g('statsFilterTyp'), aS=g('statsFilterArt'), szS=g('statsFilterSize'), cS=g('statsFilterCol'); if(!gS)return; const cg=gS.value, ct=tS.value, ca=aS.value, cSz=szS?szS.value:'', cc=cS?cS.value:''; const gr=new Set(), ty=new Set(), ar=new Set(), si=new Set(), cl=new Set(); state.sold.forEach(s=>{(s.items||[]).forEach(i=>{ if(i.group)gr.add(i.group); if(!cg||i.group===cg){if(i.productType)ty.add(i.productType); if(!ct||i.productType===ct){if(i.article)ar.add(i.article); if(i.size)si.add(i.size); if(i.color)cl.add(i.color);}} });}); fillSel(gS,[...gr].sort(sortKeys),'Gruppe'); gS.value=cg; fillSel(tS,[...ty].sort(sortKeys),'Produkttyp'); tS.value=ct; fillSel(aS,[...ar].sort(sortKeys),'Artikelname'); aS.value=ca; if(szS){fillSel(szS,[...si].sort(sortKeys),'Größe'); szS.value=cSz;} if(cS){fillSel(cS,[...cl].sort(sortKeys),'Farbe'); cS.value=cc;} }
-    window.renderStats = function(){ populateStatsFilters(); const fg=gVal('statsFilterGrp'), ft=gVal('statsFilterTyp'), fa=gVal('statsFilterArt'), fs=gVal('statsFilterSize'), fc=gVal('statsFilterCol'); const y=[...new Set(state.sold.map(s=>(s.saleDate||today()).slice(0,4)))].sort((a,b)=>b-a); if(y.length>0&&!y.includes(state.year))state.year=y[0]; const sy=g('statsYear'); if(sy)sy.innerHTML=(y.length?y:[state.year]).map(yr=>'<option value="'+yr+'" '+(yr===state.year?'selected':'')+'>'+yr+'</option>').join(''); let ys=state.sold.filter(s=>(s.saleDate||today()).startsWith(state.year)); if(ys.length===0&&state.sold.length>0)ys=state.sold; if(fg||ft||fa||fs||fc) ys=ys.filter(s=>(s.items||[]).some(i=>(!fg||i.group===fg)&&(!ft||i.productType===ft)&&(!fa||i.article===fa)&&(!fs||i.size===fs)&&(!fc||i.color===fc))); const ts=ys.length, tp=ys.reduce((s,x)=>s+(x.netProfit||0),0), tr=ys.reduce((s,x)=>s+(x.salePrice||0),0), td=ys.reduce((s,x)=>s+(x.avgDaysInStock||0),0), ad=ts?Math.round(td/ts):0; const sc=g('statsCards'); if(sc)sc.innerHTML=[{k:'Gefilterte Sets',v:ts},{k:'Gewinn',v:euro(tp)},{k:'Umsatz',v:euro(tr)},{k:'Ø Standzeit',v:ad+' Tage'}].map(c=>'<div class="stat-card"><div class="k">'+c.k+'</div><div class="v">'+c.v+'</div></div>').join(''); };
+    window.editSoldPrice = function(id){
+      const s = state.sold.find(x => x.id === id); if(!s) return;
+      const val = prompt('Neuer Verkaufspreis (€):', s.salePrice || 0);
+      if(val !== null){
+        const sp = parseFloat(val.replace(',', '.')) || 0;
+        s.salePrice = sp;
+        const rohertrag = sp - (s.purchaseTotal || 0);
+        s.netProfit = s.hasProfitshare ? (rohertrag * 0.5) : rohertrag;
+        save(); window.autoSaveToCloud?.(); window.renderSold(); window.renderStats(); toast('Preis aktualisiert ✓');
+      }
+    };
 
-    // KALENDER
+    window.deleteSoldSet = function(id){
+      if(!confirm('Diesen Verkauf wirklich löschen?')) return;
+      if(!state.deletedIds) state.deletedIds = [];
+      state.deletedIds.push(id);
+      state.sold = state.sold.filter(x => x.id !== id);
+      save(); window.autoSaveToCloud?.(); window.renderSold(); window.renderStats(); toast('Verkauf gelöscht');
+    };
+
+    window.renderSold = function(){
+      const sc = g('soldContent'), sf = g('soldSearch'), badge = g('soldCountBadge');
+      if(!sc) return;
+      const term = sf ? sf.value.trim().toLowerCase() : '';
+
+      const sorted = [...(state.sold || [])].sort((a, b) => {
+        const da = String(a.saleDate || '1970-01-01');
+        const db = String(b.saleDate || '1970-01-01');
+        return db.localeCompare(da);
+      });
+
+      const filtered = term ? sorted.filter(s => {
+        const str = `${s.setName||''} ${s.saleDate||''} ${(s.items||[]).map(i=>i.article+' '+i.color).join(' ')}`.toLowerCase();
+        return str.includes(term);
+      }) : sorted;
+
+      if(badge) badge.textContent = `${filtered.length} Verkäufe`;
+
+      if(!filtered.length){
+        sc.innerHTML = '<div class="empty">Keine Verkäufe gefunden.</div>';
+        return;
+      }
+
+      sc.innerHTML = filtered.map(s => {
+        const profit = s.netProfit !== undefined ? s.netProfit : ((s.salePrice||0) - (s.purchaseTotal||0));
+        const isProf = profit >= 0;
+        const profitColor = isProf ? 'color:var(--success);' : 'color:var(--err);';
+        const sign = isProf ? '+' : '';
+        const img = s.previewImage || '';
+        const itemsSummary = (s.items || []).map(i => `${i.article || i.productType || 'Artikel'} ${i.color ? '('+i.color+')' : ''}`.trim()).filter(Boolean).join(' · ');
+
+        return `
+          <div class="sold-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+              <div style="display:flex; gap:12px; align-items:center; flex:1; min-width:0;">
+                <div class="thumb" onclick="window.editSoldImage('${s.id}')" title="Bild ändern/hinzufügen">
+                  ${img ? `<img src="${img}">` : '<span style="font-size:20px; opacity:0.6;">🖼️</span>'}
+                </div>
+                <div style="min-width:0; flex:1;">
+                  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <b style="font-size:1.05rem; color:var(--text);">${esc(s.setName || 'Set')}</b>
+                    <b style="font-size:1.05rem; ${profitColor}">${sign}${euro(profit)}</b>
+                  </div>
+                  <div class="chips" style="margin-top:4px;">
+                    <span class="chip">📅 ${fmtDate(s.saleDate)}</span>
+                    <span class="chip days">⏱ ${s.avgDaysInStock || 0}d Lager</span>
+                    ${s.hasProfitshare ? '<span class="chip stack" style="color:var(--warn); border-color:var(--warn);">🤝 Profitshare</span>' : ''}
+                  </div>
+                  ${itemsSummary ? `<div style="font-size:11px; color:var(--muted); margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(itemsSummary)}</div>` : ''}
+                </div>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0;">
+                <div style="font-size:11px; color:var(--muted); white-space:nowrap;">VK ${euro(s.salePrice)} · EK ${euro(s.purchaseTotal)}</div>
+                <div style="display:flex; gap:4px; align-items:center;">
+                  <button type="button" class="btn btn-ghost" style="padding:2px 6px; font-size:11px;" onclick="window.editSoldImage('${s.id}')">🖼 Bild</button>
+                  <button type="button" class="btn-icon-subtle" onclick="window.editSoldName('${s.id}')">✏️</button>
+                  <button type="button" class="btn-icon-subtle" onclick="window.editSoldPrice('${s.id}')">🏷</button>
+                  <button type="button" class="btn-icon-subtle danger" onclick="window.deleteSoldSet('${s.id}')">🗑️</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    // ==================== STATISTIK ====================
+    window.onStatsFilterChange = function(t){
+      if(t==='grp'){g('statsFilterTyp').value='';g('statsFilterArt').value='';g('statsFilterSize').value='';g('statsFilterCol').value='';}
+      else if(t==='typ'){g('statsFilterArt').value='';g('statsFilterSize').value='';g('statsFilterCol').value='';}
+      else if(t==='art'){g('statsFilterSize').value='';g('statsFilterCol').value='';}
+      window.renderStats();
+    };
+
+    function populateStatsFilters(){
+      const gS=g('statsFilterGrp'), tS=g('statsFilterTyp'), aS=g('statsFilterArt'), szS=g('statsFilterSize'), cS=g('statsFilterCol');
+      if(!gS) return;
+      const cg=gS.value, ct=tS.value, ca=aS.value, cSz=szS?szS.value:'', cc=cS?cS.value:'';
+      const gr=new Set(), ty=new Set(), ar=new Set(), si=new Set(), cl=new Set();
+      (state.sold||[]).forEach(s=>{
+        (s.items||[]).forEach(i=>{
+          if(i.group) gr.add(i.group);
+          if(!cg || i.group===cg){
+            if(i.productType) ty.add(i.productType);
+            if(!ct || i.productType===ct){
+              if(i.article) ar.add(i.article);
+              if(i.size) si.add(i.size);
+              if(i.color) cl.add(i.color);
+            }
+          }
+        });
+      });
+      fillSel(gS, [...gr].sort(sortKeys), 'Gruppe (Alle)'); gS.value=cg;
+      fillSel(tS, [...ty].sort(sortKeys), 'Typ (Alle)'); tS.value=ct;
+      fillSel(aS, [...ar].sort(sortKeys), 'Artikel (Alle)'); aS.value=ca;
+      if(szS){ fillSel(szS, [...si].sort(sortKeys), 'Größe (Alle)'); szS.value=cSz; }
+      if(cS){ fillSel(cS, [...cl].sort(sortKeys), 'Farbe (Alle)'); cS.value=cc; }
+    }
+
+    window.renderStats = function(){
+      populateStatsFilters();
+      const fg=gVal('statsFilterGrp'), ft=gVal('statsFilterTyp'), fa=gVal('statsFilterArt'), fs=gVal('statsFilterSize'), fc=gVal('statsFilterCol');
+
+      const availableYears = [...new Set((state.sold||[]).map(s => String(s.saleDate || today()).slice(0, 4)))].filter(Boolean).sort().reverse();
+      const sy = g('statsYear');
+      if(sy){
+        let opts = `<option value="ALL" ${state.year==='ALL'?'selected':''}>Alle Jahre</option>`;
+        availableYears.forEach(yr => { opts += `<option value="${yr}" ${state.year===yr?'selected':''}>${yr}</option>`; });
+        sy.innerHTML = opts;
+      }
+
+      let ys = (state.sold || []);
+      if(state.year && state.year !== 'ALL'){
+        ys = ys.filter(s => String(s.saleDate || today()).startsWith(state.year));
+      }
+
+      if(fg || ft || fa || fs || fc){
+        ys = ys.filter(s => (s.items || []).some(i => 
+          (!fg || i.group === fg) &&
+          (!ft || i.productType === ft) &&
+          (!fa || i.article === fa) &&
+          (!fs || String(i.size) === String(fs)) &&
+          (!fc || String(i.color).toLowerCase() === String(fc).toLowerCase())
+        ));
+      }
+
+      const totalSets = ys.length;
+      const totalRevenue = ys.reduce((s, x) => s + (+x.salePrice || 0), 0);
+      const totalNetProfit = ys.reduce((s, x) => s + (+x.netProfit || 0), 0);
+      const totalDays = ys.reduce((s, x) => s + (+x.avgDaysInStock || 0), 0);
+      const avgDays = totalSets ? Math.round(totalDays / totalSets) : 0;
+      const avgMargin = totalRevenue > 0 ? Math.round((totalNetProfit / totalRevenue) * 100) : 0;
+
+      const sc = g('statsCards');
+      if(sc){
+        sc.innerHTML = [
+          { k: 'Verkaufte Sets', v: totalSets },
+          { k: 'Gesamtumsatz', v: euro(totalRevenue) },
+          { k: 'Reingewinn', v: euro(totalNetProfit) },
+          { k: 'Ø Marge / Rotation', v: `${avgMargin}% · ${avgDays}d` }
+        ].map(c => `
+          <div class="stat-card">
+            <div class="k">${c.k}</div>
+            <div class="v">${c.v}</div>
+          </div>
+        `).join('');
+      }
+
+      const monthlyMap = new Map();
+      ys.forEach(s => {
+        const sd = s.saleDate || today();
+        const monthKey = sd.slice(0, 7);
+        const monthName = fmtMonth(sd);
+
+        if(!monthlyMap.has(monthKey)){
+          monthlyMap.set(monthKey, {
+            name: monthName,
+            year: monthKey.slice(0, 4),
+            sets: 0,
+            revenue: 0,
+            profit: 0,
+            psAmount: 0
+          });
+        }
+
+        const m = monthlyMap.get(monthKey);
+        const vk = +s.salePrice || 0;
+        const ek = +s.purchaseTotal || 0;
+        const net = +s.netProfit || 0;
+        const rohertrag = Math.max(0, vk - ek);
+        const partnerAnteil = s.hasProfitshare ? Math.max(0, rohertrag - net) : 0;
+
+        m.sets += 1;
+        m.revenue += vk;
+        m.profit += net;
+        m.psAmount += partnerAnteil;
+      });
+
+      const sortedMonths = [...monthlyMap.entries()].sort((a, b) => b[0].localeCompare(a[0]));
+      const mtt = g('monthTable');
+
+      if(mtt){
+        if(sortedMonths.length === 0){
+          mtt.innerHTML = '<tbody><tr><td class="empty">Keine Verkaufsdaten vorhanden.</td></tr></tbody>';
+        } else {
+          mtt.innerHTML = `
+            <thead>
+              <tr>
+                <th>Monat</th>
+                <th>Jahr</th>
+                <th style="text-align:center;">Sets</th>
+                <th>Umsatz</th>
+                <th>Reingewinn</th>
+                <th style="color:var(--warn);">Profitshare (Partner)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sortedMonths.map(([key, d]) => `
+                <tr>
+                  <td><b>${d.name.split(' ')[0]}</b></td>
+                  <td>${d.year}</td>
+                  <td style="text-align:center;"><span class="chip stack">${d.sets}</span></td>
+                  <td><b>${euro(d.revenue)}</b></td>
+                  <td style="color:var(--success); font-weight:800;">+${euro(d.profit)}</td>
+                  <td style="color:var(--warn); font-weight:700;">${d.psAmount > 0 ? euro(d.psAmount) : '–'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          `;
+        }
+      }
+    };
+
+    const syEl = g('statsYear');
+    if(syEl){
+      syEl.addEventListener('change', e => {
+        state.year = e.target.value;
+        window.renderStats();
+      });
+    }
+
+    // ==================== KALENDER ====================
     window.renderTermine = function(){
       const c=g('terminContent'); if(!c)return;
       if(!state.termine||state.termine.length===0){c.innerHTML='<div class="empty">Keine Termine.</div>';return;}
       const s=[...state.termine].sort((a,b)=>new Date(`${b.datum}T${b.uhrzeit||'00:00'}:00`)-new Date(`${a.datum}T${a.uhrzeit||'00:00'}:00`));
-      c.innerHTML=s.map(t=>'<div class="card" style="margin-bottom:var(--sp3);"><div class="card-body" style="padding:var(--sp3);"><div style="display:flex; justify-content:space-between;"><b>'+esc(t.name)+'</b><span>'+fmtDate(t.datum)+' '+t.uhrzeit+' Uhr</span></div><div style="font-size:12px; color:var(--muted); margin-top:4px;">'+esc(t.art)+' · Ort: '+esc(t.ort||'–')+'</div><button type="button" class="btn btn-danger" style="margin-top:6px; padding:2px 8px; font-size:11px;" onclick="window.deleteTermin(\''+t.id+'\')">🗑 Löschen</button></div></div>').join('');
+      c.innerHTML=s.map(t=>`<div class="card" style="margin-bottom:var(--sp3);"><div class="card-body" style="padding:var(--sp3);"><div style="display:flex; justify-content:space-between;"><b>${esc(t.name)}</b><span>${fmtDate(t.datum)} ${t.uhrzeit} Uhr</span></div><div style="font-size:12px; color:var(--muted); margin-top:4px;">${esc(t.art)}</div><button type="button" class="btn btn-danger" style="margin-top:6px; padding:2px 8px; font-size:11px;" onclick="window.deleteTermin('${t.id}')">🗑 Löschen</button></div></div>`).join('');
     };
     window.deleteTermin = function(id){ state.termine=state.termine.filter(t=>t.id!==id); save(); window.autoSaveToCloud?.(); window.renderTermine(); };
 
@@ -1619,7 +1980,7 @@
     if(tfrm){
       tfrm.addEventListener('submit',e=>{
         e.preventDefault();
-        state.termine.unshift({id:uid(),art:gVal('terminArt'),name:gVal('terminName'),datum:gVal('terminDatum'),uhrzeit:gVal('terminUhrzeit'),ort:''});
+        state.termine.unshift({id:uid(),art:gVal('terminArt'),name:gVal('terminName'),datum:gVal('terminDatum'),uhrzeit:gVal('terminUhrzeit')});
         save(); window.autoSaveToCloud?.(); toast('Termin gespeichert ✓'); tfrm.reset(); g('terminDatum').value=today(); window.renderTermine();
       });
     }
@@ -1630,7 +1991,7 @@
       s.innerHTML=h;
     }
 
-    // ROUTENPLANER
+    // ==================== ROUTENPLANER ====================
     let routeWaypoints = [];
     window.setRouteStart = function(type){
       ['routeStartHome','routeStartGps','routeStartCustom'].forEach(id => { const el = g(id); if(el) el.classList.remove('active'); });
@@ -1652,177 +2013,11 @@
       const cost = distKm * 0.15 * 0.33;
       const res = g('routeCalculationResult');
       if(res){
-        res.innerHTML = `<div style="background:var(--surface2); padding:10px; border-radius:6px; border:1px solid var(--border); font-size:12px;"><b>Rundreise: ca. ${distKm} km</b><br>⚡ Fahrtkosten (15 kWh/100km @ 0,33€): <b>${euro(cost)}</b><br><button type="button" class="btn btn-primary" style="margin-top:8px; width:100%;" onclick="window.open('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(start)}&destination=${encodeURIComponent(start)}&waypoints=${encodeURIComponent(dest)}','_blank')">🗺️ In Google Maps öffnen</button></div>`;
+        res.innerHTML = `<div style="background:var(--surface2); padding:10px; border-radius:6px; border:1px solid var(--border); font-size:12px;"><b>Rundreise: ca. ${distKm} km</b><br>⚡ Fahrtkosten: <b>${euro(cost)}</b><br><button type="button" class="btn btn-primary" style="margin-top:8px; width:100%;" onclick="window.open('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(start)}&destination=${encodeURIComponent(start)}&waypoints=${encodeURIComponent(dest)}','_blank')">🗺️ In Google Maps öffnen</button></div>`;
       }
     };
-    window.renderFavoriteSpotsManager = function(){
-      const c = g('routeFavoriteSpotsManager'); if(!c) return;
-      const spots = state.master?.favoriteSpots || [];
-      c.innerHTML = spots.map((s, idx) => `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:6px 10px; margin-bottom:4px;"><div><b>${esc(s.name)}</b> <span style="font-size:11px; color:var(--muted);">${esc(s.addr)}</span></div><button type="button" class="btn btn-danger" style="padding:2px 6px; font-size:10px;" onclick="state.master.favoriteSpots.splice(${idx},1);save();window.renderFavoriteSpotsManager();">🗑</button></div>`).join('');
-    };
-    window.addNewFavoriteSpot = function(){
-      const n = prompt('Name:'); const a = prompt('Adresse:');
-      if(n && a){ state.master.favoriteSpots.push({name:n, addr:a}); save(); window.renderFavoriteSpotsManager(); }
-    };
 
-    // MÖGLICHE SETS & SET-REGELN MODAL
-    window.openSetBadgesModal = function(){
-      const m = g('setBadgesModal'); if(!m) return;
-      const selMod = g('ruleKorpusModel');
-      if(selMod) selMod.innerHTML = Object.keys(BESTA_KORPUS_MODELS).map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('');
-      window.setSetBadgesTab('matches');
-      m.classList.add('show'); m.style.display = 'flex';
-    };
-    window.closeSetBadgesModal = function(){ const m = g('setBadgesModal'); if(m){ m.classList.remove('show'); m.style.display = 'none'; } };
-
-    window.setSetBadgesTab = function(tab){
-      const btnM = g('tabBtnPossibleSets'), btnR = g('tabBtnSetRules');
-      const viewM = g('viewPossibleSetsMatches'), viewR = g('viewPossibleSetsRules');
-      if(btnM) btnM.className = tab === 'matches' ? 'btn btn-primary' : 'btn btn-ghost';
-      if(btnR) btnR.className = tab === 'rules' ? 'btn btn-primary' : 'btn btn-ghost';
-      if(viewM) viewM.style.display = tab === 'matches' ? 'block' : 'none';
-      if(viewR) viewR.style.display = tab === 'rules' ? 'block' : 'none';
-      if(tab === 'matches') window.renderPossibleSetsMatches();
-      if(tab === 'rules') window.renderSetRulesManager();
-    };
-
-    window.renderPossibleSetsMatches = function(){
-      const cont = g('setBadgesContent'); if(!cont) return;
-      const rules = state.master?.setRules || [];
-      let matches = [];
-
-      const allKorpusColors = ['Weiß','Schwarzbraun'];
-      state.open.forEach(i => { if(i && i.group==='Besta' && (i.productType||'').includes('bauteil') && i.color) allKorpusColors.push(i.color); });
-      const uniqueKColors = [...new Set(allKorpusColors)];
-
-      rules.forEach(rule => {
-        uniqueKColors.forEach(kc => {
-          const possKorpus = getBestaPoss(rule.model, kc);
-          if(possKorpus <= 0) return;
-
-          const doors = state.open.filter(i => i && i.group==='Besta' && (i.productType||'').toLowerCase().includes('tür') && i.instances?.length > 0);
-          const doorsByArtCol = {};
-          doors.forEach(d => {
-            const k = `${d.article}||${d.color}`;
-            if(!doorsByArtCol[k]) doorsByArtCol[k] = { '64': 0, '38': 0, '26': 0, art: d.article, col: d.color };
-            if(doorsByArtCol[k][d.size] !== undefined){
-              doorsByArtCol[k][d.size] += (d.instances ? d.instances.length : 0);
-            }
-          });
-
-          Object.values(doorsByArtCol).forEach(entry => {
-            const r64 = rule.reqs['64'] || 0, r38 = rule.reqs['38'] || 0, r26 = rule.reqs['26'] || 0;
-            let setsPossible = possKorpus;
-            if(r64 > 0) setsPossible = Math.min(setsPossible, Math.floor(entry['64'] / r64));
-            if(r38 > 0) setsPossible = Math.min(setsPossible, Math.floor(entry['38'] / r38));
-            if(r26 > 0) setsPossible = Math.min(setsPossible, Math.floor(entry['26'] / r26));
-
-            if(setsPossible > 0){
-              const title = (rule.pattern || '{Korpus} {Tür} ({Farbe})')
-                .replace('{Korpus}', rule.model)
-                .replace('{Tür}', entry.art)
-                .replace('{Farbe}', entry.col);
-
-              matches.push({
-                ruleId: rule.id,
-                title: title,
-                model: rule.model,
-                korpusColor: kc,
-                doorArt: entry.art,
-                doorColor: entry.col,
-                count: setsPossible,
-                reqs: rule.reqs
-              });
-            }
-          });
-        });
-      });
-
-      if(!matches.length){
-        cont.innerHTML = '<div class="empty">Aus den aktuellen Lagerbeständen sind keine vollständigen Sets nach Regeln baubar.</div>';
-        return;
-      }
-
-      cont.innerHTML = matches.map((m, idx) => `
-        <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <div style="font-weight:800; font-size:1.05rem; color:var(--text);">${esc(m.title)}</div>
-            <div style="font-size:12px; color:var(--muted); margin-top:3px;">
-              Korpus: ${esc(m.model)} (${esc(m.korpusColor)}) · Türen: ${esc(m.doorArt)} ${esc(m.doorColor)}
-            </div>
-            <span class="chip stack" style="margin-top:6px; display:inline-block;">✨ ${m.count}x komplett baubar</span>
-          </div>
-          <button type="button" class="btn btn-primary" style="width:auto; padding:6px 14px;" onclick="window.addSellFromPossibleSet(${idx})">🛍 In den Verkauf</button>
-        </div>
-      `).join('');
-      window._lastPossibleMatches = matches;
-    };
-
-    window.addSellFromPossibleSet = function(idx){
-      const m = window._lastPossibleMatches?.[idx]; if(!m) return;
-      window.closeSetBadgesModal();
-      window.switchPage('sell');
-      state.sellCart = [];
-      window.addSellKorpusComplete(m.model, m.korpusColor);
-
-      ['64', '38', '26'].forEach(sz => {
-        const need = m.reqs[sz] || 0;
-        if(need > 0){
-          const doorItem = state.open.find(i => i.group==='Besta' && (i.productType||'').toLowerCase().includes('tür') && i.article===m.doorArt && String(i.size)===sz && String(i.color).toLowerCase()===String(m.doorColor).toLowerCase());
-          if(doorItem && doorItem.instances){
-            for(let j=0; j<need && j<doorItem.instances.length; j++){
-              state.sellCart.push({ item: doorItem, inst: doorItem.instances[j] });
-            }
-          }
-        }
-      });
-
-      const bn = g('sellBaseName'); if(bn) bn.value = m.title;
-      window.renderSellCart();
-      toast(`Set "${m.title}" in Verkauf übernommen ✓`);
-    };
-
-    window.renderSetRulesManager = function(){
-      const cont = g('setRulesList'); if(!cont) return;
-      const rules = state.master?.setRules || [];
-      cont.innerHTML = rules.map(r => `
-        <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <b>${esc(r.pattern)}</b>
-            <div style="font-size:12px; color:var(--muted);">Korpus: ${esc(r.model)} · Benötigt: 64er: ${r.reqs['64']||0}, 38er: ${r.reqs['38']||0}, 26er: ${r.reqs['26']||0}</div>
-          </div>
-          <button type="button" class="btn btn-danger" style="padding:2px 8px; font-size:11px;" onclick="window.deleteSetRule('${r.id}')">🗑</button>
-        </div>
-      `).join('');
-    };
-
-    window.saveNewSetRule = function(){
-      const pat = gVal('ruleNamePattern').trim() || '{Korpus} {Tür} ({Farbe})';
-      const mod = gVal('ruleKorpusModel');
-      const r64 = parseInt(gVal('ruleReq64')) || 0;
-      const r38 = parseInt(gVal('ruleReq38')) || 0;
-      const r26 = parseInt(gVal('ruleReq26')) || 0;
-      const same = gVal('ruleSameArtCol') === 'true';
-
-      if(!state.master.setRules) state.master.setRules = [];
-      state.master.setRules.push({
-        id: 'rule_' + uid(),
-        pattern: pat,
-        model: mod,
-        reqs: { '64': r64, '38': r38, '26': r26 },
-        sameArtCol: same
-      });
-      save(); window.autoSaveToCloud?.();
-      window.renderSetRulesManager();
-      toast('Set-Regel hinzugefügt ✓');
-    };
-
-    window.deleteSetRule = function(id){
-      state.master.setRules = (state.master.setRules || []).filter(r => r.id !== id);
-      save(); window.autoSaveToCloud?.(); window.renderSetRulesManager(); toast('Regel gelöscht');
-    };
-
-    // STAMMDATEN
+    // ==================== STAMMDATEN ====================
     window.updateMasterForm = function(){
       const cat = gVal('masterType'), grpSel = g('masterGroup'), typSel = g('masterProdType'), artSel = g('masterArticle');
       const mfG = document.querySelector('.mf-grp'), mfT = document.querySelector('.mf-typ'), mfA = document.querySelector('.mf-art');
@@ -1869,6 +2064,7 @@
     }
 
     window.renderMaster = function(){
+      window.renderMasterImageSection();
       const c = g('masterContent'); if(!c) return;
       const cat = state.master?.catalog || {}; let h = '';
       Object.keys(cat).sort(sortKeys).forEach(grp => {
@@ -1881,20 +2077,7 @@
       c.innerHTML = h;
     };
 
-    // GLOBAL LISTENERS
-    document.addEventListener('click', e=>{
-      const t=e.target; if(!t)return;
-      const el=t.nodeType===3?t.parentElement:t; if(!el||typeof el.closest!=='function')return;
-      const rm=el.closest('[data-rm]');
-      if(rm){
-        const k=rm.dataset.rm, gp=rm.dataset.grp, tp=rm.dataset.typ, ix=rm.dataset.idx;
-        if(k==='group'){if(state.master.catalog[gp])delete state.master.catalog[gp]; if(!state.deletedGroups)state.deletedGroups=[]; if(!state.deletedGroups.includes(gp))state.deletedGroups.push(gp);}
-        else if(k==='prodtype'){if(state.master.catalog[gp])delete state.master.catalog[gp][tp];}
-        else{if(state.master.catalog[gp]&&state.master.catalog[gp][tp]&&state.master.catalog[gp][tp][k])state.master.catalog[gp][tp][k].splice(+ix,1);}
-        save(); window.autoSaveToCloud?.(); window.updateMasterForm(); window.renderAllQuick(); window.renderMaster(); window.renderBestaManager();
-      }
-    });
-
+    // ==================== INITIALISIERUNG ====================
     function initApp(){
       ensureCatalogIntegrity();
       populateUhrzeit();
@@ -1907,12 +2090,12 @@
 
     function applyState(d){
       try{
-        const delSet=new Set(d.deletedIds||state.deletedIds||[]); state.deletedIds=Array.from(delSet);
-        const delGrps=new Set(d.deletedGroups||state.deletedGroups||[]); state.deletedGroups=Array.from(delGrps);
-        state.open=Array.isArray(d.open)?d.open.filter(i=>i&&!delSet.has(i.id)&&!delGrps.has(i.group)):[];
-        if(Array.isArray(d.sold)) state.sold=d.sold.filter(s=>s&&!delSet.has(s.id));
-        if(Array.isArray(d.termine)) state.termine=d.termine.filter(t=>t&&!delSet.has(t.id));
-        if(d.master&&typeof d.master==='object') state.master=d.master;
+        const delSet = new Set(d.deletedIds || state.deletedIds || []); state.deletedIds = Array.from(delSet);
+        const delGrps = new Set(d.deletedGroups || state.deletedGroups || []); state.deletedGroups = Array.from(delGrps);
+        state.open = Array.isArray(d.open) ? d.open.filter(i => i && !delSet.has(i.id) && !delGrps.has(i.group)) : [];
+        if(Array.isArray(d.sold)) state.sold = d.sold.filter(s => s && !delSet.has(s.id));
+        if(Array.isArray(d.termine)) state.termine = d.termine.filter(t => t && !delSet.has(t.id));
+        if(d.master && typeof d.master === 'object') state.master = d.master;
         ensureCatalogIntegrity();
       }catch(e){console.error(e);}
     }
@@ -1926,7 +2109,7 @@
       if(state.page === 'sell'){ window.renderSellQuick(); window.renderSellCart(); }
       if(state.page === 'open'){ window.renderOpenFilters(); window.renderOpen(); }
       if(state.page === 'sold') window.renderSold();
-      if(state.page === 'route') window.renderFavoriteSpotsManager();
+      if(state.page === 'route') window.calcRoutePage();
       if(state.page === 'master') window.renderMaster();
       if(state.page === 'termin') window.renderTermine();
       if(state.page === 'stats') window.renderStats();
