@@ -1,29 +1,32 @@
-const CACHE_NAME = 'hero-app-v2.0-buster';
+const CACHE_NAME = 'hero-app-offline-v1';
 
+// Diese Dateien werden auf dem Handy gespeichert
 const FILES_TO_CACHE = [
   './',
   './index.html',
-  './app.js?v=2.0',
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
   'https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap'
 ];
 
+// Installation: App in den Speicher laden
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE))
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('App offline gespeichert');
+      return cache.addAll(FILES_TO_CACHE);
+    })
   );
+  self.skipWaiting();
 });
 
+// Aufräumen: Alte Versionen löschen, falls du ein Update auf GitHub machst
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
+    caches.keys().then((cacheNames) => {
       return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
           }
         })
       );
@@ -32,21 +35,15 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Network-first für app.js und index.html damit Updates immer sofort geladen werden
+// Lade-Logik: Immer aus dem Speicher laden (für Offline-Nutzung)
 self.addEventListener('fetch', (event) => {
-  if (event.request.url.includes('app.js') || event.request.url.includes('index.html')) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const resClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, resClone));
-          return response;
-        })
-        .catch(() => caches.match(event.request))
-    );
-  } else {
-    event.respondWith(
-      caches.match(event.request).then((resp) => resp || fetch(event.request))
-    );
-  }
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      // Wenn im Speicher gefunden -> sofort laden. Ansonsten aus dem Internet holen.
+      return response || fetch(event.request).catch(() => {
+        // Fallback: Wenn offline und nicht gefunden, starte die Startseite
+        return caches.match('./index.html');
+      });
+    })
+  );
 });
