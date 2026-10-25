@@ -64,10 +64,10 @@ const DEFAULT_FAVORITE_SPOTS = [
 ];
 
 const DEFAULT_SET_RULES = [
-  { id: 'rule_1', customText: 'Sideboard Set möglich: 2x {Tür} ({Farbe}, Gr. 64)', doorSize: '64', doorCount: 2, korpusModel: 'Sideboard' },
-  { id: 'rule_2', customText: 'Longboard Set möglich: 3x {Tür} ({Farbe}, Gr. 64)', doorSize: '64', doorCount: 3, korpusModel: 'Longboard' },
-  { id: 'rule_3', customText: 'TV-Sideboard möglich: 2x {Tür} ({Farbe}, Gr. 38)', doorSize: '38', doorCount: 2, korpusModel: 'Sideboard (niedrig)' },
-  { id: 'rule_4', customText: 'TV-Longboard möglich: 3x {Tür} ({Farbe}, Gr. 38)', doorSize: '38', doorCount: 3, korpusModel: 'Longboard (niedrig)' }
+  { id: 'rule_1', customText: 'Sideboard', doorSize: '64', doorCount: 2, korpusModels: ['Sideboard'] },
+  { id: 'rule_2', customText: 'Longboard', doorSize: '64', doorCount: 3, korpusModels: ['Longboard'] },
+  { id: 'rule_3', customText: 'TV-Bank 120', doorSize: '38', doorCount: 2, korpusModels: ['Sideboard (niedrig)', 'Sideboard TV'] },
+  { id: 'rule_4', customText: 'TV-Bank 180', doorSize: '38', doorCount: 3, korpusModels: ['Longboard (niedrig)', 'Longboard TV (niedrig)'] }
 ];
 
 const DEFAULT_BESTA_TUEREN = ['Björköviken','Djupviken','Förvaltare','Glassvik','Grundsviken','Hammarsmed','Hanviken','Hedeviken','Hjortviken','Kallviken','Krukmakare','Lappviken','Laxviken','Mjörtviken','Norum','Novum','Pippmakare','Riksviken','Selsviken','Sindvik','Smeviken','Studsviken','Sutterviken','Tofta','Tombo','Vara','Vassbo'];
@@ -130,7 +130,7 @@ window.bestaActiveTab = 'tueren';
 window.bestaTuerColors = {};
 window.bestaGlobalKorpusColor = 'Weiß';
 
-// ==================== EK-STANDARDS (TÜREN: 5€ / 3€ | KORPUS & BAUTEILE: 0€) ====================
+// ==================== EK-STANDARDS (TÜREN: 5€ / 3€ | KORPUSSE & BAUTEILE: 0€) ====================
 window.getBestaTuerDefaultEk = function(art, sz){
   const key = `tuer_${art}_${sz}`;
   if(state.master?.bestaCustomEks?.[key] !== undefined) return state.master.bestaCustomEks[key];
@@ -145,7 +145,6 @@ window.setBestaTuerDefaultEk = function(art, sz, val){
   save();
 };
 
-// Standard-EK für Korpusse = 0 €
 window.getBestaKorpusDefaultEk = function(model){
   const key = `korpus_${model}`;
   if(state.master?.bestaCustomEks?.[key] !== undefined) return state.master.bestaCustomEks[key];
@@ -160,7 +159,6 @@ window.setBestaKorpusDefaultEk = function(model, val){
   save();
 };
 
-// Standard-EK für Einzel-Bauteile = 0 €
 window.getBestaBauteilDefaultEk = function(p, s){
   const key = `bauteil_${p}_${s}`;
   if(state.master?.bestaCustomEks?.[key] !== undefined) return state.master.bestaCustomEks[key];
@@ -175,7 +173,7 @@ window.setBestaBauteilDefaultEk = function(p, s, val){
   save();
 };
 
-// ==================== DATENBANK & ZUVERLÄSSIGES AUTO-SAVE ====================
+// ==================== DATENBANK & CLOUD AUTO-SAVE ====================
 function openDB(){
   return new Promise((res,rej)=>{
     if(db){res(db);return;}
@@ -202,14 +200,12 @@ function save(){
 
   setAutoSaveIndicator('⏳ Speichert...', 'var(--warn)');
 
-  // 1. Sofort im LocalStorage sichern
   try {
     localStorage.setItem('amp3', JSON.stringify(pl));
   } catch(e) {
-    console.warn('LocalStorage Limit erreicht, nutze IndexedDB:', e);
+    console.warn('LocalStorage voll, IndexedDB sichert weiter:', e);
   }
 
-  // 2. Sofort in IndexedDB sichern (unbegrenzter Speicher für Bilder & Daten)
   openDB().then(database => {
     const tx = database.transaction(STORE, 'readwrite');
     tx.objectStore(STORE).put(pl, 'state');
@@ -218,14 +214,12 @@ function save(){
     };
   }).catch(() => {});
 
-  // 3. Automatisch im Hintergrund in Google Cloud speichern (entprellt auf 800ms)
   if(cloudAutoSaveTimer) clearTimeout(cloudAutoSaveTimer);
   cloudAutoSaveTimer = setTimeout(() => {
     window.autoSaveToCloud();
   }, 800);
 }
 
-// Sicherung auch beim Verlassen/Schließen des Tabs erzwingen
 window.addEventListener('visibilitychange', () => {
   if(document.visibilityState === 'hidden') {
     const pl = {open:state.open,sold:state.sold,termine:state.termine,master:state.master,year:state.year,deletedIds:state.deletedIds,deletedGroups:state.deletedGroups};
@@ -513,16 +507,26 @@ window.deleteImageFromCategory = function(cat, idx){
   save(); window.renderMasterImageSection(); toast('Bild entfernt ✓');
 };
 
-// ==================== BESTA INVENTAR & BOM ====================
+// ==================== BESTA INVENTAR & TÜR-SYNCHRONISATION ====================
 function getTuerQty(art, sz, col){
-  const cl = String(col || 'Weiß').toLowerCase().trim();
-  let sum = 0;
-  for(const x of state.open){
-    if(x && x.group === 'Besta' && (x.productType || '').toLowerCase().includes('tür') && x.article === art && String(x.size || '').trim() === String(sz).trim() && String(x.color || '').toLowerCase().trim() === cl){
-      sum += (x.instances ? x.instances.length : 0);
+  const artNorm = String(art || '').toLowerCase().trim();
+  const szNorm = String(sz || '').toLowerCase().replace(/[^0-9]/g, '').trim();
+  const colNorm = String(col || 'Weiß').toLowerCase().trim();
+
+  return state.open.reduce((sum, x) => {
+    if(!x || String(x.group || '').toLowerCase().trim() !== 'besta') return sum;
+    const pt = String(x.productType || '').toLowerCase().trim();
+    if(!pt.includes('tür') && !pt.includes('tuer')) return sum;
+
+    const xArt = String(x.article || '').toLowerCase().trim();
+    const xSz = String(x.size || '').toLowerCase().replace(/[^0-9]/g, '').trim();
+    const xCol = String(x.color || 'Weiß').toLowerCase().trim();
+
+    if(xArt === artNorm && xSz === szNorm && xCol === colNorm){
+      return sum + (Array.isArray(x.instances) ? x.instances.length : 0);
     }
-  }
-  return sum;
+    return sum;
+  }, 0);
 }
 
 function getBestaComp(p,s,c){
@@ -614,19 +618,57 @@ window.deleteBestaTuerColor = function(art, color){
   save(); window.renderBestaManager(); window.renderOpen(); toast('Farbe entfernt ✓');
 };
 
-window.changeBestaTuerQty = function(art,sz,c,d){
-  const col = c || 'Weiß'; const cl = String(col).toLowerCase().trim();
-  let ex = state.open.find(x => x && x.group==='Besta' && (x.productType||'').toLowerCase().includes('tür') && x.article===art && String(x.size||'').trim()===String(sz).trim() && String(x.color||'').toLowerCase().trim()===cl);
+window.changeBestaTuerQty = function(art, sz, c, d){
+  const col = c || 'Weiß';
+  const artNorm = String(art || '').toLowerCase().trim();
+  const szNorm = String(sz || '').toLowerCase().replace(/[^0-9]/g, '').trim();
+  const colNorm = String(col).toLowerCase().trim();
+
+  const matches = state.open.filter(x => {
+    if(!x || String(x.group || '').toLowerCase().trim() !== 'besta') return false;
+    const pt = String(x.productType || '').toLowerCase().trim();
+    if(!pt.includes('tür') && !pt.includes('tuer')) return false;
+    return String(x.article || '').toLowerCase().trim() === artNorm &&
+           String(x.size || '').toLowerCase().replace(/[^0-9]/g, '').trim() === szNorm &&
+           String(x.color || 'Weiß').toLowerCase().trim() === colNorm;
+  });
+
   if(d > 0){
     const ek = window.getBestaTuerDefaultEk(art, sz);
     const inst = { id: uid(), purchasePrice: ek, profitshare: false, entryDate: today() };
-    if(ex) ex.instances.push(inst);
-    else state.open.unshift({ id: uid(), group: 'Besta', productType: 'Tür', article: art, size: sz, color: col, purchasePrice: ek, profitshare: false, instances: [inst] });
+    if(matches.length > 0){
+      if(!Array.isArray(matches[0].instances)) matches[0].instances = [];
+      matches[0].instances.push(inst);
+      for(let i = 1; i < matches.length; i++){
+        if(Array.isArray(matches[i].instances) && matches[i].instances.length > 0){
+          matches[0].instances.push(...matches[i].instances);
+          matches[i].instances = [];
+        }
+      }
+    } else {
+      state.open.unshift({
+        id: uid(),
+        group: 'Besta',
+        productType: 'Tür',
+        article: art,
+        size: String(sz).trim(),
+        color: col,
+        purchasePrice: ek,
+        profitshare: false,
+        instances: [inst]
+      });
+    }
     toast(`+1 ${art} (${col}, Gr. ${sz}) · EK: ${euro(ek)} ✓`);
-  } else if(d < 0 && ex && ex.instances && ex.instances.length > 0){
-    ex.instances.pop(); toast(`-1 ${art} (${col}, Gr. ${sz})`);
+  } else if(d < 0){
+    const target = matches.find(m => Array.isArray(m.instances) && m.instances.length > 0);
+    if(target){
+      target.instances.pop();
+      toast(`-1 ${art} (${col}, Gr. ${sz})`);
+    }
   }
-  save(); window.renderBestaManager(); window.renderOpen();
+  save();
+  window.renderBestaManager();
+  window.renderOpen();
 };
 
 window.updateDoorOVP = function(art, sz, val){
@@ -665,7 +707,7 @@ window.addBestaKorpusDirect = function(){
 
   for(const [p, d] of Object.entries(bom)){ addBestaInst(p, d.s, c, d.q * q, pieceEk, isPs, ''); }
   save(); window.renderBestaManager(); window.renderOpen();
-  toast(`${q}x ${m} (${c}) erfasst ✓`); const pin = g('bestaQuickPrice'); if(pin) pin.value = '';
+  toast(`${q}x ${m} (${c}) erfasst ✓`); const pin = g('bestaQuickPrice'); if(pin) pin.value = '0';
 };
 
 window.changeBestaBauteilQty = function(p,s,d){
@@ -725,7 +767,7 @@ window.renderBestaManager = function(){
 
       if(bCat['Tür']?.articles) bCat['Tür'].articles.forEach(a => dArts.add(a));
       state.open.forEach(i => {
-        if(i && i.group === 'Besta' && (i.productType||'').toLowerCase().includes('tür') && i.article){
+        if(i && String(i.group||'').toLowerCase().trim() === 'besta' && (i.productType||'').toLowerCase().includes('tür') && i.article){
           dArts.add(i.article);
           if(!dc[i.article]) dc[i.article] = new Set();
           if(i.color) dc[i.article].add(i.color);
@@ -743,9 +785,8 @@ window.renderBestaManager = function(){
       let visSzs = [...allSzs];
       if(window.bestaHideZero){
         visSzs = allSzs.filter(sz => sArts.some(art => {
-          const sc = window.bestaTuerColors[art] || Array.from(dc[art]||[])[0] || 'Weiß';
-          const scl = String(sc).toLowerCase().trim();
-          return state.open.some(i => i && i.group==='Besta' && (i.productType||'').toLowerCase().includes('tür') && i.article===art && String(i.size||'').trim()===sz && String(i.color||'').toLowerCase().trim()===scl && (i.instances?.length>0));
+          const ac = Array.from(dc[art] || []);
+          return ac.some(col => getTuerQty(art, sz, col) > 0);
         }));
       }
 
@@ -754,27 +795,33 @@ window.renderBestaManager = function(){
 
       sArts.forEach(art => {
         const ac = Array.from(dc[art] || []).sort(sortKeys);
-        if(!window.bestaTuerColors[art]){
-          let bc = ac[0] || 'Weiß';
+        
+        const curSel = window.bestaTuerColors[art];
+        const curSelTotal = curSel ? allSzs.reduce((sum, sz) => sum + getTuerQty(art, sz, curSel), 0) : 0;
+
+        if(!curSel || curSelTotal === 0){
           for(let c of ac){
-            if(state.open.some(i => i && i.group==='Besta' && (i.productType||'').toLowerCase().includes('tür') && i.article===art && String(i.color||'').toLowerCase().trim()===String(c).toLowerCase().trim() && (i.instances?.length>0))){
-              bc = c; break;
+            const cSum = allSzs.reduce((sum, sz) => sum + getTuerQty(art, sz, c), 0);
+            if(cSum > 0){
+              window.bestaTuerColors[art] = c;
+              break;
             }
           }
-          window.bestaTuerColors[art] = bc;
+          if(!window.bestaTuerColors[art]) window.bestaTuerColors[art] = ac[0] || 'Weiß';
         }
 
         const sel = window.bestaTuerColors[art] || ac[0] || 'Weiß';
-        const scl = String(sel).toLowerCase().trim();
         const cnts = {};
         let tR = 0;
 
         visSzs.forEach(s => {
-          const c = state.open.reduce((sum,i) => (i && i.group==='Besta' && (i.productType||'').toLowerCase().includes('tür') && i.article===art && String(i.size||'').trim()===s && String(i.color||'').toLowerCase().trim()===scl)?sum+(i.instances?i.instances.length:0):sum, 0);
-          cnts[s] = c; tR += c;
+          const c = getTuerQty(art, s, sel);
+          cnts[s] = c;
+          tR += c;
         });
 
-        if(window.bestaHideZero && tR === 0) return;
+        const totalAllColors = ac.reduce((sum, c) => sum + allSzs.reduce((s2, sz) => s2 + getTuerQty(art, sz, c), 0), 0);
+        if(window.bestaHideZero && totalAllColors === 0) return;
 
         const al = getEntityImage('Besta','Tür',art);
         const imH = al ? `<img src="${al}" class="tuer-thumb-img" onclick="window.setArticleLogo('Besta','Tür','${safeJsStr(art)}')" title="Bild ändern">` : `<div class="tuer-thumb-placeholder" onclick="window.setArticleLogo('Besta','Tür','${safeJsStr(art)}')" title="Bild auswählen">📷</div>`;
@@ -784,8 +831,10 @@ window.renderBestaManager = function(){
           const norm = String(c).toLowerCase().trim();
           const hasLogo = Boolean(state.master?.colorImages?.[norm]);
           const st = getColorStyle(c);
+          const colorTotal = allSzs.reduce((sum, sz) => sum + getTuerQty(art, sz, c), 0);
+          const countLabel = colorTotal > 0 ? ` <b style="color:var(--primary);">(${colorTotal})</b>` : '';
 
-          return `<div class="color-dot-btn ${isAct?'active':''} ${hasLogo?'has-logo':''}" onclick="window.onBestaTuerColorSelect('${safeJsStr(art)}','${safeJsStr(c)}')"><span class="color-swatch-circle" style="${st}" title="${esc(c)}"></span>${hasLogo?'':`<span>${esc(c)}</span>`}<span class="color-btn-actions"><span class="color-btn-del" title="Farbe löschen" onclick="event.stopPropagation(); window.deleteBestaTuerColor('${safeJsStr(art)}','${safeJsStr(c)}')">✕</span><span class="color-btn-img" title="Muster wählen" onclick="event.stopPropagation(); window.uploadColorSwatch('${safeJsStr(c)}')">🖼</span></span></div>`;
+          return `<div class="color-dot-btn ${isAct?'active':''} ${hasLogo?'has-logo':''}" onclick="window.onBestaTuerColorSelect('${safeJsStr(art)}','${safeJsStr(c)}')"><span class="color-swatch-circle" style="${st}" title="${esc(c)}"></span>${hasLogo ? (colorTotal > 0 ? `<span><b>${colorTotal}</b></span>` : '') : `<span>${esc(c)}${countLabel}</span>`}<span class="color-btn-actions"><span class="color-btn-del" title="Farbe löschen" onclick="event.stopPropagation(); window.deleteBestaTuerColor('${safeJsStr(art)}','${safeJsStr(c)}')">✕</span><span class="color-btn-img" title="Muster wählen" onclick="event.stopPropagation(); window.uploadColorSwatch('${safeJsStr(c)}')">🖼</span></span></div>`;
         }).join('') + `<span class="chip" style="cursor:pointer; border-style:dashed;" onclick="window.addBestaColorToArticle('${safeJsStr(art)}')">✚</span>`;
 
         const qC = visSzs.map(s => {
@@ -821,7 +870,7 @@ window.renderBestaManager = function(){
 
         const trBg = (rowIdx % 2 === 0) ? 'background:var(--surface2);' : 'background:transparent;';
         rowIdx++;
-        tb += `<tr style="${trBg}" class="${tR === 0 ? 'is-zero' : ''}"><td>${imH}</td><td style="font-weight:800; font-size:1.15rem; text-align:left;">${esc(art)}</td><td style="text-align:left;"><div class="chips" style="gap:4px;">${cChips}</div></td>${qC}</tr>`;
+        tb += `<tr style="${trBg}" class="${totalAllColors === 0 ? 'is-zero' : ''}"><td>${imH}</td><td style="font-weight:800; font-size:1.15rem; text-align:left;">${esc(art)}</td><td style="text-align:left;"><div class="chips" style="gap:4px;">${cChips}</div></td>${qC}</tr>`;
       });
 
       tt.innerHTML = th + '<tbody>' + (tb || '<tr><td colspan="6" class="empty">Alle Türen 0.</td></tr>') + '</tbody>';
@@ -1055,7 +1104,7 @@ if(itemFrm){
       if(ex) ex.instances.push(inst);
       else { ex = { id: uid(), ...pl, instances: [inst] }; state.open.unshift(ex); }
     }
-    save(); toast(`${qty}x eingepflegt ✓`); window.resetItemForm(); window.renderOpen();
+    save(); toast(`${qty}x eingepflegt ✓`); window.resetItemForm(); window.renderOpen(); window.renderBestaManager();
   });
 }
 
@@ -1241,9 +1290,16 @@ window.toggleAllGroups = function(){ globalExpandState = !globalExpandState; sta
 window.changeQty = function(id, delta){
   const it = state.open.find(x => x.id === id); if(!it) return;
   if(!it.instances) it.instances = [];
-  if(delta > 0){ it.instances.push({ id: uid(), purchasePrice: it.purchasePrice || 0, profitshare: it.profitshare || false, entryDate: today() }); toast('Menge erhöht ✓'); }
-  else if(delta < 0 && it.instances.length > 0){ it.instances.pop(); toast('Menge verringert'); }
-  save(); window.renderOpen();
+  if(delta > 0){
+    it.instances.push({ id: uid(), purchasePrice: it.purchasePrice || 0, profitshare: it.profitshare || false, entryDate: today() });
+    toast('Menge erhöht ✓');
+  } else if(delta < 0 && it.instances.length > 0){
+    it.instances.pop();
+    toast('Menge verringert');
+  }
+  save();
+  window.renderOpen();
+  window.renderBestaManager();
 };
 
 window.editEK = function(id){
@@ -1266,10 +1322,10 @@ window.toggleItemProfitshare = function(id){
 window.deleteItem = function(id){
   if(!confirm('Artikel löschen?')) return;
   state.open = state.open.filter(x => x.id !== id);
-  save(); window.renderOpen(); toast('Artikel gelöscht');
+  save(); window.renderOpen(); window.renderBestaManager(); toast('Artikel gelöscht');
 };
 
-// ==================== EXPORT & ZUVERLÄSSIGER CLOUD SYNC ====================
+// ==================== EXPORT & CLOUD SYNC ====================
 function triggerDownload(data, filename){
   const b = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = filename;
@@ -1280,7 +1336,7 @@ window.exportData = function(){ triggerDownload({open:state.open,sold:state.sold
 window.exportBestand = function(){ triggerDownload({open:state.open}, `bestand-${today()}.json`); toast('Bestand exportiert ✓'); };
 window.exportBesta = function(){ triggerDownload({bestaInventory: state.open.filter(i=>i.group==='Besta'), catalog: state.master?.catalog?.Besta||{}, models: BESTA_KORPUS_MODELS}, `besta-korpusse-${today()}.json`); toast('Besta & Korpusse exportiert ✓'); };
 window.exportSold = function(){ triggerDownload({sold:state.sold}, `historie-${today()}.json`); toast('Historie exportiert ✓'); };
-window.importData = function(file){ if(!file)return; toast('Lese Datei...'); const r=new FileReader(); r.onload=e=>{try{let d=JSON.parse(e.target.result);if(Array.isArray(d))d={open:d};else if(d.state)d=d.state;else if(d.data)d=d.data;applyState(d);save();window.updateMasterForm();window.renderAllQuick();window.renderMaster();window.render();toast('Import erfolgreich ✓');}catch(err){alert('Fehler: '+err.message);}}; r.readAsText(file); };
+window.importData = function(file){ if(!file)return; toast('Lese Datei...'); const r=new FileReader(); r.onload=e=>{try{let d=JSON.parse(e.target.result);if(Array.isArray(d))d={open:d};else if(d.state)d=d.state;else if(d.data)d=d.data;applyState(d);save();window.updateMasterForm();window.renderAllQuick();window.renderMaster();window.renderBestaManager();window.render();toast('Import erfolgreich ✓');}catch(err){alert('Fehler: '+err.message);}}; r.readAsText(file); };
 
 window.saveGasUrl = function(val){
   const url = String(val || '').trim();
@@ -1289,7 +1345,6 @@ window.saveGasUrl = function(val){
   toast('Cloud-URL gespeichert ✓');
 };
 
-// Wichtig: KEIN keepalive:true, da keepalive bei Payloads > 64KB (Bilder!) vom Browser sofort abgebrochen wird!
 window.autoSaveToCloud = function(){
   const gasUrl = (gVal('gasUrl') || localStorage.getItem('gasUrl') || '').trim();
   if(!gasUrl) return;
@@ -1354,9 +1409,16 @@ window.loadFromCloud = async function(){
     const res = await fetch(gasUrl + (gasUrl.includes('?') ? '&' : '?') + 'nocache=' + Date.now());
     const d = await res.json();
     if(d && !d.error){
+      window.bestaTuerColors = {};
       applyState(d.data || d.state || d);
       save();
-      window.updateMasterForm(); window.renderAllQuick(); window.renderMaster(); window.renderOpenFilters(); window.renderOpen();
+      window.updateMasterForm();
+      window.renderAllQuick();
+      window.renderMaster();
+      window.renderOpenFilters();
+      window.renderOpen();
+      window.renderBestaManager();
+      window.render();
       toast('Erfolgreich aus Cloud geladen ✓');
     }
   }catch(e){ toast('Fehler beim Laden'); }
@@ -2383,10 +2445,13 @@ window.render = function(){
   if(state.page === 'stats') window.renderStats();
 };
 
-// ==================== SET-BADGES (EIGENER TEXT BEI BESTIMMTER TÜR-ANZAHL GLEICHER GRÖSSE & FARBE) ====================
+// ==================== SET-BADGES (STAKE = 1 PRO TÜR+FARBE & MEHRFACH-KORPUSSE) ====================
 let activeSetTab = 'matches';
+let setFilterCategory = '';
+window.selectedRuleKorpusse = new Set();
 
-window.openSetBadgesModal = function(){
+window.openSetBadgesModal = function(filterCat = ''){
+  setFilterCategory = filterCat || '';
   const m = g('setBadgesModal');
   if(!m) return;
   m.classList.add('show');
@@ -2396,6 +2461,7 @@ window.openSetBadgesModal = function(){
 };
 
 window.closeSetBadgesModal = function(){
+  setFilterCategory = '';
   const m = g('setBadgesModal');
   if(m){
     m.classList.remove('show');
@@ -2404,10 +2470,19 @@ window.closeSetBadgesModal = function(){
 };
 
 window.populateRuleKorpusSelect = function(){
-  const sel = g('ruleKorpusModel');
-  if(!sel) return;
+  const cont = g('ruleKorpusContainer');
+  if(!cont) return;
   const models = Object.keys(BESTA_KORPUS_MODELS || {});
-  sel.innerHTML = `<option value="">Nein (Nur Türen prüfen)</option>` + models.map(m => `<option value="${esc(m)}">Ja: ${esc(m)} (${esc(BESTA_KORPUS_MODELS[m].dim)})</option>`).join('');
+  cont.innerHTML = models.map(m => {
+    const isSel = window.selectedRuleKorpusse.has(m);
+    return `<span class="chip ${isSel ? 'active' : ''}" style="cursor:pointer;" onclick="window.toggleRuleKorpusChip('${safeJsStr(m)}')">${isSel ? '✓ ' : ''}${esc(m)}</span>`;
+  }).join('');
+};
+
+window.toggleRuleKorpusChip = function(m){
+  if(window.selectedRuleKorpusse.has(m)) window.selectedRuleKorpusse.delete(m);
+  else window.selectedRuleKorpusse.add(m);
+  window.populateRuleKorpusSelect();
 };
 
 window.setSetBadgesTab = function(tab){
@@ -2436,10 +2511,10 @@ window.saveNewSetRule = function(){
   const customText = gVal('ruleNamePattern').trim();
   const doorSize = gVal('ruleDoorSize') || '64';
   const doorCount = Math.max(1, parseInt(gVal('ruleDoorCount')) || 2);
-  const korpusModel = gVal('ruleKorpusModel') || '';
+  const korpusModels = Array.from(window.selectedRuleKorpusse);
 
   if(!customText){
-    return toast('Bitte den anzuzeigenden eigenen Text eingeben.');
+    return toast('Bitte den anzuzeigenden Text eingeben.');
   }
 
   if(!state.master.setRules) state.master.setRules = [];
@@ -2448,12 +2523,14 @@ window.saveNewSetRule = function(){
     customText: customText,
     doorSize: String(doorSize),
     doorCount: doorCount,
-    korpusModel: korpusModel
+    korpusModels: korpusModels
   });
 
   save();
   toast('Badge-Regel gespeichert ✓');
   if(g('ruleNamePattern')) g('ruleNamePattern').value = '';
+  window.selectedRuleKorpusse.clear();
+  window.populateRuleKorpusSelect();
   window.renderSetRulesList();
   window.renderOpenSetBadgesBanner();
 };
@@ -2480,7 +2557,11 @@ window.renderSetRulesList = function(){
     const txt = r.customText || r.pattern || r.namePattern || 'Eigenes Set';
     const dSz = r.doorSize || (r.reqs?.['38'] > 0 ? '38' : (r.reqs?.['26'] > 0 ? '26' : '64'));
     const dCnt = r.doorCount || r.reqs?.[dSz] || 2;
-    const kMod = r.korpusModel !== undefined ? r.korpusModel : (r.model || '');
+    
+    let kList = [];
+    if(Array.isArray(r.korpusModels) && r.korpusModels.length > 0) kList = r.korpusModels;
+    else if(r.korpusModel) kList = [r.korpusModel];
+    else if(r.model) kList = [r.model];
 
     return `
       <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
@@ -2488,7 +2569,7 @@ window.renderSetRulesList = function(){
           <b style="font-size:13px; color:var(--text);">„${esc(txt)}“</b>
           <div style="font-size:11px; color:var(--muted); margin-top:3px;">
             Bedingung: <b>Mind. ${dCnt}x Türen</b> gleicher Farbe in <b>Gr. ${esc(dSz)}</b>
-            ${kMod ? ` + Korpus <b>${esc(kMod)}</b>` : ' (Nur Türen)'}
+            ${kList.length > 0 ? `<br>Korpusse: <b>${esc(kList.join(', '))}</b>` : ' (Nur Türen)'}
           </div>
         </div>
         <button type="button" class="btn btn-danger" style="padding:4px 8px; font-size:11px; min-height:26px;" onclick="window.deleteSetRule('${r.id}')">🗑</button>
@@ -2502,48 +2583,46 @@ function computeActiveSetBadges(){
   const bCat = state.master?.catalog?.Besta || {};
   const doorArts = new Set(DEFAULT_BESTA_TUEREN);
   if(bCat['Tür']?.articles) bCat['Tür'].articles.forEach(a => doorArts.add(a));
-  state.open.forEach(i => { if(i && i.group === 'Besta' && (i.productType||'').toLowerCase().includes('tür') && i.article) doorArts.add(i.article); });
+  state.open.forEach(i => { if(i && String(i.group||'').toLowerCase().trim() === 'besta' && (i.productType||'').toLowerCase().includes('tür') && i.article) doorArts.add(i.article); });
 
   const colors = new Set(['Weiß', 'Schwarzbraun']);
-  state.open.forEach(i => { if(i && i.group === 'Besta' && i.color) colors.add(i.color); });
+  state.open.forEach(i => { if(i && String(i.group||'').toLowerCase().trim() === 'besta' && i.color) colors.add(i.color); });
 
   const matches = [];
 
   rules.forEach(rule => {
-    const rawText = rule.customText || rule.pattern || rule.namePattern || '{Anzahl}x {Tür} ({Farbe}) bereit';
+    const baseText = (rule.customText || rule.pattern || rule.namePattern || 'Set').trim();
     const dSz = String(rule.doorSize || (rule.reqs?.['38'] > 0 ? '38' : (rule.reqs?.['26'] > 0 ? '26' : '64'))).trim();
     const dCnt = Math.max(1, parseInt(rule.doorCount || rule.reqs?.[dSz] || 2));
-    const kModel = rule.korpusModel !== undefined ? rule.korpusModel : (rule.model || '');
+
+    let kModels = [];
+    if(Array.isArray(rule.korpusModels)) kModels = rule.korpusModels;
+    else if(rule.korpusModel) kModels = [rule.korpusModel];
+    else if(rule.model) kModels = [rule.model];
 
     colors.forEach(col => {
-      const possKorpus = kModel ? getBestaPoss(kModel, col) : Infinity;
-      if(kModel && possKorpus <= 0) return;
+      let baubareKorpusse = [];
+      if(kModels.length > 0){
+        baubareKorpusse = kModels.filter(km => getBestaPoss(km, col) > 0);
+        if(baubareKorpusse.length === 0) return;
+      }
 
       doorArts.forEach(art => {
         const availDoors = getTuerQty(art, dSz, col);
         if(availDoors >= dCnt){
-          const maxDoorSets = Math.floor(availDoors / dCnt);
-          const canBuild = kModel ? Math.min(possKorpus, maxDoorSets) : maxDoorSets;
-          if(canBuild > 0){
-            const displayTitle = rawText
-              .replace(/\{Tür\}/gi, art)
-              .replace(/\{Farbe\}/gi, col)
-              .replace(/\{Größe\}/gi, dSz)
-              .replace(/\{Anzahl\}/gi, String(availDoors))
-              .replace(/\{Korpus\}/gi, kModel || 'Set');
+          const displayTitle = `${baseText} ${art} ${col}`.replace(/\s+/g, ' ').trim();
 
-            matches.push({
-              ruleId: rule.id,
-              title: displayTitle,
-              korpusModel: kModel,
-              doorArt: art,
-              doorSize: dSz,
-              doorCount: dCnt,
-              availDoors: availDoors,
-              color: col,
-              canBuild: canBuild
-            });
-          }
+          matches.push({
+            ruleId: rule.id,
+            categoryName: baseText,
+            title: displayTitle,
+            doorArt: art,
+            doorSize: dSz,
+            doorCount: dCnt,
+            availDoors: availDoors,
+            color: col,
+            baubareKorpusse: baubareKorpusse
+          });
         }
       });
     });
@@ -2552,6 +2631,7 @@ function computeActiveSetBadges(){
   return matches;
 }
 
+// Banner: Zeigt jede Kategorie genau 1x an und zählt pro Tür + Farbe exakt 1 Stake hinzu
 window.renderOpenSetBadgesBanner = function(){
   const banner = g('openSetBadgesBanner');
   if(!banner) return;
@@ -2561,15 +2641,24 @@ window.renderOpenSetBadgesBanner = function(){
     return;
   }
 
+  const categoryMap = {};
+  matches.forEach(m => {
+    const cat = m.categoryName || 'Set';
+    if(!categoryMap[cat]){
+      categoryMap[cat] = { name: cat, count: 0 };
+    }
+    categoryMap[cat].count += 1;
+  });
+
   banner.innerHTML = `
-    <div style="background:rgba(16, 185, 129, 0.1); border:1px solid var(--c-var-border); border-radius:10px; padding:10px 12px;">
+    <div style="background:rgba(16, 185, 129, 0.1); border:1px solid var(--c-var-border); border-radius:10px; padding:8px 12px;">
       <div style="font-size:11px; font-weight:800; color:var(--success); text-transform:uppercase; margin-bottom:6px;">
-        🏆 Aktive Set-Badges (${matches.length} Treffer im Bestand)
+        🏆 Aktive Set-Badges (Klick zum Auswählen)
       </div>
       <div class="chips" style="gap:6px;">
-        ${matches.map(m => `
-          <span class="chip" style="background:var(--surface); border-color:var(--c-var-border); color:var(--text); font-weight:700;" onclick="window.openSetBadgesModal()">
-            ✨ ${esc(m.title)} <b style="color:var(--success);">(${m.canBuild}x)</b>
+        ${Object.values(categoryMap).map(c => `
+          <span class="chip" style="background:var(--surface); border-color:var(--c-var-border); color:var(--text); font-weight:700; cursor:pointer;" onclick="window.openSetBadgesModal('${safeJsStr(c.name)}')">
+            ✨ ${esc(c.name)} <b style="color:var(--success);">(${c.count}x)</b>
           </span>
         `).join('')}
       </div>
@@ -2577,34 +2666,62 @@ window.renderOpenSetBadgesBanner = function(){
   `;
 };
 
+// Pop-up: Zeigt alle passenden Türen in dieser Kategorie an
 window.renderPossibleSets = function(){
   const cont = g('setBadgesContent');
   if(!cont) return;
-  const matches = computeActiveSetBadges();
+  let matches = computeActiveSetBadges();
+
+  if(setFilterCategory){
+    matches = matches.filter(m => (m.categoryName || 'Set') === setFilterCategory);
+  }
 
   if(matches.length === 0){
-    cont.innerHTML = '<div class="empty">Aktuell erfüllt kein Türen-Bestand deine definierten Badge-Regeln.</div>';
+    cont.innerHTML = '<div class="empty">Aktuell erfüllt kein Türen-Bestand diese Kategorie.</div>';
     return;
   }
 
-  cont.innerHTML = matches.map(m => `
-    <div class="card" style="margin-bottom:10px; border-left:4px solid var(--success);">
-      <div class="card-body" style="padding:12px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
-        <div>
-          <div style="font-size:11px; font-weight:800; color:var(--success); text-transform:uppercase;">
-            🏆 ${esc(m.doorArt)} · Gr. ${esc(m.doorSize)} · ${esc(m.color)} (${m.availDoors} Stk. auf Lager)
+  cont.innerHTML = `
+    ${setFilterCategory ? `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:12px; color:var(--muted);">Kategorie: <b>${esc(setFilterCategory)}</b></span><button type="button" class="btn btn-ghost" style="padding:2px 8px; font-size:11px;" onclick="window.openSetBadgesModal('')">Alle anzeigen</button></div>` : ''}
+    <div style="display:grid; gap:8px; max-height:60vh; overflow-y:auto; padding-right:4px;">
+      ${matches.map((m, idx) => {
+        let korpusSelectHtml = '';
+        if(m.baubareKorpusse && m.baubareKorpusse.length > 0){
+          korpusSelectHtml = `
+            <div style="margin-top:6px; display:flex; align-items:center; gap:6px;">
+              <span style="font-size:11px; color:var(--muted); font-weight:bold;">Korpus wählen:</span>
+              <select id="selKorpus_${idx}" class="select" style="padding:3px 6px; font-size:11px; width:auto;">
+                ${m.baubareKorpusse.map(km => `<option value="${esc(km)}">${esc(km)} (vorrätig: ${getBestaPoss(km, m.color)}x)</option>`).join('')}
+              </select>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="card" style="margin-bottom:0; border-left:4px solid var(--success);">
+            <div class="card-body" style="padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+              <div>
+                <div style="font-size:11px; font-weight:800; color:var(--success); text-transform:uppercase;">
+                  🚪 ${esc(m.doorArt)} · Gr. ${esc(m.doorSize)} · ${esc(m.color)} (${m.availDoors} Stk. vorrätig)
+                </div>
+                <b style="font-size:14px; color:var(--text);">${esc(m.title)}</b>
+                ${korpusSelectHtml}
+              </div>
+              <button type="button" class="btn btn-primary" style="width:auto; min-height:30px; padding:4px 10px; font-size:11px; font-weight:700; white-space:nowrap;" onclick="window.triggerApplySet(${idx}, '${safeJsStr(m.doorArt)}', '${safeJsStr(m.color)}', '${safeJsStr(m.doorSize)}', ${m.doorCount}, '${safeJsStr(m.title)}')">
+                🛍️ In Verkauf
+              </button>
+            </div>
           </div>
-          <b style="font-size:15px; color:var(--text);">${esc(m.title)}</b>
-          <div style="font-size:12px; color:var(--muted); margin-top:3px;">
-            Mögliche Sets: <b style="color:var(--text);">${m.canBuild}x</b> ${m.korpusModel ? `(inkl. Korpus ${esc(m.korpusModel)})` : `(je ${m.doorCount} Türen)`}
-          </div>
-        </div>
-        <button type="button" class="btn btn-primary" style="width:auto; min-height:32px; padding:4px 12px; font-size:12px; font-weight:700; white-space:nowrap;" onclick="window.applySetToCart('${safeJsStr(m.korpusModel)}', '${safeJsStr(m.doorArt)}', '${safeJsStr(m.color)}', '${safeJsStr(m.doorSize)}', ${m.doorCount}, '${safeJsStr(m.title)}')">
-          🛍️ In den Verkauf
-        </button>
-      </div>
+        `;
+      }).join('')}
     </div>
-  `).join('');
+  `;
+};
+
+window.triggerApplySet = function(idx, doorArt, col, doorSize, doorCount, setName){
+  const sel = g(`selKorpus_${idx}`);
+  const chosenKorpus = sel ? sel.value : '';
+  window.applySetToCart(chosenKorpus, doorArt, col, doorSize, doorCount, setName);
 };
 
 window.applySetToCart = function(kModel, doorArt, col, doorSize, doorCount, setName){
@@ -2615,11 +2732,15 @@ window.applySetToCart = function(kModel, doorArt, col, doorSize, doorCount, setN
     window.addSellKorpusComplete(kModel, col);
   }
 
+  const artNorm = String(doorArt || '').toLowerCase().trim();
+  const szNorm = String(doorSize || '').toLowerCase().replace(/[^0-9]/g, '').trim();
   const cl = String(col).toLowerCase().trim();
   let picked = 0;
+
   for(const item of state.open){
-    if(item && item.group === 'Besta' && (item.productType||'').toLowerCase().includes('tür') && 
-       item.article === doorArt && String(item.size||'').trim() === String(doorSize).trim() && 
+    if(item && String(item.group||'').toLowerCase().trim() === 'besta' && (item.productType||'').toLowerCase().includes('tür') && 
+       String(item.article||'').toLowerCase().trim() === artNorm && 
+       String(item.size||'').toLowerCase().replace(/[^0-9]/g, '').trim() === szNorm && 
        String(item.color||'').toLowerCase().trim() === cl && item.instances){
       for(const inst of item.instances){
         if(picked < doorCount && !state.sellCart.some(c => c.inst && c.inst.id === inst.id)){

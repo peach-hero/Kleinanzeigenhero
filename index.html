@@ -52,12 +52,8 @@
       z-index: 200;
     }
     .brand-wrap { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
-    .brand { font-weight: 700; font-size: var(--text-base); display: flex; align-items: center; gap: 6px; color: var(--text); white-space: nowrap; flex-shrink: 0; }
-    .brand-icon { width: 26px; height: 26px; border-radius: var(--rad-sm); object-fit: cover; }
-
-    @media (max-width: 380px) {
-      .brand span { display: none; }
-    }
+    .brand { display: flex; align-items: center; gap: 6px; flex-shrink: 0; cursor: pointer; }
+    .brand-icon { width: 34px; height: 34px; border-radius: var(--rad-sm); object-fit: cover; }
 
     .cloud-quick-btns { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }
     .btn-cloud-mini { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; background: rgba(1, 105, 111, 0.25); border: 1px solid var(--primary); color: #38bdf8; border-radius: var(--rad-sm); font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.15s ease; user-select: none; }
@@ -218,7 +214,6 @@
     <div class="brand-wrap">
       <div class="brand">
         <img src="icon-192.png" class="brand-icon" alt="Logo" onerror="this.style.display='none'">
-        <span>Kleinanzeigen Hero</span>
       </div>
       <div class="cloud-quick-btns">
         <button type="button" class="btn-cloud-mini" onclick="window.saveToCloud()">☁️ Speichern</button>
@@ -266,7 +261,7 @@
           <div id="bestaKorpusTopBar" style="margin-bottom:14px; background:var(--surface2); padding:12px; border-radius:8px; border: 1px solid var(--border);"></div>
 
           <div style="margin-bottom:var(--sp4);">
-            <h2 style="font-size:1.1rem; margin-bottom:8px; font-weight:800;">🗄️ Baubare Korpusse (Standard-EK: 0 €)</h2>
+            <h2 style="font-size:1.1rem; margin-bottom:8px; font-weight:800;">🗄️ Baubare Korpusse</h2>
             <div style="overflow-x:auto; background:var(--surface); border:1px solid var(--border); border-radius:var(--rad-md);">
               <table class="matrix-table" id="bestaKorpusTable"></table>
             </div>
@@ -328,7 +323,7 @@
         <button type="button" class="btn btn-ghost" style="width:auto; white-space:nowrap; border-color:var(--primary); color:var(--text);" onclick="window.openSetBadgesModal()">🏆 Set-Badges</button>
       </div>
 
-      <!-- Aktive Set-Badges direkt über dem Bestand -->
+      <!-- Aktive Set-Badges Banner (Kompakt 1x pro Kategorie mit Stake) -->
       <div id="openSetBadgesBanner" style="margin-bottom:var(--sp3);"></div>
 
       <div class="card" style="margin-bottom:var(--sp3); background:var(--surface2);">
@@ -455,7 +450,7 @@
       </div>
     </section>
 
-    <!-- PAGE: Termine (NUR 3 ARTEN: EINKAUF, VERKAUF, LIEFERUNG + ORT) -->
+    <!-- PAGE: Termine (3 ARTEN: EINKAUF, VERKAUF, LIEFERUNG + ORT) -->
     <section id="page-termin" class="page">
       <div class="card">
         <div class="card-head"><h3 class="card-title">📅 Neuer Termin</h3></div>
@@ -627,7 +622,7 @@
     </div>
   </div>
 
-  <!-- MODAL: SET-BADGES & REGEL-EDITOR (EIGENER TEXT BEI BESTIMMTER TÜR-ANZAHL GLEICHER GRÖSSE & FARBE) -->
+  <!-- MODAL: SET-BADGES & MEHRFACH-KORPUSAUSWAHL -->
   <div id="setBadgesModal" class="modal">
     <div class="modal-content" style="max-width: 640px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp3);">
@@ -649,11 +644,11 @@
           <h4 style="font-size:13px; font-weight:800; margin-bottom:8px; text-transform:uppercase; color:var(--primary);">✚ Neue Badge-Regel (Türen gleicher Größe & Farbe)</h4>
           
           <div class="form-group" style="margin-bottom:8px;">
-            <label class="form-label">Anzuzeigender Eigener Text (Platzhalter optional: {Tür}, {Farbe}, {Größe}, {Anzahl})</label>
-            <input type="text" id="ruleNamePattern" class="input" placeholder="z.B. Sideboard komplett! oder 3x {Tür} ({Farbe}) für Longboard bereit">
+            <label class="form-label">Anzuzeigender Text (z.B. Sideboard, Longboard oder TV-Bank):</label>
+            <input type="text" id="ruleNamePattern" class="input" placeholder="z.B. Sideboard">
           </div>
 
-          <div class="grid3" style="margin-bottom:8px;">
+          <div class="grid2" style="margin-bottom:8px;">
             <div class="form-group">
               <label class="form-label">Tür-Größe</label>
               <select id="ruleDoorSize" class="select">
@@ -666,10 +661,11 @@
               <label class="form-label">Benötigte Anzahl</label>
               <input type="number" id="ruleDoorCount" class="input" value="2" min="1">
             </div>
-            <div class="form-group">
-              <label class="form-label">Korpus zusätzlich prüfen?</label>
-              <select id="ruleKorpusModel" class="select"></select>
-            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:10px;">
+            <label class="form-label">Korpusse für diese Regel auswählen (Mehrfachauswahl möglich, optional):</label>
+            <div id="ruleKorpusContainer" class="chips" style="gap:6px; max-height:130px; overflow-y:auto; padding:6px; background:var(--bg); border:1px solid var(--border); border-radius:6px;"></div>
           </div>
 
           <button type="button" class="btn btn-primary" onclick="window.saveNewSetRule()">✚ Badge-Regel speichern</button>
@@ -682,6 +678,6 @@
   </div>
 
   <!-- SCRIPT EINBINDUNG -->
-  <script src="./app.js?v=50.0"></script>
+  <script src="./app.js?v=51.0"></script>
 </body>
 </html>
