@@ -1104,7 +1104,12 @@ if(itemFrm){
       if(ex) ex.instances.push(inst);
       else { ex = { id: uid(), ...pl, instances: [inst] }; state.open.unshift(ex); }
     }
-    save(); toast(`${qty}x eingepflegt ✓`); window.resetItemForm(); window.renderOpen(); window.renderBestaManager();
+    save();
+    toast(`${qty}x eingepflegt ✓`);
+    // Kein resetItemForm() mehr -> Auswahl bleibt für den nächsten Artikel erhalten!
+    window.renderAllQuick();
+    window.renderOpen();
+    window.renderBestaManager();
   });
 }
 
@@ -1623,33 +1628,44 @@ window.updateSellPreview = function(){
 
   const sp = parseFloat(p.value.replace(',', '.')) || 0;
   const rohertrag = sp - finalEk;
-  nT.textContent = euro(rohertrag); nT.style.color = rohertrag < 0 ? 'var(--err)' : 'var(--text)';
+  nT.textContent = euro(rohertrag);
+  nT.style.color = rohertrag < 0 ? 'var(--err)' : 'var(--text)';
 
   let psEuro = 0, psPct = 0;
-  if(rohertrag > 0){
-    if(state.psMode === 'euro'){
-      psEuro = parseFloat(pe.value.replace(',', '.')) || 0;
+  if(state.psMode === 'euro'){
+    psEuro = parseFloat((pe ? pe.value : '').replace(',', '.')) || 0;
+    if(rohertrag > 0){
       if(psEuro > rohertrag) psEuro = rohertrag;
       psPct = (psEuro / rohertrag) * 100;
-      if(pi) pi.value = Math.round(psPct);
+      if(pi) pi.value = psEuro > 0 ? Math.round(psPct) : 0;
     } else {
-      psPct = parseFloat(pi.value.replace(',', '.')) || 0;
-      if(psPct > 100) psPct = 100;
-      psEuro = rohertrag * (psPct / 100);
-      if(pe) pe.value = psEuro > 0 ? psEuro.toFixed(2) : '';
+      if(pi) pi.value = 0;
     }
   } else {
-    if(pe) pe.value = ''; if(pi) pi.value = 0;
+    // Im Prozent-Modus das Eingabefeld PS % niemals mit 0 überschreiben, damit man jederzeit frei tippen kann
+    psPct = parseFloat((pi ? pi.value : '').replace(',', '.')) || 0;
+    if(psPct > 100){
+      psPct = 100;
+      if(pi) pi.value = 100;
+    }
+    if(rohertrag > 0){
+      psEuro = rohertrag * (psPct / 100);
+      if(pe) pe.value = psEuro > 0 ? psEuro.toFixed(2) : '';
+    } else {
+      if(pe) pe.value = '';
+    }
   }
 
   const meinGewinn = rohertrag - psEuro;
   if(sp > 0){
-    if(psEuro > 0){
+    if(psEuro > 0 || psPct > 0){
       fP.innerHTML = `Dein Reingewinn: <b style="color:var(--success); font-size:14px;">${euro(meinGewinn)}</b> <span style="color:var(--muted); font-size:11px;">(Partner: ${euro(psEuro)} / ${Math.round(psPct)}%)</span>`;
     } else {
       fP.innerHTML = `Dein Reingewinn: <b style="color:${meinGewinn >= 0 ? 'var(--success)' : 'var(--err)'}; font-size:14px;">${euro(meinGewinn)}</b>`;
     }
-  } else { fP.innerHTML = ''; }
+  } else {
+    fP.innerHTML = '';
+  }
 };
 
 window.executeSale = function(){
