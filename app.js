@@ -806,10 +806,9 @@ window.renderBestaManager = function(){
       sArts.forEach(art => {
         const ac = Array.from(dc[art] || []).sort(sortKeys);
         
-        const curSel = window.bestaTuerColors[art];
-        const curSelTotal = curSel ? allSzs.reduce((sum, sz) => sum + getTuerQty(art, sz, curSel), 0) : 0;
+const curSel = window.bestaTuerColors[art];
 
-        if(!curSel || curSelTotal === 0){
+        if(!curSel || !ac.includes(curSel)){
           for(let c of ac){
             const cSum = allSzs.reduce((sum, sz) => sum + getTuerQty(art, sz, c), 0);
             if(cSum > 0){
@@ -817,7 +816,9 @@ window.renderBestaManager = function(){
               break;
             }
           }
-          if(!window.bestaTuerColors[art]) window.bestaTuerColors[art] = ac[0] || 'Weiß';
+          if(!window.bestaTuerColors[art] || !ac.includes(window.bestaTuerColors[art])){
+            window.bestaTuerColors[art] = ac[0] || 'Weiß';
+          }
         }
 
         const sel = window.bestaTuerColors[art] || ac[0] || 'Weiß';
