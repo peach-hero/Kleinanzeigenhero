@@ -11,7 +11,7 @@ const uid = () => 'xxxx-xxxx-4xxx-yxxx-xxxx'.replace(/[xy]/g, c => { var r=Math.
 function calcDays(s) { if(!s) return 0; const t = new Date(s); if(isNaN(t.getTime())) return 0; return Math.max(0, Math.floor((new Date().getTime() - t.getTime())/(1000*60*60*24))); }
 const fmtDate = d => { if(!d) return '-'; const dt=new Date(d); return isNaN(dt.getTime())?String(d):new Intl.DateTimeFormat('de-DE',{dateStyle:'medium'}).format(dt); };
 const fmtMonth = d => { if(!d) return '-'; const dt=new Date(d); return isNaN(dt.getTime())?String(d):new Intl.DateTimeFormat('de-DE',{month:'long',year:'numeric'}).format(dt); };
-const stackKey = i => `${String(i.group||'').trim()}||${String(i.productType||'').trim()}||${String(i.article||'').trim()}||${String(i.size||'').trim()}||${String(i.color||'').trim()}`;
+const stackKey = i => [i.group, i.productType, i.article, i.size, i.color].map(x => String(x||'').trim().toLowerCase()).join('||');
 
 let toastTimer = null;
 function toast(msg) {
@@ -30,12 +30,15 @@ function setAutoSaveIndicator(statusText, colorVar = 'var(--success)') {
   badge.style.color = colorVar;
 }
 
-function fillSel(el, vals, ph) { if(el) el.innerHTML=(ph?'<option value="">'+ph+'</option>':'')+vals.map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join(''); }
+function fillSel(el, vals, ph) {
+  if(!el) return;
+  el.innerHTML = (ph ? '<option value="">' + ph + '</option>' : '') + vals.map(v => '<option value="' + esc(v) + '">' + esc(v) + '</option>').join('');
+}
 
 const COLOR_HEX_MAP = {
   'weiß': '#ffffff', 'weiss': '#ffffff', 'hochglanz weiß': 'linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%)',
-  'schwarzbraun': '#2c1e18', 'schwarz-braun': '#2c1e18', 'schwarz': '#141414', 'braun': '#4a3222',
-  'beige': '#dfd3c3', 'hell': '#e5dec9', 'holz': '#c8a97e', 'grau': '#7a7a7a', 'dunkelgrau': '#3a3a3a', 'hellgrau': '#d1d5db',
+  'schwarzbraun': '#2c1e18', 'schwarz-braun': '#2c1e18', 'schwarz': '#141414',
+  'beige': '#dfd3c3', 'grau': '#7a7a7a', 'dunkelgrau': '#3a3a3a', 'hellgrau': '#d1d5db',
   'eiche': '#c4a47c', 'eicheneffekt': '#c4a47c', 'walnuss': '#5c3a21',
   'blau': '#2563eb', 'dunkelblau': '#1e3a8a', 'grün': '#15803d', 'rot': '#b91c1c'
 };
@@ -43,11 +46,11 @@ const COLOR_HEX_MAP = {
 function getColorStyle(colorName) {
   const norm = String(colorName || '').toLowerCase().trim();
   const customImg = state.master?.colorImages?.[norm];
-  if(customImg) return "background-image: url('"+customImg+"'); border-color: rgba(255,255,255,0.4);";
+  if(customImg) return "background-image: url('" + customImg + "'); border-color: rgba(255,255,255,0.4);";
   for(const [key, hex] of Object.entries(COLOR_HEX_MAP)){
     if(norm.includes(key)){
-      if(hex.startsWith('linear-gradient')) return "background: "+hex+"; border: 1px solid #cbd5e1;";
-      return "background-color: "+hex+"; "+ (hex === '#ffffff' ? 'border: 1px solid #94a3b8;' : '');
+      if(hex.startsWith('linear-gradient')) return "background: " + hex + "; border: 1px solid #cbd5e1;";
+      return "background-color: " + hex + "; " + (hex === '#ffffff' ? 'border: 1px solid #94a3b8;' : '');
     }
   }
   return "background-color: #64748b;";
@@ -123,94 +126,12 @@ const state = {
 
 let isManualSellEk = false;
 let globalExpandState = false, db = null, imagePickCallback = null, activeImageCategoryFilter = 'Alle';
-let isCloudSaving = false;
 const DB_NAME = 'amp3db', DB_VER = 1, STORE = 'data';
 
 window.bestaHideZero = false;
 window.bestaActiveTab = 'tueren';
 window.bestaTuerColors = {};
 window.bestaGlobalKorpusColor = 'Weiß';
-
-function markDeleted(id){
-  if(!id) return;
-  if(!Array.isArray(state.deletedIds)) state.deletedIds = [];
-  if(!state.deletedIds.includes(id)) state.deletedIds.push(id);
-}
-
-// Führt doppelte Bestands-Stapel sauber zusammen und entfernt gelöschte IDs
-function consolidateOpenStacks(){
-  if(!Array.isArray(state.open)) state.open = [];
-  const delSet = new Set(state.deletedIds || []);
-  const delGrps = new Set(state.deletedGroups || []);
-  const mergedMap = new Map();
-
-  for(const item of state.open){
-    if(!item || delSet.has(item.id) || delGrps.has(item.group)) continue;
-
-    let grp = String(item.group || '').trim();
-    let pt = String(item.productType || '').trim();
-    let art = String(item.article || '').trim();
-    let sz = String(item.size || '').trim();
-    let col = String(item.color || '').trim();
-
-    if(grp.toLowerCase() === 'besta'){
-      grp = 'Besta';
-      if(pt.toLowerCase().includes('tür') || pt.toLowerCase().includes('tuer')){
-        pt = 'Tür';
-        const numSz = sz.replace(/[^0-9]/g, '').trim();
-        if(['64','38','26'].includes(numSz)) sz = numSz;
-        if(!col) col = 'Weiß';
-      } else if(pt.toLowerCase().includes('bauteil')){
-        pt = 'Korpus Bauteil';
-        if(!col) col = 'Weiß';
-      }
-    }
-
-    item.group = grp;
-    item.productType = pt;
-    item.article = art;
-    item.size = sz;
-    item.color = col;
-
-    const validInsts = [];
-    const seenInstIds = new Set();
-    for(const inst of (item.instances || [])){
-      if(!inst) continue;
-      if(!inst.id) inst.id = uid();
-      if(delSet.has(inst.id) || seenInstIds.has(inst.id)) continue;
-      seenInstIds.add(inst.id);
-      validInsts.push(inst);
-    }
-    item.instances = validInsts;
-
-    const normKey = `${grp.toLowerCase()}||${pt.toLowerCase()}||${art.toLowerCase()}||${sz.toLowerCase()}||${col.toLowerCase()}`;
-
-    if(mergedMap.has(normKey)){
-      const existing = mergedMap.get(normKey);
-      const exInstIds = new Set(existing.instances.map(x => x.id));
-      for(const inst of item.instances){
-        if(!exInstIds.has(inst.id)){
-          existing.instances.push(inst);
-          exInstIds.add(inst.id);
-        }
-      }
-      if(item.id !== existing.id) markDeleted(item.id);
-    } else {
-      mergedMap.set(normKey, item);
-    }
-  }
-
-  // Leere Besta-Tür- und Bauteil-Stapel bereinigen, damit Cloud-Merges keine alten Mengen wiederherstellen
-  const finalOpen = [];
-  for(const item of mergedMap.values()){
-    if(item.group === 'Besta' && (!item.instances || item.instances.length === 0)){
-      markDeleted(item.id);
-    } else {
-      finalOpen.push(item);
-    }
-  }
-  state.open = finalOpen;
-}
 
 // ==================== EK-STANDARDS (TÜREN: 5€ / 3€ | KORPUSSE & BAUTEILE: 0€) ====================
 window.getBestaTuerDefaultEk = function(art, sz){
@@ -268,8 +189,7 @@ function openDB(){
 
 let cloudAutoSaveTimer = null;
 
-function save(skipCloudUpload = false){
-  consolidateOpenStacks();
+function save(){
   const pl = {
     open: state.open,
     sold: state.sold,
@@ -285,31 +205,28 @@ function save(skipCloudUpload = false){
 
   try {
     localStorage.setItem('amp3', JSON.stringify(pl));
-  } catch(e) {}
+  } catch(e) {
+    console.warn('LocalStorage voll, IndexedDB sichert weiter:', e);
+  }
 
   openDB().then(database => {
     const tx = database.transaction(STORE, 'readwrite');
     tx.objectStore(STORE).put(pl, 'state');
     tx.oncomplete = () => {
-      if(skipCloudUpload) setAutoSaveIndicator('☁️ Synchronisiert ✓', 'var(--success)');
-      else setAutoSaveIndicator('✓ Lokal gesichert', 'var(--success)');
+      setAutoSaveIndicator('✓ Lokal gesichert', 'var(--success)');
     };
   }).catch(() => {});
 
-  if(!skipCloudUpload){
-    if(cloudAutoSaveTimer) clearTimeout(cloudAutoSaveTimer);
-    cloudAutoSaveTimer = setTimeout(() => {
-      window.autoSaveToCloud();
-    }, 350);
-  }
+  if(cloudAutoSaveTimer) clearTimeout(cloudAutoSaveTimer);
+  cloudAutoSaveTimer = setTimeout(() => {
+    window.autoSaveToCloud();
+  }, 800);
 }
 
 window.addEventListener('visibilitychange', () => {
   if(document.visibilityState === 'hidden') {
     const pl = {open:state.open,sold:state.sold,termine:state.termine,master:state.master,year:state.year,deletedIds:state.deletedIds,deletedGroups:state.deletedGroups};
     try { localStorage.setItem('amp3', JSON.stringify(pl)); } catch(e){}
-  } else if(document.visibilityState === 'visible' && !isCloudSaving) {
-    window.loadFromCloud(true);
   }
 });
 
@@ -376,7 +293,10 @@ function ensureCatalogIntegrity(){
   }
   if(!state.master.catalog.Besta) state.master.catalog.Besta={};
   if(!state.master.catalog.Besta['Tür']) state.master.catalog.Besta['Tür']={articles:[...DEFAULT_BESTA_TUEREN],sizes:['64','38','26'],colors:['Weiß','Schwarzbraun']};
-  if(!state.master.catalog.Besta['Korpus Bauteil']) state.master.catalog.Besta['Korpus Bauteil']={articles:['Seite','Oben/Unten','Oben/Unten TV','Mitte','Mitte TV'],sizes:[],colors:['Weiß','Schwarzbraun']};
+  if(!state.master.catalog.Besta['Korpus Bauteil']) state.master.catalog.Besta['Korpus Bauteil']={articles:['Seite','Oben/Unten','Oben/Unten TV','Mitte','Mitte TV'],sizes:['193','128','64','64s','38','38s','180','120','120s','60','60s'],colors:['Weiß','Schwarzbraun']};
+  else if(!Array.isArray(state.master.catalog.Besta['Korpus Bauteil'].sizes) || state.master.catalog.Besta['Korpus Bauteil'].sizes.length === 0){
+    state.master.catalog.Besta['Korpus Bauteil'].sizes = ['193','128','64','64s','38','38s','180','120','120s','60','60s'];
+  }
   if(!Array.isArray(state.master.favoriteSpots) || state.master.favoriteSpots.length === 0) state.master.favoriteSpots = [...DEFAULT_FAVORITE_SPOTS];
 }
 
@@ -640,11 +560,10 @@ function addBestaInst(p,s,c,q,ek=0,ps=false,def=''){
   for(let i=0;i<q;i++){
     const pl={group:'Besta',productType:'Korpus Bauteil',article:p,size:s,color:c,defect:def,purchasePrice:ek,profitshare:ps,entryDate:today()};
     const k=stackKey(pl);
-    let ex=state.open.find(x=>stackKey(x).toLowerCase()===k.toLowerCase());
+    let ex=state.open.find(x=>stackKey(x)===k);
     const inst={id:uid(),purchasePrice:ek,profitshare:ps,entryDate:today(),defect:def};
     if(ex){
-      markDeleted(ex.id);
-      ex.id = uid();
+      if(!Array.isArray(ex.instances)) ex.instances = [];
       ex.instances.push(inst);
     } else {
       state.open.unshift({id:uid(),...pl,instances:[inst]});
@@ -661,16 +580,9 @@ function remBestaInst(p,s,c,q){
        String(x.article||'').toLowerCase().trim()===artMatch && 
        String(x.size||'').trim()===String(s).trim() && 
        String(x.color||'').toLowerCase().trim()===cl && x.instances){
-      let changed = false;
       while(x.instances.length > 0 && remaining > 0){
-        const popped = x.instances.pop();
-        if(popped && popped.id) markDeleted(popped.id);
+        x.instances.pop();
         remaining--;
-        changed = true;
-      }
-      if(changed){
-        markDeleted(x.id);
-        x.id = uid();
       }
     }
   }
@@ -711,36 +623,18 @@ window.deleteBestaTuerColor = function(art, color){
       bCat.articleData[art].colors = (bCat.articleData[art].colors || []).filter(c => String(c).toLowerCase().trim() !== cl);
     }
   }
-  state.open.forEach(i => {
-    if(i && String(i.group||'').toLowerCase().trim() === 'besta' && (i.productType||'').toLowerCase().includes('tür') && String(i.article||'').toLowerCase().trim() === String(art).toLowerCase().trim() && String(i.color||'').toLowerCase().trim() === cl){
-      markDeleted(i.id);
-      (i.instances||[]).forEach(inst => markDeleted(inst.id));
-    }
-  });
-  state.open = state.open.filter(i => !(i && String(i.group||'').toLowerCase().trim() === 'besta' && (i.productType||'').toLowerCase().includes('tür') && String(i.article||'').toLowerCase().trim() === String(art).toLowerCase().trim() && String(i.color||'').toLowerCase().trim() === cl));
+  state.open = state.open.filter(i => !(i && String(i.group||'').toLowerCase().trim() === 'besta' && (i.productType||'').toLowerCase().includes('tür') && i.article === art && String(i.color||'').toLowerCase().trim() === cl));
   if(window.bestaTuerColors[art] === color){ delete window.bestaTuerColors[art]; }
   save(); window.renderBestaManager(); window.renderOpen(); toast('Farbe entfernt ✓');
 };
 
 window.changeBestaTuerQty = function(art, sz, c, d){
-  consolidateOpenStacks();
-  const col = String(c || 'Weiß').trim();
+  const col = c || 'Weiß';
   const artNorm = String(art || '').toLowerCase().trim();
   const szNorm = String(sz || '').toLowerCase().replace(/[^0-9]/g, '').trim();
-  const colNorm = col.toLowerCase();
+  const colNorm = String(col).toLowerCase().trim();
 
-  // Sicherstellen, dass die Farbe auch im Katalog der Tür registriert ist
-  const bCat = state.master?.catalog?.Besta?.['Tür'];
-  if(bCat){
-    if(!bCat.articleData) bCat.articleData = {};
-    if(bCat.articleData[art] && Array.isArray(bCat.articleData[art].colors)){
-      if(!bCat.articleData[art].colors.some(x => String(x).toLowerCase().trim() === colNorm)){
-        bCat.articleData[art].colors.push(col);
-      }
-    }
-  }
-
-  let match = state.open.find(x => {
+  const matches = state.open.filter(x => {
     if(!x || String(x.group || '').toLowerCase().trim() !== 'besta') return false;
     const pt = String(x.productType || '').toLowerCase().trim();
     if(!pt.includes('tür') && !pt.includes('tuer')) return false;
@@ -752,18 +646,22 @@ window.changeBestaTuerQty = function(art, sz, c, d){
   if(d > 0){
     const ek = window.getBestaTuerDefaultEk(art, sz);
     const inst = { id: uid(), purchasePrice: ek, profitshare: false, entryDate: today() };
-    if(match){
-      markDeleted(match.id);
-      match.id = uid();
-      if(!Array.isArray(match.instances)) match.instances = [];
-      match.instances.push(inst);
+    if(matches.length > 0){
+      if(!Array.isArray(matches[0].instances)) matches[0].instances = [];
+      matches[0].instances.push(inst);
+      for(let i = 1; i < matches.length; i++){
+        if(Array.isArray(matches[i].instances) && matches[i].instances.length > 0){
+          matches[0].instances.push(...matches[i].instances);
+          matches[i].instances = [];
+        }
+      }
     } else {
       state.open.unshift({
         id: uid(),
         group: 'Besta',
         productType: 'Tür',
-        article: String(art).trim(),
-        size: szNorm,
+        article: art,
+        size: String(sz).trim(),
         color: col,
         purchasePrice: ek,
         profitshare: false,
@@ -772,11 +670,9 @@ window.changeBestaTuerQty = function(art, sz, c, d){
     }
     toast(`+1 ${art} (${col}, Gr. ${sz}) · EK: ${euro(ek)} ✓`);
   } else if(d < 0){
-    if(match && Array.isArray(match.instances) && match.instances.length > 0){
-      const popped = match.instances.pop();
-      if(popped && popped.id) markDeleted(popped.id);
-      markDeleted(match.id);
-      match.id = uid();
+    const target = matches.find(m => Array.isArray(m.instances) && m.instances.length > 0);
+    if(target){
+      target.instances.pop();
       toast(`-1 ${art} (${col}, Gr. ${sz})`);
     }
   }
@@ -862,21 +758,16 @@ window.addBestaColorToArticle = function(a){
 };
 window.addBestaKorpusColor = function(){
   const v=prompt('Neue Korpus-Farbe:'); if(!v||!v.trim())return; const c=v.trim();
-  if(!state.master.catalog.Besta['Korpus Bauteil']) state.master.catalog.Besta['Korpus Bauteil']={articles:['Seite','Oben/Unten','Oben/Unten TV','Mitte','Mitte TV'],sizes:[],colors:[]};
+  if(!state.master.catalog.Besta['Korpus Bauteil']) state.master.catalog.Besta['Korpus Bauteil']={articles:['Seite','Oben/Unten','Oben/Unten TV','Mitte','Mitte TV'],sizes:['193','128','64','64s','38','38s','180','120','120s','60','60s'],colors:[]};
   if(!state.master.catalog.Besta['Korpus Bauteil'].colors.includes(c)){ state.master.catalog.Besta['Korpus Bauteil'].colors.push(c); state.master.catalog.Besta['Korpus Bauteil'].colors.sort(sortKeys); window.bestaGlobalKorpusColor=c; save(); window.renderBestaManager(); toast('Farbe hinzugefügt ✓'); }
 };
 window.onBestaKorpusColorChange = function(c){ window.bestaGlobalKorpusColor=c; window.renderBestaManager(); };
 
 window.renderBestaManager = function(){
   try{
-    consolidateOpenStacks();
     const bCat = state.master?.catalog?.Besta || {};
     const defaultDoorColors = bCat['Tür']?.colors || ['Weiß', 'Schwarzbraun'];
     const ovpMap = state.master?.doorOVP || {};
-
-    const bBtn = g('bestaHideZeroBtn'), bKnob = g('bestaHideZeroKnob');
-    if(bBtn) bBtn.style.background = window.bestaHideZero ? 'var(--primary)' : 'var(--surface2)';
-    if(bKnob) bKnob.style.left = window.bestaHideZero ? '22px' : '2px';
 
     const tt = g('bestaTuerenTable');
     if(tt && window.bestaActiveTab === 'tueren'){
@@ -884,21 +775,20 @@ window.renderBestaManager = function(){
       const dArts = new Set(DEFAULT_BESTA_TUEREN);
       const dc = {};
 
-      if(bCat['Tür']?.articles) bCat['Tür'].articles.forEach(a => dArts.add(String(a).trim()));
+      if(bCat['Tür']?.articles) bCat['Tür'].articles.forEach(a => dArts.add(a));
       state.open.forEach(i => {
         if(i && String(i.group||'').toLowerCase().trim() === 'besta' && (i.productType||'').toLowerCase().includes('tür') && i.article){
-          const artName = String(i.article).trim();
-          dArts.add(artName);
-          if(!dc[artName]) dc[artName] = new Set();
-          if(i.color && i.instances && i.instances.length > 0) dc[artName].add(String(i.color).trim());
+          dArts.add(i.article);
+          if(!dc[i.article]) dc[i.article] = new Set();
+          if(i.color) dc[i.article].add(i.color);
         }
       });
 
       dArts.forEach(a => {
         if(!dc[a]) dc[a] = new Set();
         const artColors = bCat['Tür']?.articleData?.[a]?.colors;
-        if(Array.isArray(artColors)){ artColors.forEach(c => dc[a].add(String(c).trim())); }
-        else { defaultDoorColors.forEach(c => dc[a].add(String(c).trim())); }
+        if(Array.isArray(artColors)){ artColors.forEach(c => dc[a].add(c)); }
+        else { defaultDoorColors.forEach(c => dc[a].add(c)); }
       });
 
       const sArts = Array.from(dArts).sort(sortKeys);
@@ -916,17 +806,18 @@ window.renderBestaManager = function(){
       sArts.forEach(art => {
         const ac = Array.from(dc[art] || []).sort(sortKeys);
         
-        // Nur initial eine Farbe mit Bestand wählen, wenn noch keine Farbe für diese Tür angeklickt wurde
-        if(!window.bestaTuerColors[art] || !ac.includes(window.bestaTuerColors[art])){
-          let bestCol = ac[0] || 'Weiß';
+        const curSel = window.bestaTuerColors[art];
+        const curSelTotal = curSel ? allSzs.reduce((sum, sz) => sum + getTuerQty(art, sz, curSel), 0) : 0;
+
+        if(!curSel || curSelTotal === 0){
           for(let c of ac){
             const cSum = allSzs.reduce((sum, sz) => sum + getTuerQty(art, sz, c), 0);
             if(cSum > 0){
-              bestCol = c;
+              window.bestaTuerColors[art] = c;
               break;
             }
           }
-          window.bestaTuerColors[art] = bestCol;
+          if(!window.bestaTuerColors[art]) window.bestaTuerColors[art] = ac[0] || 'Weiß';
         }
 
         const sel = window.bestaTuerColors[art] || ac[0] || 'Weiß';
@@ -953,7 +844,7 @@ window.renderBestaManager = function(){
           const colorTotal = allSzs.reduce((sum, sz) => sum + getTuerQty(art, sz, c), 0);
           const countLabel = colorTotal > 0 ? ` <b style="color:var(--primary);">(${colorTotal})</b>` : '';
 
-          return `<div class="color-dot-btn ${isAct?'active':''} ${hasLogo?'has-logo':''}" onclick="window.onBestaTuerColorSelect('${safeJsStr(art)}','${safeJsStr(c)}')"><span class="color-swatch-circle" style="${st}" title="${esc(c)}"></span><span>${esc(c)}${countLabel}</span><span class="color-btn-actions"><span class="color-btn-del" title="Farbe löschen" onclick="event.stopPropagation(); window.deleteBestaTuerColor('${safeJsStr(art)}','${safeJsStr(c)}')">✕</span><span class="color-btn-img" title="Muster wählen" onclick="event.stopPropagation(); window.uploadColorSwatch('${safeJsStr(c)}')">🖼</span></span></div>`;
+          return `<div class="color-dot-btn ${isAct?'active':''} ${hasLogo?'has-logo':''}" onclick="window.onBestaTuerColorSelect('${safeJsStr(art)}','${safeJsStr(c)}')"><span class="color-swatch-circle" style="${st}" title="${esc(c)}"></span>${hasLogo ? (colorTotal > 0 ? `<span><b>${colorTotal}</b></span>` : '') : `<span>${esc(c)}${countLabel}</span>`}<span class="color-btn-actions"><span class="color-btn-del" title="Farbe löschen" onclick="event.stopPropagation(); window.deleteBestaTuerColor('${safeJsStr(art)}','${safeJsStr(c)}')">✕</span><span class="color-btn-img" title="Muster wählen" onclick="event.stopPropagation(); window.uploadColorSwatch('${safeJsStr(c)}')">🖼</span></span></div>`;
         }).join('') + `<span class="chip" style="cursor:pointer; border-style:dashed;" onclick="window.addBestaColorToArticle('${safeJsStr(art)}')">✚</span>`;
 
         const qC = visSzs.map(s => {
@@ -998,7 +889,7 @@ window.renderBestaManager = function(){
     const kt = g('bestaKorpusTable'), bc = g('bestaBauteileContainer');
     if(kt && bc && window.bestaActiveTab === 'korpus'){
       const gc = new Set(['Weiß','Schwarzbraun']);
-      state.open.forEach(i => { if(i && i.group==='Besta' && (i.productType||'').toLowerCase().includes('bauteil') && i.color) gc.add(i.color); });
+      state.open.forEach(i => { if(i && String(i.group||'').toLowerCase().trim()==='besta' && (i.productType||'').toLowerCase().includes('bauteil') && i.color) gc.add(i.color); });
       if(bCat['Korpus Bauteil']?.colors) bCat['Korpus Bauteil'].colors.forEach(c => gc.add(c));
       const gCA = Array.from(gc).sort(sortKeys);
       if(!gCA.includes(window.bestaGlobalKorpusColor)) window.bestaGlobalKorpusColor = gCA[0] || 'Weiß';
@@ -1095,25 +986,70 @@ window.renderBestaManager = function(){
 // ==================== FORMULAR NEU ====================
 window.renderAllQuick = function(){
   try{
-    const gv=gVal('group'), pv=gVal('productType'), av=gVal('article');
-    const fpt=g('field-productType'); if(fpt)fpt.style.display=gv?'grid':'none';
-    const fa=g('field-article'); if(fa)fa.style.display=(gv&&pv)?'grid':'none'; 
-    const ag=new Set(Object.keys(state.master.catalog||{})); state.open.forEach(i=>{if(i.group)ag.add(i.group);}); renderQChips('group',Array.from(ag).sort(sortKeys),gv);
-    const at=new Set(); if(gv&&state.master.catalog[gv])Object.keys(state.master.catalog[gv]).forEach(t=>at.add(t)); state.open.forEach(i=>{if(i.group===gv&&i.productType)at.add(i.productType);}); renderQChips('productType',Array.from(at).sort(sortKeys),pv);
-    const aa=new Set(); if(gv&&pv&&state.master.catalog[gv]&&state.master.catalog[gv][pv]&&state.master.catalog[gv][pv].articles) state.master.catalog[gv][pv].articles.forEach(a=>aa.add(a)); state.open.forEach(i=>{if(i.group===gv&&i.productType===pv&&i.article)aa.add(i.article);}); renderQChips('article',Array.from(aa).sort(sortKeys),av);
-    const na=aa.size>0, ssc=gv&&pv&&(!na||av), fsc=g('field-size-color'); if(fsc)fsc.style.display=ssc?'grid':'none';
-    const sz=new Set(), cl=new Set(); if(ssc){ const tg=state.master.catalog[gv]?.[pv]||{}; if(na&&av){if(tg.articleData&&tg.articleData[av]){(tg.articleData[av].sizes||[]).forEach(s=>sz.add(s));(tg.articleData[av].colors||[]).forEach(c=>cl.add(c));}else{(tg.sizes||[]).forEach(s=>sz.add(s));(tg.colors||[]).forEach(c=>cl.add(c));}}else if(!na){(tg.sizes||[]).forEach(s=>sz.add(s));(tg.colors||[]).forEach(c=>cl.add(c));} state.open.forEach(i=>{if(i.group===gv&&i.productType===pv){if(!na||i.article===av){if(i.size)sz.add(i.size);if(i.color)cl.add(i.color);}}}); }
-    renderQChips('size',Array.from(sz).sort(sortKeys),gVal('size')); renderQChips('color',Array.from(cl).sort(sortKeys),gVal('color'));
+    const gv = gVal('group'), pv = gVal('productType'), av = gVal('article');
+    const curSz = gVal('size'), curCl = gVal('color');
+
+    const fpt = g('field-productType'); if(fpt) fpt.style.display = gv ? 'grid' : 'none';
+    const fa = g('field-article'); if(fa) fa.style.display = (gv && pv) ? 'grid' : 'none'; 
+
+    const ag = new Set(Object.keys(state.master.catalog || {}));
+    state.open.forEach(i => { if(i && i.group) ag.add(i.group); });
+    renderQChips('group', Array.from(ag).sort(sortKeys), gv);
+
+    const at = new Set();
+    if(gv && state.master.catalog[gv]) Object.keys(state.master.catalog[gv]).forEach(t => at.add(t));
+    state.open.forEach(i => { if(i && i.group === gv && i.productType) at.add(i.productType); });
+    renderQChips('productType', Array.from(at).sort(sortKeys), pv);
+
+    const aa = new Set();
+    if(gv && pv && state.master.catalog[gv]?.[pv]?.articles){
+      state.master.catalog[gv][pv].articles.forEach(a => aa.add(a));
+    }
+    state.open.forEach(i => { if(i && i.group === gv && i.productType === pv && i.article) aa.add(i.article); });
+    renderQChips('article', Array.from(aa).sort(sortKeys), av);
+
+    const na = aa.size > 0;
+    const ssc = Boolean(gv && pv && (!na || av));
+    const fsc = g('field-size-color');
+    if(fsc) fsc.style.display = ssc ? 'grid' : 'none';
+
+    const sz = new Set(), cl = new Set();
+    if(ssc){
+      const tg = state.master.catalog[gv]?.[pv] || {};
+      // Immer sowohl die allgemeinen Typ-Größen/Farben als auch artikelspezifische Größen/Farben laden!
+      (tg.sizes || []).forEach(s => sz.add(String(s).trim()));
+      (tg.colors || []).forEach(c => cl.add(String(c).trim()));
+      if(av && tg.articleData && tg.articleData[av]){
+        (tg.articleData[av].sizes || []).forEach(s => sz.add(String(s).trim()));
+        (tg.articleData[av].colors || []).forEach(c => cl.add(String(c).trim()));
+      }
+      state.open.forEach(i => {
+        if(i && i.group === gv && i.productType === pv){
+          if(!na || !av || i.article === av){
+            if(i.size) sz.add(String(i.size).trim());
+            if(i.color) cl.add(String(i.color).trim());
+          }
+        }
+      });
+    }
+    renderQChips('size', Array.from(sz).filter(Boolean).sort(sortKeys), curSz);
+    renderQChips('color', Array.from(cl).filter(Boolean).sort(sortKeys), curCl);
   }catch(e){console.error(e);}
 };
 
 function renderQChips(id, vals, sel){
-  const sEl = g(id); if(sEl){ fillSel(sEl, vals, ''); sEl.value = sel || ''; }
-  const cont = g(`qb-${id}`); if(!cont) return;
+  const list = Array.from(new Set([...(vals || []), ...(sel ? [sel] : [])])).filter(Boolean);
+  const sEl = g(id);
+  if(sEl){
+    fillSel(sEl, list, 'Bitte wählen...');
+    sEl.value = sel || '';
+  }
+  const cont = g(`qb-${id}`);
+  if(!cont) return;
   const lvl = id === 'group' ? 'grp' : (id === 'productType' ? 'typ' : (id === 'article' ? 'art' : 'var'));
   
   let html = (vals || []).map(v => {
-    const isAct = v === sel;
+    const isAct = String(v) === String(sel);
     let img = '';
     if(id === 'group' && state.master.groupLogos && isValidImage(state.master.groupLogos[v])) {
       img = `<img src="${state.master.groupLogos[v]}" class="grp-logo-thumb">`;
@@ -1125,21 +1061,35 @@ function renderQChips(id, vals, sel){
   cont.innerHTML = html;
 }
 
+function setSelectValueSafe(id, val){
+  const el = g(id);
+  if(!el) return;
+  if(val && !Array.from(el.options).some(o => o.value === val)){
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = val;
+    el.appendChild(opt);
+  }
+  el.value = val || '';
+}
+
 window.selectFormChip = function(id, val){
   const el = g(id); if(!el) return;
-  el.value = (el.value === val) ? '' : val;
+  const nextVal = (el.value === val) ? '' : val;
+  setSelectValueSafe(id, nextVal);
+
   if(id === 'group'){
-    const pt = g('productType'); if(pt) pt.value = '';
-    const ar = g('article'); if(ar) ar.value = '';
-    const sz = g('size'); if(sz) sz.value = '';
-    const cl = g('color'); if(cl) cl.value = '';
+    setSelectValueSafe('productType', '');
+    setSelectValueSafe('article', '');
+    setSelectValueSafe('size', '');
+    setSelectValueSafe('color', '');
   } else if(id === 'productType'){
-    const ar = g('article'); if(ar) ar.value = '';
-    const sz = g('size'); if(sz) sz.value = '';
-    const cl = g('color'); if(cl) cl.value = '';
+    setSelectValueSafe('article', '');
+    setSelectValueSafe('size', '');
+    setSelectValueSafe('color', '');
   } else if(id === 'article'){
-    const sz = g('size'); if(sz) sz.value = '';
-    const cl = g('color'); if(cl) cl.value = '';
+    setSelectValueSafe('size', '');
+    setSelectValueSafe('color', '');
   }
   window.renderAllQuick();
 };
@@ -1151,39 +1101,60 @@ window.promptAddNewChip = function(type){
 
   if(type === 'group'){
     const val = prompt('Neue Gruppe:'); if(!val || !val.trim()) return;
-    const v = val.trim(); if(!cat[v]) cat[v] = {};
-    save(); g('group').value = v; window.renderAllQuick(); toast(`Gruppe "${v}" hinzugefügt`);
+    const v = val.trim();
+    if(!cat[v]) cat[v] = {};
+    if(Array.isArray(state.deletedGroups)) state.deletedGroups = state.deletedGroups.filter(gName => gName !== v);
+    setSelectValueSafe('group', v);
+    setSelectValueSafe('productType', '');
+    setSelectValueSafe('article', '');
+    setSelectValueSafe('size', '');
+    setSelectValueSafe('color', '');
+    save(); window.renderAllQuick(); toast(`Gruppe "${v}" hinzugefügt ✓`);
   } else if(type === 'productType'){
     const grp = gVal('group'); if(!grp) return toast('Bitte zuerst Gruppe wählen.');
     const val = prompt(`Neuer Produkttyp für "${grp}":`); if(!val || !val.trim()) return;
-    const v = val.trim(); if(!cat[grp]) cat[grp] = {}; if(!cat[grp][v]) cat[grp][v] = { articles: [], sizes: [], colors: [] };
-    save(); g('productType').value = v; window.renderAllQuick(); toast(`Produkttyp "${v}" hinzugefügt`);
+    const v = val.trim();
+    if(!cat[grp]) cat[grp] = {};
+    if(!cat[grp][v]) cat[grp][v] = { articles: [], sizes: [], colors: [] };
+    setSelectValueSafe('productType', v);
+    setSelectValueSafe('article', '');
+    setSelectValueSafe('size', '');
+    setSelectValueSafe('color', '');
+    save(); window.renderAllQuick(); toast(`Produkttyp "${v}" hinzugefügt ✓`);
   } else if(type === 'article'){
     const grp = gVal('group'), typ = gVal('productType'); if(!grp || !typ) return toast('Bitte Gruppe & Typ wählen.');
     const val = prompt('Neuer Artikelname:'); if(!val || !val.trim()) return;
-    const v = val.trim(); if(!cat[grp]) cat[grp] = {}; if(!cat[grp][typ]) cat[grp][typ] = { articles: [], sizes: [], colors: [] };
+    const v = val.trim();
+    if(!cat[grp]) cat[grp] = {};
+    if(!cat[grp][typ]) cat[grp][typ] = { articles: [], sizes: [], colors: [] };
     if(!cat[grp][typ].articles) cat[grp][typ].articles = [];
     if(!cat[grp][typ].articles.includes(v)){ cat[grp][typ].articles.push(v); cat[grp][typ].articles.sort(sortKeys); }
-    save(); g('article').value = v; window.renderAllQuick(); toast(`Artikel "${v}" hinzugefügt`);
+    setSelectValueSafe('article', v);
+    setSelectValueSafe('size', '');
+    setSelectValueSafe('color', '');
+    save(); window.renderAllQuick(); toast(`Artikel "${v}" hinzugefügt ✓`);
   } else if(type === 'size' || type === 'color'){
     const grp = gVal('group'), typ = gVal('productType'), art = gVal('article'); if(!grp || !typ) return toast('Bitte Gruppe & Typ wählen.');
-    const label = type === 'size' ? 'Größe (z.B. 60x60)' : 'Farbe (z.B. Weiß)';
+    const label = type === 'size' ? 'Größe (z.B. 64 oder 60x60)' : 'Farbe (z.B. Weiß)';
     const val = prompt(`Neuer Wert für ${label}:`); if(!val || !val.trim()) return;
-    const v = val.trim(); if(!cat[grp]) cat[grp] = {}; if(!cat[grp][typ]) cat[grp][typ] = { articles: [], sizes: [], colors: [] };
-    let target = cat[grp][typ];
+    const v = val.trim();
+    if(!cat[grp]) cat[grp] = {};
+    if(!cat[grp][typ]) cat[grp][typ] = { articles: [], sizes: [], colors: [] };
+    const mainList = type === 'size' ? (cat[grp][typ].sizes = cat[grp][typ].sizes || []) : (cat[grp][typ].colors = cat[grp][typ].colors || []);
+    if(!mainList.includes(v)){ mainList.push(v); mainList.sort(sortKeys); }
     if(art){
-      if(!target.articleData) target.articleData = {};
-      if(!target.articleData[art]) target.articleData[art] = { sizes: [], colors: [] };
-      target = target.articleData[art];
+      if(!cat[grp][typ].articleData) cat[grp][typ].articleData = {};
+      if(!cat[grp][typ].articleData[art]) cat[grp][typ].articleData[art] = { sizes: [], colors: [] };
+      const artList = type === 'size' ? (cat[grp][typ].articleData[art].sizes = cat[grp][typ].articleData[art].sizes || []) : (cat[grp][typ].articleData[art].colors = cat[grp][typ].articleData[art].colors || []);
+      if(!artList.includes(v)){ artList.push(v); artList.sort(sortKeys); }
     }
-    const list = type === 'size' ? (target.sizes = target.sizes || []) : (target.colors = target.colors || []);
-    if(!list.includes(v)){ list.push(v); list.sort(sortKeys); }
-    save(); g(type).value = v; window.renderAllQuick(); toast('Gespeichert ✓');
+    setSelectValueSafe(type, v);
+    save(); window.renderAllQuick(); toast('Gespeichert ✓');
   }
 };
 
-window.onGroupChange = function(){ const pt=g('productType'); if(pt)pt.value=''; const ar=g('article'); if(ar)ar.value=''; window.renderAllQuick(); };
-window.onProductTypeChange = function(){ const ar=g('article'); if(ar)ar.value=''; window.renderAllQuick(); };
+window.onGroupChange = function(){ setSelectValueSafe('productType',''); setSelectValueSafe('article',''); window.renderAllQuick(); };
+window.onProductTypeChange = function(){ setSelectValueSafe('article',''); window.renderAllQuick(); };
 window.onArticleChange = function(){ window.renderAllQuick(); };
 
 window.toggleProfitshareNew = function(){
@@ -1198,44 +1169,79 @@ window.resetItemForm = function(){
   const ps = g('profitshare'), psb = g('profitshareBtn');
   if(ps) ps.value = 'false';
   if(psb) { psb.classList.remove('active'); psb.textContent = '🤝 Profitshare: Aus'; }
-  ['group','productType','article','size','color'].forEach(id => { const el = g(id); if(el) el.value = ''; });
+  ['group','productType','article','size','color'].forEach(id => setSelectValueSafe(id, ''));
   window.renderAllQuick();
+};
+
+function calcTreeHash(prefix, str){
+  return prefix + Math.abs(String(str).split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a;},0)).toString(36);
+}
+
+window.handleItemFormSubmit = function(e){
+  if(e) e.preventDefault();
+  const grp = gVal('group').trim();
+  const typ = gVal('productType').trim() || ' Allgemein';
+  const art = gVal('article').trim();
+  const sz = gVal('size').trim();
+  const col = gVal('color').trim();
+  const ek = parseFloat(String(gVal('purchasePrice') || '0').replace(',', '.')) || 0;
+  const qty = Math.max(1, parseInt(gVal('quantity')) || 1);
+  const def = gVal('defect').trim();
+  const ps = gVal('profitshare') === 'true';
+
+  if(!grp) return toast('Bitte zuerst eine Gruppe (1.) wählen!');
+
+  // Falls diese Gruppe früher einmal gelöscht wurde, aus deletedGroups entfernen
+  if(Array.isArray(state.deletedGroups)){
+    state.deletedGroups = state.deletedGroups.filter(gName => gName !== grp);
+  }
+
+  // Im Katalog verankern, damit Gruppe, Typ, Artikel, Größe & Farbe dauerhaft als Chips erhalten bleiben
+  if(!state.master.catalog[grp]) state.master.catalog[grp] = {};
+  if(!state.master.catalog[grp][typ]) state.master.catalog[grp][typ] = { articles: [], sizes: [], colors: [] };
+  const catNode = state.master.catalog[grp][typ];
+  if(art && !catNode.articles.includes(art)) catNode.articles.push(art);
+  if(sz && !catNode.sizes.includes(sz)) catNode.sizes.push(sz);
+  if(col && !catNode.colors.includes(col)) catNode.colors.push(col);
+
+  const pl = { group: grp, productType: typ, article: art, size: sz, color: col, defect: def, purchasePrice: ek, profitshare: ps, entryDate: today() };
+  const k = stackKey(pl);
+  let ex = state.open.find(x => x && stackKey(x) === k);
+
+  for(let i = 0; i < qty; i++){
+    const inst = { id: uid(), purchasePrice: ek, profitshare: ps, entryDate: today(), defect: def };
+    if(ex){
+      if(!Array.isArray(ex.instances)) ex.instances = [];
+      ex.instances.push(inst);
+    } else {
+      ex = { id: uid(), ...pl, instances: [inst] };
+      state.open.unshift(ex);
+    }
+  }
+
+  // Filter im Bestand zurücksetzen und die Gruppe/Kategorie automatisch aufklappen, damit der Artikel sofort sichtbar ist
+  state.openFilters = { text: '', group: '', type: '', article: '', size: '', color: '' };
+  if(g('openSearchText')) g('openSearchText').value = '';
+  state.openCollapse[calcTreeHash('g_', grp)] = true;
+  state.openCollapse[calcTreeHash('p_', grp + typ)] = true;
+  if(art) state.openCollapse[calcTreeHash('a_', grp + typ + art)] = true;
+
+  // Nur Mangel & Anzahl auf Standard setzen, die Chip-Auswahl bleibt für den nächsten Artikel erhalten!
+  if(g('defect')) g('defect').value = '';
+  if(g('quantity')) g('quantity').value = '1';
+
+  save();
+  toast(`${qty}x ${art || typ} zum Bestand hinzugefügt ✓`);
+  window.renderAllQuick();
+  window.renderOpenFilters();
+  window.renderOpen();
+  window.renderBestaManager();
+  window.renderSellQuick();
 };
 
 const itemFrm = g('itemForm');
 if(itemFrm){
-  itemFrm.addEventListener('submit', e => {
-    e.preventDefault();
-    const grp = gVal('group'), typ = gVal('productType'), art = gVal('article');
-    const sz = gVal('size'), col = gVal('color');
-    const ek = parseFloat(gVal('purchasePrice').replace(',', '.')) || 0;
-    const qty = parseInt(gVal('quantity')) || 1;
-    const def = gVal('defect').trim();
-    const ps = gVal('profitshare') === 'true';
-
-    if(!grp) return toast('Bitte Gruppe wählen.');
-    const pl = { group: grp, productType: typ, article: art, size: sz, color: col, defect: def, purchasePrice: ek, profitshare: ps, entryDate: today() };
-    const k = stackKey(pl);
-    let ex = state.open.find(x => stackKey(x).toLowerCase() === k.toLowerCase());
-
-    for(let i=0; i<qty; i++){
-      const inst = { id: uid(), purchasePrice: ek, profitshare: ps, entryDate: today(), defect: def };
-      if(ex){
-        markDeleted(ex.id);
-        ex.id = uid();
-        ex.instances.push(inst);
-      } else {
-        ex = { id: uid(), ...pl, instances: [inst] };
-        state.open.unshift(ex);
-      }
-    }
-    save();
-    toast(`${qty}x eingepflegt ✓`);
-    // Eingaben bei NEU bleiben erhalten
-    window.renderAllQuick();
-    window.renderOpen();
-    window.renderBestaManager();
-  });
+  itemFrm.addEventListener('submit', window.handleItemFormSubmit);
 }
 
 // ==================== BESTAND ====================
@@ -1244,7 +1250,7 @@ window.renderOpenFilters = function(){
   const ct = state.master.catalog || {};
   
   const ag = new Set(Object.keys(ct));
-  state.open.forEach(i => { if(i.group) ag.add(i.group); });
+  state.open.forEach(i => { if(i && i.group) ag.add(i.group); });
   const gc = g('qb-open-group');
   if(gc){
     gc.innerHTML = Array.from(ag).sort(sortKeys).map(grp => `
@@ -1261,7 +1267,7 @@ window.renderOpenFilters = function(){
   if(tc && f.group){
     const at = new Set();
     if(ct[f.group]) Object.keys(ct[f.group]).forEach(t => at.add(t));
-    state.open.forEach(i => { if(i.group === f.group && i.productType) at.add(i.productType); });
+    state.open.forEach(i => { if(i && i.group === f.group && i.productType) at.add(i.productType); });
     tc.innerHTML = Array.from(at).sort(sortKeys).map(t => `
       <div class="qb-chip lvl-typ ${f.type === t ? 'active' : ''}" onclick="window.handleOpenFilterChip('type','${safeJsStr(t)}')">
         <span>${esc(t)}</span>
@@ -1272,7 +1278,7 @@ window.renderOpenFilters = function(){
   const aa = new Set();
   if(f.group && f.type){
     if(ct[f.group]?.[f.type]?.articles) ct[f.group][f.type].articles.forEach(a => aa.add(a));
-    state.open.forEach(i => { if(i.group === f.group && i.productType === f.type && i.article) aa.add(i.article); });
+    state.open.forEach(i => { if(i && i.group === f.group && i.productType === f.type && i.article) aa.add(i.article); });
   }
   const fa = g('open-field-article');
   if(fa) fa.style.display = (f.group && f.type && aa.size > 0) ? 'grid' : 'none';
@@ -1294,17 +1300,14 @@ window.renderOpenFilters = function(){
   const sz = new Set(), cl = new Set();
   if(showSizeColor){
     const tg = ct[f.group]?.[f.type] || {};
-
+    (tg.sizes || []).forEach(s => sz.add(String(s).trim()));
+    (tg.colors || []).forEach(c => cl.add(String(c).trim()));
     if(f.article && tg.articleData && tg.articleData[f.article]){
       (tg.articleData[f.article].sizes || []).forEach(s => sz.add(String(s).trim()));
       (tg.articleData[f.article].colors || []).forEach(c => cl.add(String(c).trim()));
-    } else {
-      (tg.sizes || []).forEach(s => sz.add(String(s).trim()));
-      (tg.colors || []).forEach(c => cl.add(String(c).trim()));
     }
-
     state.open.forEach(i => {
-      if(i.group === f.group && i.productType === f.type){
+      if(i && i.group === f.group && i.productType === f.type){
         if(!hasArticles || !f.article || i.article === f.article){
           if(i.size && String(i.size).trim()) sz.add(String(i.size).trim());
           if(i.color && String(i.color).trim()) cl.add(String(i.color).trim());
@@ -1353,12 +1356,26 @@ window.updateOpenFilters = function(){ const sf=g('openSearchText'); state.openF
 window.clearOpenSearch = function(){ const sf=g('openSearchText'); if(sf)sf.value=''; state.openFilters.text=''; window.renderOpen(); };
 
 window.renderOpen = function(){
-  consolidateOpenStacks();
   window.renderOpenSetBadgesBanner?.();
   const tr=g('zeroFilterBtn'), kn=g('zeroFilterKnob'); if(tr)tr.style.background=state.hideZero?'var(--primary)':'#ccc'; if(kn)kn.style.left=state.hideZero?'22px':'2px';
   const oc=g('openContent'); if(!oc)return; if(!state.open||!state.open.length){oc.innerHTML='<div class="empty">Keine offenen Artikel.</div>';return;}
-  const tree={}, f=state.openFilters, st=f.text.toLowerCase().split(' ').filter(Boolean);
-  state.open.forEach(i=>{ if(state.hideZero&&(!i.instances||!i.instances.length))return; if(f.group&&i.group!==f.group)return; if(f.type&&i.productType!==f.type)return; if(f.article&&i.article!==f.article)return; if(f.size&&i.size!==f.size)return; if(f.color&&i.color!==f.color)return; if(st.length>0){const ss=`${i.group||''} ${i.productType||''} ${i.article||''} ${i.size||''} ${i.color||''}`.toLowerCase();if(!st.every(t=>ss.includes(t)))return;} const gp=i.group||'–', pt=i.productType||'–', ar=i.article||'', col=i.color||'–'; if(!tree[gp])tree[gp]={}; if(!tree[gp][pt])tree[gp][pt]={}; if(!tree[gp][pt][ar])tree[gp][pt][ar]={}; if(!tree[gp][pt][ar][col])tree[gp][pt][ar][col]=[]; tree[gp][pt][ar][col].push(i); });
+  const tree={}, f=state.openFilters, st=(f.text||'').toLowerCase().split(' ').filter(Boolean);
+  state.open.forEach(i=>{
+    if(!i) return;
+    if(state.hideZero&&(!i.instances||!i.instances.length))return;
+    if(f.group && String(i.group||'').trim() !== String(f.group).trim()) return;
+    if(f.type && String(i.productType||'').trim() !== String(f.type).trim()) return;
+    if(f.article && String(i.article||'').trim() !== String(f.article).trim()) return;
+    if(f.size && String(i.size||'').trim() !== String(f.size).trim()) return;
+    if(f.color && String(i.color||'').trim().toLowerCase() !== String(f.color).trim().toLowerCase()) return;
+    if(st.length>0){const ss=`${i.group||''} ${i.productType||''} ${i.article||''} ${i.size||''} ${i.color||''}`.toLowerCase();if(!st.every(t=>ss.includes(t)))return;}
+    const gp=i.group||'–', pt=i.productType||'–', ar=i.article||'', col=i.color||'–';
+    if(!tree[gp])tree[gp]={};
+    if(!tree[gp][pt])tree[gp][pt]={};
+    if(!tree[gp][pt][ar])tree[gp][pt][ar]={};
+    if(!tree[gp][pt][ar][col])tree[gp][pt][ar][col]=[];
+    tree[gp][pt][ar][col].push(i);
+  });
   let html='';
   Object.keys(tree).sort(sortKeys).forEach(gp=>{
     let gh='', grpTotal=0;
@@ -1380,7 +1397,7 @@ window.renderOpen = function(){
           ptT+=aT;
           if(!ar||!ar.trim()) ph+=ah;
           else {
-            const ak='a_'+Math.abs(String(gp+pt+ar).split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36);
+            const ak = calcTreeHash('a_', gp+pt+ar);
             let ic='<div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:6px;">';
             aS.forEach(s=>ic+=`<span class="inline-filter-chip ${f.size===s?'active':''}" style="border-color:rgba(245,158,11,0.4); padding:2px 8px; font-size:11px;" onclick="event.stopPropagation(); window.setInlineFilter('size','${safeJsStr(s)}')">Gr. ${esc(s)}</span>`);
             aC.forEach(c=>ic+=`<span class="inline-filter-chip ${f.color===c?'active':''}" style="border-color:rgba(245,158,11,0.4); padding:2px 8px; font-size:11px;" onclick="event.stopPropagation(); window.setInlineFilter('color','${safeJsStr(c)}')">${esc(c)}</span>`);
@@ -1392,7 +1409,7 @@ window.renderOpen = function(){
       });
       if(ph){
         grpTotal+=ptT;
-        const pk='p_'+Math.abs(String(gp+pt).split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36);
+        const pk = calcTreeHash('p_', gp+pt);
         let ic='<div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:6px;">';
         pS.forEach(s=>ic+=`<span class="inline-filter-chip ${f.size===s?'active':''}" style="border-color:rgba(99,102,241,0.4); padding:2px 8px; font-size:11px;" onclick="event.stopPropagation(); window.setInlineFilter('size','${safeJsStr(s)}')">Gr. ${esc(s)}</span>`);
         pC.forEach(c=>ic+=`<span class="inline-filter-chip ${f.color===c?'active':''}" style="border-color:rgba(99,102,241,0.4); padding:2px 8px; font-size:11px;" onclick="event.stopPropagation(); window.setInlineFilter('color','${safeJsStr(c)}')">${esc(c)}</span>`);
@@ -1402,7 +1419,7 @@ window.renderOpen = function(){
       }
     });
     if(gh){
-      const gk='g_'+Math.abs(String(gp).split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(36);
+      const gk = calcTreeHash('g_', gp);
       const io=state.openCollapse[gk]!==undefined?state.openCollapse[gk]:globalExpandState;
       html+=`<div style="margin-bottom:var(--sp6);"><div class="group-head" onclick="window.toggleGrp(this)" data-key="${gk}" style="cursor:pointer; border-left:4px solid var(--c-grp-border); background:var(--c-grp-bg); border-radius:8px; padding:12px; display:flex; justify-content:space-between; align-items:center;"><div style="display:flex;align-items:center;"><h2 class="group-title" style="font-size:1.40rem; color:#f0f9ff;">${io?"▼":"▶"} ${esc(gp)} <span style="font-weight:normal;color:var(--muted);font-size:var(--text-sm);">(${grpTotal} Stk)</span></h2></div><span class="chip stack" style="background:var(--c-grp);color:#fff;">${grpTotal} Stk</span></div><div class="grp-body" data-body="${gk}" style="display:${io?"block":"none"}; margin-top:8px;">${gh}</div></div>`;
     }
@@ -1419,20 +1436,13 @@ window.toggleGrp = function(el){
 window.toggleAllGroups = function(){ globalExpandState = !globalExpandState; state.openCollapse = {}; window.renderOpen(); };
 
 window.changeQty = function(id, delta){
-  consolidateOpenStacks();
   const it = state.open.find(x => x.id === id); if(!it) return;
   if(!it.instances) it.instances = [];
   if(delta > 0){
-    const lastEk = it.instances.length > 0 ? it.instances[it.instances.length - 1].purchasePrice : (it.purchasePrice || 0);
-    it.instances.push({ id: uid(), purchasePrice: lastEk, profitshare: it.profitshare || false, entryDate: today() });
-    markDeleted(it.id);
-    it.id = uid();
+    it.instances.push({ id: uid(), purchasePrice: it.purchasePrice || 0, profitshare: it.profitshare || false, entryDate: today() });
     toast('Menge erhöht ✓');
   } else if(delta < 0 && it.instances.length > 0){
-    const popped = it.instances.pop();
-    if(popped && popped.id) markDeleted(popped.id);
-    markDeleted(it.id);
-    it.id = uid();
+    it.instances.pop();
     toast('Menge verringert');
   }
   save();
@@ -1447,8 +1457,6 @@ window.editEK = function(id){
   if(val !== null){
     const p = parseFloat(val.replace(',', '.')) || 0;
     it.purchasePrice = p; (it.instances||[]).forEach(x => x.purchasePrice = p);
-    markDeleted(it.id);
-    it.id = uid();
     save(); window.renderOpen(); toast('EK aktualisiert ✓');
   }
 };
@@ -1456,23 +1464,18 @@ window.editEK = function(id){
 window.toggleItemProfitshare = function(id){
   const it = state.open.find(x => x.id === id); if(!it) return;
   it.profitshare = !it.profitshare; (it.instances||[]).forEach(x => x.profitshare = it.profitshare);
-  markDeleted(it.id);
-  it.id = uid();
   save(); window.renderOpen(); toast('Profitshare geändert');
 };
 
 window.deleteItem = function(id){
   if(!confirm('Artikel löschen?')) return;
-  const it = state.open.find(x => x.id === id);
-  if(it){
-    markDeleted(it.id);
-    (it.instances || []).forEach(inst => markDeleted(inst.id));
-  }
+  if(!state.deletedIds) state.deletedIds = [];
+  state.deletedIds.push(id);
   state.open = state.open.filter(x => x.id !== id);
   save(); window.renderOpen(); window.renderBestaManager(); toast('Artikel gelöscht');
 };
 
-// ==================== EXPORT & ZUVERLÄSSIGER CLOUD SYNC ====================
+// ==================== EXPORT & CLOUD SYNC ====================
 function triggerDownload(data, filename){
   const b = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = filename;
@@ -1492,11 +1495,10 @@ window.saveGasUrl = function(val){
   toast('Cloud-URL gespeichert ✓');
 };
 
-window.autoSaveToCloud = async function(){
+window.autoSaveToCloud = function(){
   const gasUrl = (gVal('gasUrl') || localStorage.getItem('gasUrl') || '').trim();
   if(!gasUrl) return;
   localStorage.setItem('gasUrl', gasUrl);
-  isCloudSaving = true;
 
   const payload = JSON.stringify({
     open: state.open,
@@ -1509,30 +1511,29 @@ window.autoSaveToCloud = async function(){
     updatedAt: Date.now()
   });
 
-  try {
-    await fetch(gasUrl, {
-      method: 'POST',
-      body: payload
-    });
+  fetch(gasUrl, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: payload
+  }).then(() => {
     setAutoSaveIndicator('☁️ Cloud & Lokal ✓', 'var(--success)');
-  } catch(e) {
+  }).catch(() => {
     setAutoSaveIndicator('✓ Lokal gesichert', 'var(--success)');
-  } finally {
-    isCloudSaving = false;
-  }
+  });
 };
 
 window.saveToCloud = async function(){
   const gasUrl = (gVal('gasUrl') || localStorage.getItem('gasUrl') || '').trim();
   if(!gasUrl) return toast('Bitte Script-URL in Stammdaten eintragen.');
   localStorage.setItem('gasUrl', gasUrl);
-  isCloudSaving = true;
   try{
-    consolidateOpenStacks();
     toast('Speichere in Cloud...');
     setAutoSaveIndicator('⏳ Cloud-Upload...', 'var(--warn)');
     await fetch(gasUrl, {
       method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         open: state.open,
         sold: state.sold,
@@ -1548,8 +1549,6 @@ window.saveToCloud = async function(){
     toast('In Cloud gespeichert ✓');
   }catch(e){
     toast('Fehler beim Cloud-Upload');
-  }finally{
-    isCloudSaving = false;
   }
 };
 
@@ -2544,7 +2543,10 @@ if(masterFrm){
     if(!state.master.catalog) state.master.catalog = {};
     const c = state.master.catalog;
 
-    if(cat === 'groups'){ if(!c[val]) c[val] = {}; }
+    if(cat === 'groups'){
+      if(!c[val]) c[val] = {};
+      if(Array.isArray(state.deletedGroups)) state.deletedGroups = state.deletedGroups.filter(gName => gName !== val);
+    }
     else if(cat === 'producttypes'){
       const gr = gVal('masterGroup'); if(!gr) return toast('Bitte Gruppe wählen.');
       if(!c[gr]) c[gr] = {}; if(!c[gr][val]) c[gr][val] = { articles: [], sizes: [], colors: [] };
