@@ -11,7 +11,7 @@ const uid = () => 'xxxx-xxxx-4xxx-yxxx-xxxx'.replace(/[xy]/g, c => { var r=Math.
 function calcDays(s) { if(!s) return 0; const t = new Date(s); if(isNaN(t.getTime())) return 0; return Math.max(0, Math.floor((new Date().getTime() - t.getTime())/(1000*60*60*24))); }
 const fmtDate = d => { if(!d) return '-'; const dt=new Date(d); return isNaN(dt.getTime())?String(d):new Intl.DateTimeFormat('de-DE',{dateStyle:'medium'}).format(dt); };
 const fmtMonth = d => { if(!d) return '-'; const dt=new Date(d); return isNaN(dt.getTime())?String(d):new Intl.DateTimeFormat('de-DE',{month:'long',year:'numeric'}).format(dt); };
-const stackKey = i => `${i.group}||${i.productType||''}||${i.article||''}||${i.size||''}||${i.color||''}`;
+const stackKey = i => `${String(i.group||'').trim()}||${String(i.productType||'').trim()}||${String(i.article||'').trim()}||${String(i.size||'').trim()}||${String(i.color||'').trim()}`;
 
 let toastTimer = null;
 function toast(msg) {
@@ -34,8 +34,8 @@ function fillSel(el, vals, ph) { if(el) el.innerHTML=(ph?'<option value="">'+ph+
 
 const COLOR_HEX_MAP = {
   'weiß': '#ffffff', 'weiss': '#ffffff', 'hochglanz weiß': 'linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%)',
-  'schwarzbraun': '#2c1e18', 'schwarz-braun': '#2c1e18', 'schwarz': '#141414',
-  'beige': '#dfd3c3', 'grau': '#7a7a7a', 'dunkelgrau': '#3a3a3a', 'hellgrau': '#d1d5db',
+  'schwarzbraun': '#2c1e18', 'schwarz-braun': '#2c1e18', 'schwarz': '#141414', 'braun': '#4a3222',
+  'beige': '#dfd3c3', 'hell': '#e5dec9', 'holz': '#c8a97e', 'grau': '#7a7a7a', 'dunkelgrau': '#3a3a3a', 'hellgrau': '#d1d5db',
   'eiche': '#c4a47c', 'eicheneffekt': '#c4a47c', 'walnuss': '#5c3a21',
   'blau': '#2563eb', 'dunkelblau': '#1e3a8a', 'grün': '#15803d', 'rot': '#b91c1c'
 };
@@ -123,12 +123,94 @@ const state = {
 
 let isManualSellEk = false;
 let globalExpandState = false, db = null, imagePickCallback = null, activeImageCategoryFilter = 'Alle';
+let isCloudSaving = false;
 const DB_NAME = 'amp3db', DB_VER = 1, STORE = 'data';
 
 window.bestaHideZero = false;
 window.bestaActiveTab = 'tueren';
 window.bestaTuerColors = {};
 window.bestaGlobalKorpusColor = 'Weiß';
+
+function markDeleted(id){
+  if(!id) return;
+  if(!Array.isArray(state.deletedIds)) state.deletedIds = [];
+  if(!state.deletedIds.includes(id)) state.deletedIds.push(id);
+}
+
+// Führt doppelte Bestands-Stapel sauber zusammen und entfernt gelöschte IDs
+function consolidateOpenStacks(){
+  if(!Array.isArray(state.open)) state.open = [];
+  const delSet = new Set(state.deletedIds || []);
+  const delGrps = new Set(state.deletedGroups || []);
+  const mergedMap = new Map();
+
+  for(const item of state.open){
+    if(!item || delSet.has(item.id) || delGrps.has(item.group)) continue;
+
+    let grp = String(item.group || '').trim();
+    let pt = String(item.productType || '').trim();
+    let art = String(item.article || '').trim();
+    let sz = String(item.size || '').trim();
+    let col = String(item.color || '').trim();
+
+    if(grp.toLowerCase() === 'besta'){
+      grp = 'Besta';
+      if(pt.toLowerCase().includes('tür') || pt.toLowerCase().includes('tuer')){
+        pt = 'Tür';
+        const numSz = sz.replace(/[^0-9]/g, '').trim();
+        if(['64','38','26'].includes(numSz)) sz = numSz;
+        if(!col) col = 'Weiß';
+      } else if(pt.toLowerCase().includes('bauteil')){
+        pt = 'Korpus Bauteil';
+        if(!col) col = 'Weiß';
+      }
+    }
+
+    item.group = grp;
+    item.productType = pt;
+    item.article = art;
+    item.size = sz;
+    item.color = col;
+
+    const validInsts = [];
+    const seenInstIds = new Set();
+    for(const inst of (item.instances || [])){
+      if(!inst) continue;
+      if(!inst.id) inst.id = uid();
+      if(delSet.has(inst.id) || seenInstIds.has(inst.id)) continue;
+      seenInstIds.add(inst.id);
+      validInsts.push(inst);
+    }
+    item.instances = validInsts;
+
+    const normKey = `${grp.toLowerCase()}||${pt.toLowerCase()}||${art.toLowerCase()}||${sz.toLowerCase()}||${col.toLowerCase()}`;
+
+    if(mergedMap.has(normKey)){
+      const existing = mergedMap.get(normKey);
+      const exInstIds = new Set(existing.instances.map(x => x.id));
+      for(const inst of item.instances){
+        if(!exInstIds.has(inst.id)){
+          existing.instances.push(inst);
+          exInstIds.add(inst.id);
+        }
+      }
+      if(item.id !== existing.id) markDeleted(item.id);
+    } else {
+      mergedMap.set(normKey, item);
+    }
+  }
+
+  // Leere Besta-Tür- und Bauteil-Stapel bereinigen, damit Cloud-Merges keine alten Mengen wiederherstellen
+  const finalOpen = [];
+  for(const item of mergedMap.values()){
+    if(item.group === 'Besta' && (!item.instances || item.instances.length === 0)){
+      markDeleted(item.id);
+    } else {
+      finalOpen.push(item);
+    }
+  }
+  state.open = finalOpen;
+}
 
 // ==================== EK-STANDARDS (TÜREN: 5€ / 3€ | KORPUSSE & BAUTEILE: 0€) ====================
 window.getBestaTuerDefaultEk = function(art, sz){
@@ -186,7 +268,8 @@ function openDB(){
 
 let cloudAutoSaveTimer = null;
 
-function save(){
+function save(skipCloudUpload = false){
+  consolidateOpenStacks();
   const pl = {
     open: state.open,
     sold: state.sold,
@@ -202,28 +285,31 @@ function save(){
 
   try {
     localStorage.setItem('amp3', JSON.stringify(pl));
-  } catch(e) {
-    console.warn('LocalStorage voll, IndexedDB sichert weiter:', e);
-  }
+  } catch(e) {}
 
   openDB().then(database => {
     const tx = database.transaction(STORE, 'readwrite');
     tx.objectStore(STORE).put(pl, 'state');
     tx.oncomplete = () => {
-      setAutoSaveIndicator('✓ Lokal gesichert', 'var(--success)');
+      if(skipCloudUpload) setAutoSaveIndicator('☁️ Synchronisiert ✓', 'var(--success)');
+      else setAutoSaveIndicator('✓ Lokal gesichert', 'var(--success)');
     };
   }).catch(() => {});
 
-  if(cloudAutoSaveTimer) clearTimeout(cloudAutoSaveTimer);
-  cloudAutoSaveTimer = setTimeout(() => {
-    window.autoSaveToCloud();
-  }, 800);
+  if(!skipCloudUpload){
+    if(cloudAutoSaveTimer) clearTimeout(cloudAutoSaveTimer);
+    cloudAutoSaveTimer = setTimeout(() => {
+      window.autoSaveToCloud();
+    }, 350);
+  }
 }
 
 window.addEventListener('visibilitychange', () => {
   if(document.visibilityState === 'hidden') {
     const pl = {open:state.open,sold:state.sold,termine:state.termine,master:state.master,year:state.year,deletedIds:state.deletedIds,deletedGroups:state.deletedGroups};
     try { localStorage.setItem('amp3', JSON.stringify(pl)); } catch(e){}
+  } else if(document.visibilityState === 'visible' && !isCloudSaving) {
+    window.loadFromCloud(true);
   }
 });
 
@@ -532,7 +618,7 @@ function getTuerQty(art, sz, col){
 function getBestaComp(p,s,c){
   const cl=String(c||'').toLowerCase().trim(), artMatch=String(p).toLowerCase().trim();
   return state.open.reduce((sum,i)=>{
-    if(i && i.group==='Besta' && (i.productType||'').toLowerCase().includes('bauteil')){
+    if(i && String(i.group||'').toLowerCase().trim()==='besta' && (i.productType||'').toLowerCase().includes('bauteil')){
       if(String(i.article||'').toLowerCase().trim()===artMatch && String(i.size||'').trim()===String(s).trim() && String(i.color||'').toLowerCase().trim()===cl){
         return sum + (i.instances ? i.instances.length : 0);
       }
@@ -554,10 +640,15 @@ function addBestaInst(p,s,c,q,ek=0,ps=false,def=''){
   for(let i=0;i<q;i++){
     const pl={group:'Besta',productType:'Korpus Bauteil',article:p,size:s,color:c,defect:def,purchasePrice:ek,profitshare:ps,entryDate:today()};
     const k=stackKey(pl);
-    let ex=state.open.find(x=>stackKey(x)===k);
+    let ex=state.open.find(x=>stackKey(x).toLowerCase()===k.toLowerCase());
     const inst={id:uid(),purchasePrice:ek,profitshare:ps,entryDate:today(),defect:def};
-    if(ex) ex.instances.push(inst);
-    else state.open.unshift({id:uid(),...pl,instances:[inst]});
+    if(ex){
+      markDeleted(ex.id);
+      ex.id = uid();
+      ex.instances.push(inst);
+    } else {
+      state.open.unshift({id:uid(),...pl,instances:[inst]});
+    }
   }
 }
 
@@ -566,13 +657,20 @@ function remBestaInst(p,s,c,q){
   let remaining = q;
   for(let x of state.open){
     if(remaining <= 0) break;
-    if(x && x.group==='Besta' && (x.productType||'').toLowerCase().includes('bauteil') && 
+    if(x && String(x.group||'').toLowerCase().trim()==='besta' && (x.productType||'').toLowerCase().includes('bauteil') && 
        String(x.article||'').toLowerCase().trim()===artMatch && 
        String(x.size||'').trim()===String(s).trim() && 
        String(x.color||'').toLowerCase().trim()===cl && x.instances){
+      let changed = false;
       while(x.instances.length > 0 && remaining > 0){
-        x.instances.pop();
+        const popped = x.instances.pop();
+        if(popped && popped.id) markDeleted(popped.id);
         remaining--;
+        changed = true;
+      }
+      if(changed){
+        markDeleted(x.id);
+        x.id = uid();
       }
     }
   }
@@ -613,18 +711,36 @@ window.deleteBestaTuerColor = function(art, color){
       bCat.articleData[art].colors = (bCat.articleData[art].colors || []).filter(c => String(c).toLowerCase().trim() !== cl);
     }
   }
-  state.open = state.open.filter(i => !(i && i.group === 'Besta' && (i.productType||'').toLowerCase().includes('tür') && i.article === art && String(i.color||'').toLowerCase().trim() === cl));
+  state.open.forEach(i => {
+    if(i && String(i.group||'').toLowerCase().trim() === 'besta' && (i.productType||'').toLowerCase().includes('tür') && String(i.article||'').toLowerCase().trim() === String(art).toLowerCase().trim() && String(i.color||'').toLowerCase().trim() === cl){
+      markDeleted(i.id);
+      (i.instances||[]).forEach(inst => markDeleted(inst.id));
+    }
+  });
+  state.open = state.open.filter(i => !(i && String(i.group||'').toLowerCase().trim() === 'besta' && (i.productType||'').toLowerCase().includes('tür') && String(i.article||'').toLowerCase().trim() === String(art).toLowerCase().trim() && String(i.color||'').toLowerCase().trim() === cl));
   if(window.bestaTuerColors[art] === color){ delete window.bestaTuerColors[art]; }
   save(); window.renderBestaManager(); window.renderOpen(); toast('Farbe entfernt ✓');
 };
 
 window.changeBestaTuerQty = function(art, sz, c, d){
-  const col = c || 'Weiß';
+  consolidateOpenStacks();
+  const col = String(c || 'Weiß').trim();
   const artNorm = String(art || '').toLowerCase().trim();
   const szNorm = String(sz || '').toLowerCase().replace(/[^0-9]/g, '').trim();
-  const colNorm = String(col).toLowerCase().trim();
+  const colNorm = col.toLowerCase();
 
-  const matches = state.open.filter(x => {
+  // Sicherstellen, dass die Farbe auch im Katalog der Tür registriert ist
+  const bCat = state.master?.catalog?.Besta?.['Tür'];
+  if(bCat){
+    if(!bCat.articleData) bCat.articleData = {};
+    if(bCat.articleData[art] && Array.isArray(bCat.articleData[art].colors)){
+      if(!bCat.articleData[art].colors.some(x => String(x).toLowerCase().trim() === colNorm)){
+        bCat.articleData[art].colors.push(col);
+      }
+    }
+  }
+
+  let match = state.open.find(x => {
     if(!x || String(x.group || '').toLowerCase().trim() !== 'besta') return false;
     const pt = String(x.productType || '').toLowerCase().trim();
     if(!pt.includes('tür') && !pt.includes('tuer')) return false;
@@ -636,22 +752,18 @@ window.changeBestaTuerQty = function(art, sz, c, d){
   if(d > 0){
     const ek = window.getBestaTuerDefaultEk(art, sz);
     const inst = { id: uid(), purchasePrice: ek, profitshare: false, entryDate: today() };
-    if(matches.length > 0){
-      if(!Array.isArray(matches[0].instances)) matches[0].instances = [];
-      matches[0].instances.push(inst);
-      for(let i = 1; i < matches.length; i++){
-        if(Array.isArray(matches[i].instances) && matches[i].instances.length > 0){
-          matches[0].instances.push(...matches[i].instances);
-          matches[i].instances = [];
-        }
-      }
+    if(match){
+      markDeleted(match.id);
+      match.id = uid();
+      if(!Array.isArray(match.instances)) match.instances = [];
+      match.instances.push(inst);
     } else {
       state.open.unshift({
         id: uid(),
         group: 'Besta',
         productType: 'Tür',
-        article: art,
-        size: String(sz).trim(),
+        article: String(art).trim(),
+        size: szNorm,
         color: col,
         purchasePrice: ek,
         profitshare: false,
@@ -660,9 +772,11 @@ window.changeBestaTuerQty = function(art, sz, c, d){
     }
     toast(`+1 ${art} (${col}, Gr. ${sz}) · EK: ${euro(ek)} ✓`);
   } else if(d < 0){
-    const target = matches.find(m => Array.isArray(m.instances) && m.instances.length > 0);
-    if(target){
-      target.instances.pop();
+    if(match && Array.isArray(match.instances) && match.instances.length > 0){
+      const popped = match.instances.pop();
+      if(popped && popped.id) markDeleted(popped.id);
+      markDeleted(match.id);
+      match.id = uid();
       toast(`-1 ${art} (${col}, Gr. ${sz})`);
     }
   }
@@ -755,9 +869,14 @@ window.onBestaKorpusColorChange = function(c){ window.bestaGlobalKorpusColor=c; 
 
 window.renderBestaManager = function(){
   try{
+    consolidateOpenStacks();
     const bCat = state.master?.catalog?.Besta || {};
     const defaultDoorColors = bCat['Tür']?.colors || ['Weiß', 'Schwarzbraun'];
     const ovpMap = state.master?.doorOVP || {};
+
+    const bBtn = g('bestaHideZeroBtn'), bKnob = g('bestaHideZeroKnob');
+    if(bBtn) bBtn.style.background = window.bestaHideZero ? 'var(--primary)' : 'var(--surface2)';
+    if(bKnob) bKnob.style.left = window.bestaHideZero ? '22px' : '2px';
 
     const tt = g('bestaTuerenTable');
     if(tt && window.bestaActiveTab === 'tueren'){
@@ -765,20 +884,21 @@ window.renderBestaManager = function(){
       const dArts = new Set(DEFAULT_BESTA_TUEREN);
       const dc = {};
 
-      if(bCat['Tür']?.articles) bCat['Tür'].articles.forEach(a => dArts.add(a));
+      if(bCat['Tür']?.articles) bCat['Tür'].articles.forEach(a => dArts.add(String(a).trim()));
       state.open.forEach(i => {
         if(i && String(i.group||'').toLowerCase().trim() === 'besta' && (i.productType||'').toLowerCase().includes('tür') && i.article){
-          dArts.add(i.article);
-          if(!dc[i.article]) dc[i.article] = new Set();
-          if(i.color) dc[i.article].add(i.color);
+          const artName = String(i.article).trim();
+          dArts.add(artName);
+          if(!dc[artName]) dc[artName] = new Set();
+          if(i.color && i.instances && i.instances.length > 0) dc[artName].add(String(i.color).trim());
         }
       });
 
       dArts.forEach(a => {
         if(!dc[a]) dc[a] = new Set();
         const artColors = bCat['Tür']?.articleData?.[a]?.colors;
-        if(Array.isArray(artColors)){ artColors.forEach(c => dc[a].add(c)); }
-        else { defaultDoorColors.forEach(c => dc[a].add(c)); }
+        if(Array.isArray(artColors)){ artColors.forEach(c => dc[a].add(String(c).trim())); }
+        else { defaultDoorColors.forEach(c => dc[a].add(String(c).trim())); }
       });
 
       const sArts = Array.from(dArts).sort(sortKeys);
@@ -796,18 +916,17 @@ window.renderBestaManager = function(){
       sArts.forEach(art => {
         const ac = Array.from(dc[art] || []).sort(sortKeys);
         
-        const curSel = window.bestaTuerColors[art];
-        const curSelTotal = curSel ? allSzs.reduce((sum, sz) => sum + getTuerQty(art, sz, curSel), 0) : 0;
-
-        if(!curSel || curSelTotal === 0){
+        // Nur initial eine Farbe mit Bestand wählen, wenn noch keine Farbe für diese Tür angeklickt wurde
+        if(!window.bestaTuerColors[art] || !ac.includes(window.bestaTuerColors[art])){
+          let bestCol = ac[0] || 'Weiß';
           for(let c of ac){
             const cSum = allSzs.reduce((sum, sz) => sum + getTuerQty(art, sz, c), 0);
             if(cSum > 0){
-              window.bestaTuerColors[art] = c;
+              bestCol = c;
               break;
             }
           }
-          if(!window.bestaTuerColors[art]) window.bestaTuerColors[art] = ac[0] || 'Weiß';
+          window.bestaTuerColors[art] = bestCol;
         }
 
         const sel = window.bestaTuerColors[art] || ac[0] || 'Weiß';
@@ -834,7 +953,7 @@ window.renderBestaManager = function(){
           const colorTotal = allSzs.reduce((sum, sz) => sum + getTuerQty(art, sz, c), 0);
           const countLabel = colorTotal > 0 ? ` <b style="color:var(--primary);">(${colorTotal})</b>` : '';
 
-          return `<div class="color-dot-btn ${isAct?'active':''} ${hasLogo?'has-logo':''}" onclick="window.onBestaTuerColorSelect('${safeJsStr(art)}','${safeJsStr(c)}')"><span class="color-swatch-circle" style="${st}" title="${esc(c)}"></span>${hasLogo ? (colorTotal > 0 ? `<span><b>${colorTotal}</b></span>` : '') : `<span>${esc(c)}${countLabel}</span>`}<span class="color-btn-actions"><span class="color-btn-del" title="Farbe löschen" onclick="event.stopPropagation(); window.deleteBestaTuerColor('${safeJsStr(art)}','${safeJsStr(c)}')">✕</span><span class="color-btn-img" title="Muster wählen" onclick="event.stopPropagation(); window.uploadColorSwatch('${safeJsStr(c)}')">🖼</span></span></div>`;
+          return `<div class="color-dot-btn ${isAct?'active':''} ${hasLogo?'has-logo':''}" onclick="window.onBestaTuerColorSelect('${safeJsStr(art)}','${safeJsStr(c)}')"><span class="color-swatch-circle" style="${st}" title="${esc(c)}"></span><span>${esc(c)}${countLabel}</span><span class="color-btn-actions"><span class="color-btn-del" title="Farbe löschen" onclick="event.stopPropagation(); window.deleteBestaTuerColor('${safeJsStr(art)}','${safeJsStr(c)}')">✕</span><span class="color-btn-img" title="Muster wählen" onclick="event.stopPropagation(); window.uploadColorSwatch('${safeJsStr(c)}')">🖼</span></span></div>`;
         }).join('') + `<span class="chip" style="cursor:pointer; border-style:dashed;" onclick="window.addBestaColorToArticle('${safeJsStr(art)}')">✚</span>`;
 
         const qC = visSzs.map(s => {
@@ -983,7 +1102,7 @@ window.renderAllQuick = function(){
     const at=new Set(); if(gv&&state.master.catalog[gv])Object.keys(state.master.catalog[gv]).forEach(t=>at.add(t)); state.open.forEach(i=>{if(i.group===gv&&i.productType)at.add(i.productType);}); renderQChips('productType',Array.from(at).sort(sortKeys),pv);
     const aa=new Set(); if(gv&&pv&&state.master.catalog[gv]&&state.master.catalog[gv][pv]&&state.master.catalog[gv][pv].articles) state.master.catalog[gv][pv].articles.forEach(a=>aa.add(a)); state.open.forEach(i=>{if(i.group===gv&&i.productType===pv&&i.article)aa.add(i.article);}); renderQChips('article',Array.from(aa).sort(sortKeys),av);
     const na=aa.size>0, ssc=gv&&pv&&(!na||av), fsc=g('field-size-color'); if(fsc)fsc.style.display=ssc?'grid':'none';
-    const sz=new Set(), cl=new Set(); if(ssc){ const tg=state.master.catalog[gv]?.[pv]||{}; if(na&&av){if(tg.articleData&&tg.articleData[av]){(tg.articleData[av].sizes||[]).forEach(s=>sz.add(s));(tg.articleData[av].colors||[]).forEach(c=>cl.add(c));}}else if(!na){(tg.sizes||[]).forEach(s=>sz.add(s));(tg.colors||[]).forEach(c=>cl.add(c));} state.open.forEach(i=>{if(i.group===gv&&i.productType===pv){if(!na||i.article===av){if(i.size)sz.add(i.size);if(i.color)cl.add(i.color);}}}); }
+    const sz=new Set(), cl=new Set(); if(ssc){ const tg=state.master.catalog[gv]?.[pv]||{}; if(na&&av){if(tg.articleData&&tg.articleData[av]){(tg.articleData[av].sizes||[]).forEach(s=>sz.add(s));(tg.articleData[av].colors||[]).forEach(c=>cl.add(c));}else{(tg.sizes||[]).forEach(s=>sz.add(s));(tg.colors||[]).forEach(c=>cl.add(c));}}else if(!na){(tg.sizes||[]).forEach(s=>sz.add(s));(tg.colors||[]).forEach(c=>cl.add(c));} state.open.forEach(i=>{if(i.group===gv&&i.productType===pv){if(!na||i.article===av){if(i.size)sz.add(i.size);if(i.color)cl.add(i.color);}}}); }
     renderQChips('size',Array.from(sz).sort(sortKeys),gVal('size')); renderQChips('color',Array.from(cl).sort(sortKeys),gVal('color'));
   }catch(e){console.error(e);}
 };
@@ -1097,16 +1216,22 @@ if(itemFrm){
     if(!grp) return toast('Bitte Gruppe wählen.');
     const pl = { group: grp, productType: typ, article: art, size: sz, color: col, defect: def, purchasePrice: ek, profitshare: ps, entryDate: today() };
     const k = stackKey(pl);
-    let ex = state.open.find(x => stackKey(x) === k);
+    let ex = state.open.find(x => stackKey(x).toLowerCase() === k.toLowerCase());
 
     for(let i=0; i<qty; i++){
       const inst = { id: uid(), purchasePrice: ek, profitshare: ps, entryDate: today(), defect: def };
-      if(ex) ex.instances.push(inst);
-      else { ex = { id: uid(), ...pl, instances: [inst] }; state.open.unshift(ex); }
+      if(ex){
+        markDeleted(ex.id);
+        ex.id = uid();
+        ex.instances.push(inst);
+      } else {
+        ex = { id: uid(), ...pl, instances: [inst] };
+        state.open.unshift(ex);
+      }
     }
     save();
     toast(`${qty}x eingepflegt ✓`);
-    // Kein resetItemForm() mehr -> Auswahl bleibt für den nächsten Artikel erhalten!
+    // Eingaben bei NEU bleiben erhalten
     window.renderAllQuick();
     window.renderOpen();
     window.renderBestaManager();
@@ -1228,6 +1353,7 @@ window.updateOpenFilters = function(){ const sf=g('openSearchText'); state.openF
 window.clearOpenSearch = function(){ const sf=g('openSearchText'); if(sf)sf.value=''; state.openFilters.text=''; window.renderOpen(); };
 
 window.renderOpen = function(){
+  consolidateOpenStacks();
   window.renderOpenSetBadgesBanner?.();
   const tr=g('zeroFilterBtn'), kn=g('zeroFilterKnob'); if(tr)tr.style.background=state.hideZero?'var(--primary)':'#ccc'; if(kn)kn.style.left=state.hideZero?'22px':'2px';
   const oc=g('openContent'); if(!oc)return; if(!state.open||!state.open.length){oc.innerHTML='<div class="empty">Keine offenen Artikel.</div>';return;}
@@ -1293,13 +1419,20 @@ window.toggleGrp = function(el){
 window.toggleAllGroups = function(){ globalExpandState = !globalExpandState; state.openCollapse = {}; window.renderOpen(); };
 
 window.changeQty = function(id, delta){
+  consolidateOpenStacks();
   const it = state.open.find(x => x.id === id); if(!it) return;
   if(!it.instances) it.instances = [];
   if(delta > 0){
-    it.instances.push({ id: uid(), purchasePrice: it.purchasePrice || 0, profitshare: it.profitshare || false, entryDate: today() });
+    const lastEk = it.instances.length > 0 ? it.instances[it.instances.length - 1].purchasePrice : (it.purchasePrice || 0);
+    it.instances.push({ id: uid(), purchasePrice: lastEk, profitshare: it.profitshare || false, entryDate: today() });
+    markDeleted(it.id);
+    it.id = uid();
     toast('Menge erhöht ✓');
   } else if(delta < 0 && it.instances.length > 0){
-    it.instances.pop();
+    const popped = it.instances.pop();
+    if(popped && popped.id) markDeleted(popped.id);
+    markDeleted(it.id);
+    it.id = uid();
     toast('Menge verringert');
   }
   save();
@@ -1314,6 +1447,8 @@ window.editEK = function(id){
   if(val !== null){
     const p = parseFloat(val.replace(',', '.')) || 0;
     it.purchasePrice = p; (it.instances||[]).forEach(x => x.purchasePrice = p);
+    markDeleted(it.id);
+    it.id = uid();
     save(); window.renderOpen(); toast('EK aktualisiert ✓');
   }
 };
@@ -1321,16 +1456,23 @@ window.editEK = function(id){
 window.toggleItemProfitshare = function(id){
   const it = state.open.find(x => x.id === id); if(!it) return;
   it.profitshare = !it.profitshare; (it.instances||[]).forEach(x => x.profitshare = it.profitshare);
+  markDeleted(it.id);
+  it.id = uid();
   save(); window.renderOpen(); toast('Profitshare geändert');
 };
 
 window.deleteItem = function(id){
   if(!confirm('Artikel löschen?')) return;
+  const it = state.open.find(x => x.id === id);
+  if(it){
+    markDeleted(it.id);
+    (it.instances || []).forEach(inst => markDeleted(inst.id));
+  }
   state.open = state.open.filter(x => x.id !== id);
   save(); window.renderOpen(); window.renderBestaManager(); toast('Artikel gelöscht');
 };
 
-// ==================== EXPORT & CLOUD SYNC ====================
+// ==================== EXPORT & ZUVERLÄSSIGER CLOUD SYNC ====================
 function triggerDownload(data, filename){
   const b = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = filename;
@@ -1350,10 +1492,11 @@ window.saveGasUrl = function(val){
   toast('Cloud-URL gespeichert ✓');
 };
 
-window.autoSaveToCloud = function(){
+window.autoSaveToCloud = async function(){
   const gasUrl = (gVal('gasUrl') || localStorage.getItem('gasUrl') || '').trim();
   if(!gasUrl) return;
   localStorage.setItem('gasUrl', gasUrl);
+  isCloudSaving = true;
 
   const payload = JSON.stringify({
     open: state.open,
@@ -1362,32 +1505,34 @@ window.autoSaveToCloud = function(){
     master: state.master,
     year: state.year,
     deletedIds: state.deletedIds,
-    deletedGroups: state.deletedGroups
+    deletedGroups: state.deletedGroups,
+    updatedAt: Date.now()
   });
 
-  fetch(gasUrl, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: payload
-  }).then(() => {
+  try {
+    await fetch(gasUrl, {
+      method: 'POST',
+      body: payload
+    });
     setAutoSaveIndicator('☁️ Cloud & Lokal ✓', 'var(--success)');
-  }).catch(() => {
+  } catch(e) {
     setAutoSaveIndicator('✓ Lokal gesichert', 'var(--success)');
-  });
+  } finally {
+    isCloudSaving = false;
+  }
 };
 
 window.saveToCloud = async function(){
   const gasUrl = (gVal('gasUrl') || localStorage.getItem('gasUrl') || '').trim();
   if(!gasUrl) return toast('Bitte Script-URL in Stammdaten eintragen.');
   localStorage.setItem('gasUrl', gasUrl);
+  isCloudSaving = true;
   try{
+    consolidateOpenStacks();
     toast('Speichere in Cloud...');
     setAutoSaveIndicator('⏳ Cloud-Upload...', 'var(--warn)');
     await fetch(gasUrl, {
       method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         open: state.open,
         sold: state.sold,
@@ -1395,22 +1540,28 @@ window.saveToCloud = async function(){
         master: state.master,
         year: state.year,
         deletedIds: state.deletedIds,
-        deletedGroups: state.deletedGroups
+        deletedGroups: state.deletedGroups,
+        updatedAt: Date.now()
       })
     });
     setAutoSaveIndicator('☁️ Cloud & Lokal ✓', 'var(--success)');
     toast('In Cloud gespeichert ✓');
   }catch(e){
     toast('Fehler beim Cloud-Upload');
+  }finally{
+    isCloudSaving = false;
   }
 };
 
-window.loadFromCloud = async function(){
+window.loadFromCloud = async function(silent = false){
   const gasUrl = (gVal('gasUrl') || localStorage.getItem('gasUrl') || '').trim();
-  if(!gasUrl) return toast('Bitte Script-URL eintragen.');
+  if(!gasUrl){
+    if(!silent) toast('Bitte Script-URL eintragen.');
+    return;
+  }
   localStorage.setItem('gasUrl', gasUrl);
   try{
-    toast('Lade aus Cloud...');
+    if(!silent) toast('Lade aus Cloud...');
     const res = await fetch(gasUrl + (gasUrl.includes('?') ? '&' : '?') + 'nocache=' + Date.now());
     const d = await res.json();
     if(d && !d.error){
@@ -1424,9 +1575,11 @@ window.loadFromCloud = async function(){
       window.renderOpen();
       window.renderBestaManager();
       window.render();
-      toast('Erfolgreich aus Cloud geladen ✓');
+      if(!silent) toast('Erfolgreich aus Cloud geladen ✓');
     }
-  }catch(e){ toast('Fehler beim Laden'); }
+  }catch(e){
+    if(!silent) toast('Fehler beim Laden');
+  }
 };
 
 // ==================== VERKAUF ====================
@@ -1642,7 +1795,6 @@ window.updateSellPreview = function(){
       if(pi) pi.value = 0;
     }
   } else {
-    // Im Prozent-Modus das Eingabefeld PS % niemals mit 0 überschreiben, damit man jederzeit frei tippen kann
     psPct = parseFloat((pi ? pi.value : '').replace(',', '.')) || 0;
     if(psPct > 100){
       psPct = 100;
@@ -1971,12 +2123,16 @@ if(syEl){
   syEl.addEventListener('change', e => { state.year = e.target.value; window.renderStats(); });
 }
 
-// ==================== KALENDER MIT 3 ARTEN (EINKAUF, VERKAUF, LIEFERUNG) & ORT ====================
+// ==================== KALENDER MIT 3 ARTEN & GOOGLE KALENDER EXPORT ====================
 window.renderTermine = function(){
-  const c=g('terminContent'); if(!c)return;
-  if(!state.termine||state.termine.length===0){c.innerHTML='<div class="empty">Keine Termine.</div>';return;}
-  const s=[...state.termine].sort((a,b)=>new Date(`${b.datum}T${b.uhrzeit||'00:00'}:00`)-new Date(`${a.datum}T${a.uhrzeit||'00:00'}:00`));
-  c.innerHTML=s.map(t=>{
+  const c = g('terminContent');
+  if(!c) return;
+  if(!state.termine || state.termine.length === 0){
+    c.innerHTML = '<div class="empty">Keine Termine.</div>';
+    return;
+  }
+  const s = [...state.termine].sort((a,b) => new Date(`${b.datum}T${b.uhrzeit||'00:00'}:00`) - new Date(`${a.datum}T${a.uhrzeit||'00:00'}:00`));
+  c.innerHTML = s.map(t => {
     const badgeColor = t.art === 'Verkauf' ? 'var(--success)' : (t.art === 'Lieferung' ? 'var(--warn)' : 'var(--primary)');
     return `
     <div class="card" style="margin-bottom:var(--sp3); border-left: 4px solid ${badgeColor};">
@@ -1989,25 +2145,53 @@ window.renderTermine = function(){
           <span style="font-size:12px; font-weight:600;">${fmtDate(t.datum)} · ${esc(t.uhrzeit)} Uhr</span>
         </div>
         ${t.ort ? `<div style="font-size:12px; color:var(--muted); margin-top:6px;">📍 Ort: <b style="color:var(--text);">${esc(t.ort)}</b></div>` : ''}
-        <div style="display:flex; gap:8px; margin-top:8px;">
-          ${t.ort ? `<button type="button" class="btn btn-ghost" style="padding:2px 8px; font-size:11px; width:auto;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(t.ort)}','_blank')">🗺️ Maps</button>` : ''}
-          <button type="button" class="btn btn-danger" style="padding:2px 8px; font-size:11px; width:auto;" onclick="window.deleteTermin('${t.id}')">🗑 Löschen</button>
+        <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-ghost" style="padding:3px 8px; font-size:11px; width:auto; color:var(--primary); font-weight:700;" onclick="window.addToGoogleCalendar('${t.id}')">📅 In Google Kalender</button>
+          ${t.ort ? `<button type="button" class="btn btn-ghost" style="padding:3px 8px; font-size:11px; width:auto;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(t.ort)}','_blank')">🗺️ Maps</button>` : ''}
+          <button type="button" class="btn btn-danger" style="padding:3px 8px; font-size:11px; width:auto;" onclick="window.deleteTermin('${t.id}')">🗑 Löschen</button>
         </div>
       </div>
     </div>
   `}).join('');
 };
 
+window.addToGoogleCalendar = function(id){
+  const t = (state.termine || []).find(x => x.id === id);
+  if(!t || !t.datum) return;
+
+  const cleanDate = t.datum.replace(/-/g, '');
+  let startT = '090000';
+  let endT = '100000';
+
+  if(t.uhrzeit && t.uhrzeit.includes(':')){
+    const parts = t.uhrzeit.split(':');
+    const h = parseInt(parts[0], 10);
+    const m = parts[1] || '00';
+    const endH = (h + 1) % 24;
+    startT = `${String(h).padStart(2, '0')}${m}00`;
+    endT = `${String(endH).padStart(2, '0')}${m}00`;
+  }
+
+  const datesParam = `${cleanDate}T${startT}/${cleanDate}T${endT}`;
+  const title = encodeURIComponent(`${t.art ? '[' + t.art + '] ' : ''}${t.name || 'Termin'}`);
+  const location = encodeURIComponent(t.ort || '');
+  const details = encodeURIComponent(`Termin aus Kleinanzeigen Hero\n\nArt: ${t.art || '-'}\nKunde / Artikel: ${t.name || '-'}\nOrt: ${t.ort || '-'}\nUhrzeit: ${t.uhrzeit || '-'} Uhr`);
+
+  const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${datesParam}&details=${details}&location=${location}`;
+  window.open(gCalUrl, '_blank');
+};
+
 window.deleteTermin = function(id){ 
   if(!state.deletedIds) state.deletedIds = [];
   state.deletedIds.push(id);
-  state.termine=state.termine.filter(t=>t.id!==id); 
-  save(); window.renderTermine(); 
+  state.termine = state.termine.filter(t => t.id !== id); 
+  save(); 
+  window.renderTermine(); 
 };
 
-const tfrm=g('terminForm');
+const tfrm = g('terminForm');
 if(tfrm){
-  tfrm.addEventListener('submit',e=>{
+  tfrm.addEventListener('submit', e => {
     e.preventDefault();
     state.termine.unshift({
       id: uid(),
@@ -2017,20 +2201,23 @@ if(tfrm){
       datum: gVal('terminDatum'),
       uhrzeit: gVal('terminUhrzeit')
     });
-    save(); toast('Termin gespeichert ✓'); 
+    save(); 
+    toast('Termin gespeichert ✓'); 
     tfrm.reset(); 
-    if(g('terminDatum')) g('terminDatum').value=today(); 
+    if(g('terminDatum')) g('terminDatum').value = today(); 
     window.renderTermine();
   });
 }
 
 function populateUhrzeit(){
-  const s=g('terminUhrzeit'); if(!s)return; let h='<option value="" disabled selected>Zeit wählen</option>';
-  for(let i=7;i<=23;i++) {
+  const s = g('terminUhrzeit'); 
+  if(!s) return; 
+  let h = '<option value="" disabled selected>Zeit wählen</option>';
+  for(let i = 7; i <= 23; i++) {
     const hh = i < 10 ? '0' + i : i;
     h += `<option value="${hh}:00">${hh}:00 Uhr</option><option value="${hh}:30">${hh}:30 Uhr</option>`;
   }
-  s.innerHTML=h;
+  s.innerHTML = h;
   if(g('terminDatum') && !g('terminDatum').value) g('terminDatum').value = today();
 }
 
@@ -2647,7 +2834,6 @@ function computeActiveSetBadges(){
   return matches;
 }
 
-// Banner: Zeigt jede Kategorie genau 1x an und zählt pro Tür + Farbe exakt 1 Stake hinzu
 window.renderOpenSetBadgesBanner = function(){
   const banner = g('openSetBadgesBanner');
   if(!banner) return;
@@ -2682,7 +2868,6 @@ window.renderOpenSetBadgesBanner = function(){
   `;
 };
 
-// Pop-up: Zeigt alle passenden Türen in dieser Kategorie an
 window.renderPossibleSets = function(){
   const cont = g('setBadgesContent');
   if(!cont) return;
