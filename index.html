@@ -112,7 +112,34 @@
     .inline-filter-chip { display: inline-flex; align-items: center; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; user-select: none; }
     .inline-filter-chip.active { background: var(--primary); color: #fff; font-weight: 700; }
 
-    .qb-chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--rad-sm); font-size: 0.95rem; cursor: pointer; user-select: none; transition: all 0.15s; }
+/* ==================== QB-CHIPS & FILTER-TITEL (INKL. MENGEN-BADGE) ==================== */
+    .qb-chip { 
+      position: relative; 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 8px; 
+      padding: 6px 12px; 
+      background: var(--surface2); 
+      border: 1px solid var(--border); 
+      border-radius: var(--rad-sm); 
+      font-size: 0.95rem; 
+      cursor: pointer; 
+      user-select: none; 
+      transition: all 0.15s; 
+    }
+    .qb-badge-cnt {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 10px;
+      border: 1.5px solid var(--surface);
+      line-height: 1.2;
+    }
     .qb-chip.lvl-grp { padding: 10px 16px; font-size: 1.15rem; font-weight: 700; border-radius: var(--rad-md); border-color: rgba(14, 165, 233, 0.4); }
     .qb-chip.lvl-grp.active { background: var(--c-grp); color: #fff; border-color: var(--c-grp-border); box-shadow: 0 0 12px rgba(14, 165, 233, 0.35); }
     .qb-chip.lvl-typ { border-color: rgba(99, 102, 241, 0.35); } .qb-chip.lvl-typ.active { background: var(--c-typ); color: #fff; border-color: var(--c-typ-border); }
@@ -124,7 +151,7 @@
     .filter-badge-title.typ { background: var(--c-typ-bg); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
     .filter-badge-title.art { background: var(--c-art-bg); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
     .filter-badge-title.var { background: var(--c-var-bg); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
-
+    /* ==================== ENDE QB-CHIPS & FILTER-TITEL ==================== */
     .grp-logo-thumb { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; margin-right: 8px; vertical-align: middle; border: 1px solid var(--border); }
     .tuer-thumb-img { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; cursor: pointer; border: 1px solid var(--border); }
     .tuer-thumb-placeholder { width: 64px; height: 64px; border-radius: 8px; background: var(--surface2); display: grid; place-items: center; cursor: pointer; border: 1px dashed var(--border); font-size: 24px; }

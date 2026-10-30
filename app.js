@@ -1592,132 +1592,299 @@ window.onManualEKInput = function(){
 
 window.renderSellQuick = function(){
   const sel = state.sellSelection;
-  const cIds = new Set(state.sellCart.filter(c => !c.isBestaKorpusVirtual).map(c => c.inst.id));
-  const aI = [];
+  const inCartIds = new Set(state.sellCart.filter(c => !c.isBestaKorpusVirtual).map(c => c.inst.id));
+
+  // 1. Alle verfügbaren Lager-Exemplare sammeln, die noch nicht im Warenkorb liegen
+  const availItems = [];
   state.open.forEach(i => {
-    const vI = (i.instances || []).filter(x => !cIds.has(x.id));
-    if (vI.length > 0) aI.push({ ...i, validInsts: vI });
+    if(!i) return;
+    const vI = (i.instances || []).filter(x => !inCartIds.has(x.id));
+    if(vI.length > 0){
+      availItems.push({ ...i, validInsts: vI, availCount: vI.length });
+    }
   });
 
-  const groupSet = new Set();
-  aI.forEach(i => { if (i.group) groupSet.add(i.group); });
-  state.open.forEach(i => { if (i.group) groupSet.add(i.group); });
-  if (state.master && state.master.catalog) Object.keys(state.master.catalog).forEach(gName => groupSet.add(gName));
-  if (state.open.some(i => i && i.group === 'Besta')) groupSet.add('Besta');
+  // 2. Gruppen ermitteln und Bestände zählen
+  const groupCounts = {};
+  availItems.forEach(i => {
+    const gName = i.group || 'Allgemein';
+    groupCounts[gName] = (groupCounts[gName] || 0) + i.availCount;
+  });
 
-  const aG = Array.from(groupSet).sort(sortKeys);
+  // BESTÅ Korpus-Bausätze einrechnen
+  let totalBestaKorpusPoss = 0;
+  const kCols = state.master?.catalog?.Besta?.['Korpus Bauteil']?.colors || ['Weiß', 'Schwarzbraun'];
+  Object.keys(BESTA_KORPUS_MODELS).forEach(m => {
+    kCols.forEach(c => {
+      totalBestaKorpusPoss += getBestaPoss(m, c);
+    });
+  });
+  if(totalBestaKorpusPoss > 0){
+    groupCounts['Besta'] = (groupCounts['Besta'] || 0) + totalBestaKorpusPoss;
+  }
+
+  const availGroups = Object.keys(groupCounts).filter(k => groupCounts[k] > 0).sort(sortKeys);
   const gc = g('qb-sell-group');
-  if (gc) {
-    gc.innerHTML = aG.map(grp => `<div class="qb-chip lvl-grp ${sel.group === grp ? 'active' : ''}" onclick="window.handleSellChipSelect('group','${safeJsStr(grp)}')">${state.master.groupLogos && isValidImage(state.master.groupLogos[grp]) ? `<img src="${state.master.groupLogos[grp]}" class="grp-logo-thumb">` : ''}<span>${esc(grp)}</span></div>`).join('') || '<span class="muted" style="font-size:var(--text-xs);">Keine Gruppen angelegt</span>';
+  if(gc){
+    gc.innerHTML = availGroups.map(grp => `
+      <div class="qb-chip lvl-grp ${sel.group === grp ? 'active' : ''}" onclick="window.handleSellChipSelect('group','${safeJsStr(grp)}')">
+        <span class="qb-badge-cnt">${groupCounts[grp]}</span>
+        ${(state.master.groupLogos && isValidImage(state.master.groupLogos[grp])) ? `<img src="${state.master.groupLogos[grp]}" class="grp-logo-thumb">` : ''}
+        <span>${esc(grp)}</span>
+      </div>
+    `).join('') || '<span class="muted" style="font-size:12px;">Kein Lagerbestand verfügbar.</span>';
   }
 
-  const iG = sel.group ? aI.filter(i => i.group === sel.group) : [];
-  let aTRaw = [...new Set(iG.map(i => i.productType).filter(Boolean))].filter(t => !t.toLowerCase().includes('bauteil') && t !== 'Korpus');
-  if (sel.group === 'Besta' && !aTRaw.includes('Korpus (Komplett)')) {
-    aTRaw.push('Korpus (Komplett)');
-  }
-  const aT = aTRaw.sort(sortKeys);
-
-  const fpt = g('sell-field-productType'); if (fpt) fpt.style.display = sel.group ? 'grid' : 'none';
+  // 3. Produkttypen der gewählten Gruppe
+  const fpt = g('sell-field-productType');
+  if(fpt) fpt.style.display = sel.group ? 'grid' : 'none';
   const tc = g('qb-sell-productType');
-  if (tc && sel.group) {
-    tc.innerHTML = aT.map(t => `<div class="qb-chip lvl-typ ${sel.type === t ? 'active' : ''}" onclick="window.handleSellChipSelect('type','${safeJsStr(t)}')">${state.master.typeLogos && isValidImage(state.master.typeLogos[`${sel.group}||${t}`]) ? `<img src="${state.master.typeLogos[`${sel.group}||${t}`]}" class="grp-logo-thumb">` : ''}<span>${esc(t)}</span></div>`).join('') || '<span class="muted" style="font-size:var(--text-xs);">Keine Typen</span>';
+
+  const typeCounts = {};
+  if(sel.group){
+    availItems.filter(i => String(i.group||'').trim() === String(sel.group).trim()).forEach(i => {
+      const pt = i.productType || 'Standard';
+      if(!pt.toLowerCase().includes('bauteil') && pt !== 'Korpus'){
+        typeCounts[pt] = (typeCounts[pt] || 0) + i.availCount;
+      }
+    });
+
+    if(sel.group === 'Besta' && totalBestaKorpusPoss > 0){
+      typeCounts['Korpus (Komplett)'] = totalBestaKorpusPoss;
+    }
   }
 
-  const ik = (sel.group === 'Besta' && sel.type === 'Korpus (Komplett)');
-  const fa = g('sell-field-article'); if (fa) fa.style.display = (sel.group && sel.type) ? 'grid' : 'none';
+  const availTypes = Object.keys(typeCounts).filter(k => typeCounts[k] > 0).sort(sortKeys);
+  if(tc && sel.group){
+    tc.innerHTML = availTypes.map(t => `
+      <div class="qb-chip lvl-typ ${sel.type === t ? 'active' : ''}" onclick="window.handleSellChipSelect('type','${safeJsStr(t)}')">
+        <span class="qb-badge-cnt">${typeCounts[t]}</span>
+        ${(state.master.typeLogos && isValidImage(state.master.typeLogos[`${sel.group}||${t}`])) ? `<img src="${state.master.typeLogos[`${sel.group}||${t}`]}" class="grp-logo-thumb">` : ''}
+        <span>${esc(t)}</span>
+      </div>
+    `).join('') || '<span class="muted" style="font-size:12px;">Keine Typen verfügbar.</span>';
+  }
+
+  // 4. Artikelnamen
+  const isKorpusSet = (sel.group === 'Besta' && sel.type === 'Korpus (Komplett)');
+  const fa = g('sell-field-article');
+  if(fa) fa.style.display = (sel.group && sel.type) ? 'grid' : 'none';
   const ac = g('qb-sell-article');
 
-  if (ac && sel.group && sel.type) {
-    if (ik) {
+  if(ac && sel.group && sel.type){
+    if(isKorpusSet){
       let catHtml = '';
       Object.entries(BESTA_KORPUS_CATEGORIES).forEach(([catTitle, models]) => {
-        catHtml += `<div style="width:100%; margin:6px 0 2px; font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase;">${esc(catTitle)}</div><div class="chips" style="gap:6px; margin-bottom:8px;">`;
-        models.forEach(a => {
-          const isAct = sel.article === a;
-          catHtml += `<div class="qb-chip lvl-art ${isAct ? 'active' : ''}" onclick="window.handleSellChipSelect('article','${safeJsStr(a)}')"><span>${esc(a)}</span></div>`;
-        });
-        catHtml += `</div>`;
+        const validModels = models.filter(m => kCols.some(c => getBestaPoss(m, c) > 0));
+        if(validModels.length > 0){
+          catHtml += `<div style="width:100%; margin:6px 0 2px; font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase;">${esc(catTitle)}</div><div class="chips" style="gap:6px; margin-bottom:8px;">`;
+          validModels.forEach(m => {
+            const mPossTotal = kCols.reduce((sum, c) => sum + getBestaPoss(m, c), 0);
+            const isAct = sel.article === m;
+            catHtml += `
+              <div class="qb-chip lvl-art ${isAct ? 'active' : ''}" onclick="window.handleSellChipSelect('article','${safeJsStr(m)}')">
+                <span class="qb-badge-cnt">${mPossTotal}</span>
+                <span>${esc(m)}</span>
+              </div>
+            `;
+          });
+          catHtml += `</div>`;
+        }
       });
-      ac.innerHTML = catHtml;
+      ac.innerHTML = catHtml || '<span class="muted" style="font-size:12px;">Keine Korpusse baubar.</span>';
     } else {
-      const iT = (sel.group && sel.type) ? iG.filter(i => i.productType === sel.type) : [];
-      const aA = [...new Set(iT.map(i => String(i.article || '')).filter(Boolean))].sort(sortKeys);
-      ac.innerHTML = aA.map(a => `<div class="qb-chip lvl-art ${sel.article === a ? 'active' : ''}" onclick="window.handleSellChipSelect('article','${safeJsStr(a)}')">${state.master.articleLogos && isValidImage(state.master.articleLogos[`${sel.group}||${sel.type}||${a}`]) ? `<img src="${state.master.articleLogos[`${sel.group}||${sel.type}||${a}`]}" class="grp-logo-thumb">` : ''}<span>${esc(a)}</span></div>`).join('') || '<span class="muted" style="font-size:var(--text-xs);">Keine Artikel</span>';
+      const articleCounts = {};
+      availItems.filter(i => String(i.group||'').trim() === String(sel.group).trim() && String(i.productType||'').trim() === String(sel.type).trim()).forEach(i => {
+        const aName = i.article || 'Standard';
+        articleCounts[aName] = (articleCounts[aName] || 0) + i.availCount;
+      });
+
+      const availArticles = Object.keys(articleCounts).filter(k => articleCounts[k] > 0).sort(sortKeys);
+      ac.innerHTML = availArticles.map(a => `
+        <div class="qb-chip lvl-art ${sel.article === a ? 'active' : ''}" onclick="window.handleSellChipSelect('article','${safeJsStr(a)}')">
+          <span class="qb-badge-cnt">${articleCounts[a]}</span>
+          ${(state.master.articleLogos && isValidImage(state.master.articleLogos[`${sel.group}||${sel.type}||${a}`])) ? `<img src="${state.master.articleLogos[`${sel.group}||${sel.type}||${a}`]}" class="grp-logo-thumb">` : ''}
+          <span>${esc(a)}</span>
+        </div>
+      `).join('') || '<span class="muted" style="font-size:12px;">Keine Artikel verfügbar.</span>';
     }
   }
 
-  const fsc = g('sell-field-size-color'); let aS = [], aC = [];
-  if (ik) {
-    if (sel.article) {
-      const cS = new Set();
-      state.open.forEach(i => {
-        if (i && i.group === 'Besta' && (i.productType || '').toLowerCase().includes('bauteil') && i.color) cS.add(i.color);
-      });
-      aC = Array.from(cS).sort(sortKeys);
-      if (!aC.length) aC.push('Weiß');
+  // 5. Größen & Farben
+  const fsc = g('sell-field-size-color');
+  const sc = g('qb-sell-size');
+  const cc = g('qb-sell-color');
+
+  if(isKorpusSet){
+    if(fsc) fsc.style.display = sel.article ? 'grid' : 'none';
+    if(sc) sc.innerHTML = '<span class="muted" style="font-size:11px;">–</span>';
+
+    if(cc && sel.article){
+      const availColorsForModel = kCols.filter(c => getBestaPoss(sel.article, c) > 0);
+      cc.innerHTML = availColorsForModel.map(c => {
+        const pCnt = getBestaPoss(sel.article, c);
+        return `
+          <div class="qb-chip lvl-var ${sel.color === c ? 'active' : ''}" onclick="window.handleSellChipSelect('color','${safeJsStr(c)}')">
+            <span class="qb-badge-cnt">${pCnt}</span>
+            <span class="color-swatch-circle" style="${getColorStyle(c)}"></span>
+            <span>${esc(c)}</span>
+          </div>
+        `;
+      }).join('') || '<span class="muted" style="font-size:11px;">Keine Farbe baubar.</span>';
     }
-    if (fsc) fsc.style.display = (sel.group && sel.type && aC.length > 0) ? 'grid' : 'none';
   } else {
-    const iT = (sel.group && sel.type) ? iG.filter(i => (i.productType || '') === sel.type) : [];
-    const iA = (sel.group && sel.type) ? iT.filter(i => !sel.article || (i.article || '') === sel.article) : [];
-    aS = [...new Set(iA.map(i => String(i.size || '').trim()).filter(Boolean))].sort(sortKeys);
-    aC = [...new Set(iA.map(i => String(i.color || '').trim()).filter(Boolean))].sort(sortKeys);
-    if (fsc) fsc.style.display = (sel.group && sel.type && (aS.length > 0 || aC.length > 0)) ? 'grid' : 'none';
+    const relevantItems = availItems.filter(i => 
+      (!sel.group || String(i.group||'').trim() === String(sel.group).trim()) && 
+      (!sel.type || String(i.productType||'').trim() === String(sel.type).trim()) && 
+      (!sel.article || String(i.article||'').trim() === String(sel.article).trim())
+    );
+
+    const sizeCounts = {};
+    const colorCounts = {};
+
+    relevantItems.forEach(i => {
+      if(!sel.color || String(i.color).trim().toLowerCase() === String(sel.color).trim().toLowerCase()){
+        if(i.size) sizeCounts[i.size] = (sizeCounts[i.size] || 0) + i.availCount;
+      }
+      if(!sel.size || String(i.size).trim() === String(sel.size).trim()){
+        if(i.color) colorCounts[i.color] = (colorCounts[i.color] || 0) + i.availCount;
+      }
+    });
+
+    const availSizes = Object.keys(sizeCounts).filter(k => sizeCounts[k] > 0).sort(sortKeys);
+    const availColors = Object.keys(colorCounts).filter(k => colorCounts[k] > 0).sort(sortKeys);
+
+    if(fsc) fsc.style.display = (availSizes.length > 0 || availColors.length > 0) ? 'grid' : 'none';
+
+    if(sc){
+      sc.innerHTML = availSizes.map(s => `
+        <div class="qb-chip lvl-var ${sel.size === s ? 'active' : ''}" onclick="window.handleSellChipSelect('size','${safeJsStr(s)}')">
+          <span class="qb-badge-cnt">${sizeCounts[s]}</span>
+          <span>Gr. ${esc(s)}</span>
+        </div>
+      `).join('') || '<span class="muted" style="font-size:11px;">–</span>';
+    }
+
+    if(cc){
+      cc.innerHTML = availColors.map(c => `
+        <div class="qb-chip lvl-var ${String(sel.color).trim().toLowerCase() === c.toLowerCase() ? 'active' : ''}" onclick="window.handleSellChipSelect('color','${safeJsStr(c)}')">
+          <span class="qb-badge-cnt">${colorCounts[c]}</span>
+          <span class="color-swatch-circle" style="${getColorStyle(c)}"></span>
+          <span>${esc(c)}</span>
+        </div>
+      `).join('') || '<span class="muted" style="font-size:11px;">–</span>';
+    }
   }
-  const sc = g('qb-sell-size'); if (sc && sel.group && sel.type) sc.innerHTML = aS.map(s => `<div class="qb-chip lvl-var ${sel.size === s ? 'active' : ''}" onclick="window.handleSellChipSelect('size','${safeJsStr(s)}')"><span>Gr. ${esc(s)}</span></div>`).join('') || '<span class="muted" style="font-size:var(--text-xs);">–</span>';
-  const cc = g('qb-sell-color'); if (cc && sel.group && sel.type) cc.innerHTML = aC.map(c => `<div class="qb-chip lvl-var ${sel.color === c ? 'active' : ''}" onclick="window.handleSellChipSelect('color','${safeJsStr(c)}')"><span>${esc(c)}</span></div>`).join('') || '<span class="muted" style="font-size:var(--text-xs);">–</span>';
-  window.renderSellInstanceList();
+
+  // 6. Exemplarliste rendern
+  window.renderSellInstanceList(availItems);
 };
 
 window.handleSellChipSelect = function(t, v){
-  const s = state.sellSelection; s[t] = (s[t] === v) ? '' : v;
-  if(t==='group'){ s.type=''; s.article=''; s.size=''; s.color=''; }
-  else if(t==='type'){ s.article=''; s.size=''; s.color=''; }
-  else if(t==='article'){ s.size=''; s.color=''; }
+  const s = state.sellSelection;
+  s[t] = (s[t] === v) ? '' : v;
+  if(t === 'group'){ s.type = ''; s.article = ''; s.size = ''; s.color = ''; }
+  else if(t === 'type'){ s.article = ''; s.size = ''; s.color = ''; }
+  else if(t === 'article'){ s.size = ''; s.color = ''; }
   window.renderSellQuick();
 };
 
-window.renderSellInstanceList = function(){
-  const l = g('sellInstanceList'); if(!l) return;
+window.renderSellInstanceList = function(availItemsList){
+  const l = g('sellInstanceList');
+  if(!l) return;
   const s = state.sellSelection;
-  if(s.group==='Besta' && s.type==='Korpus (Komplett)'){
-    if(!s.article || !s.color){ l.innerHTML = '<div class="empty" style="padding:8px;">Bitte Modell und Farbe wählen.</div>'; return; }
-    const p = getBestaPoss(s.article, s.color);
-    if(p > 0){
-      l.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(16,185,129,0.1); border:1px dashed var(--c-var-border); padding:6px 10px; border-radius:6px;"><div><b>${esc(s.article)} (${esc(s.color)})</b><div style="font-size:12px; color:var(--success);">${p} Stück baubar</div></div><button type="button" class="btn btn-primary" onclick="window.addSellKorpusComplete('${safeJsStr(s.article)}', '${safeJsStr(s.color)}')">✚ Set Hinzufügen</button></div>`;
-    } else {
-      l.innerHTML = '<div class="empty" style="color:var(--err);">Nicht genügend Bauteile vorhanden.</div>';
-    }
+
+  let html = '';
+
+  // A) Baubare Korpusse einblenden (wenn Besta/Korpus aktiv ODER wenn gar nichts gefiltert ist)
+  const isBestaOrAll = (!s.group || s.group === 'Besta');
+  const isKorpusTypeOrAll = (!s.type || s.type === 'Korpus (Komplett)' || s.type === 'Korpus');
+
+  if(isBestaOrAll && isKorpusTypeOrAll){
+    const kCols = state.master?.catalog?.Besta?.['Korpus Bauteil']?.colors || ['Weiß', 'Schwarzbraun'];
+    const activeModels = s.article ? [s.article] : Object.keys(BESTA_KORPUS_MODELS);
+    const activeColors = s.color ? [s.color] : kCols;
+
+    activeModels.forEach(m => {
+      if(!BESTA_KORPUS_MODELS[m]) return;
+      activeColors.forEach(c => {
+        const p = getBestaPoss(m, c);
+        if(p > 0){
+          html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(16,185,129,0.08); border:1px dashed var(--c-var-border); padding:6px 10px; border-radius:6px; margin-bottom:4px;">
+              <div>
+                <b style="font-size:12px; color:var(--text);">${esc(m)} (${esc(c)}) <span style="font-size:10px; color:var(--success); font-weight:800;">[BAUSATZ]</span></b>
+                <div style="font-size:11px; color:var(--success); font-weight:700;">${p}x vollständig baubar</div>
+              </div>
+              <button type="button" class="btn btn-primary" style="width:auto; min-height:26px; padding:2px 10px; font-size:11px;" onclick="window.addSellKorpusComplete('${safeJsStr(m)}', '${safeJsStr(c)}')">
+                ✚ Set Korb
+              </button>
+            </div>
+          `;
+        }
+      });
+    });
+  }
+
+  // B) Reguläre vorrätige Lager-Exemplare sammeln & filtern
+  const inCartIds = new Set(state.sellCart.filter(c => !c.isBestaKorpusVirtual).map(c => c.inst.id));
+  const matches = [];
+
+  state.open.forEach(item => {
+    if(!item) return;
+    if(s.group && String(item.group || '').trim() !== String(s.group).trim()) return;
+    if(s.type && String(item.productType || '').trim() !== String(s.type).trim()) return;
+    if(s.article && String(item.article || '').trim() !== String(s.article).trim()) return;
+    if(s.size && String(item.size || '').trim() !== String(s.size).trim()) return;
+    if(s.color && String(item.color || '').trim().toLowerCase() !== String(s.color).trim().toLowerCase()) return;
+
+    // Besta-Korpusbauteile separat nicht einzeln als Exemplar im Schnellverkauf auflisten
+    if(item.group === 'Besta' && (item.productType || '').toLowerCase().includes('bauteil')) return;
+
+    (item.instances || []).forEach(inst => {
+      if(!inCartIds.has(inst.id)){
+        matches.push({ item, inst });
+      }
+    });
+  });
+
+  html += matches.slice(0, 60).map(({ item, inst }) => `
+    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface2); border:1px solid var(--border); padding:6px 10px; border-radius:var(--rad-sm); margin-bottom:4px; font-size:12px;">
+      <div>
+        <b style="color:var(--text);">${esc(item.article || item.productType)}</b>
+        <span style="color:var(--muted);"> (${esc(item.size || '-')}, ${esc(item.color || '-')})</span>
+        <div style="font-size:11px; color:var(--muted); margin-top:1px;">
+          EK: <b>${euro(inst.purchasePrice)}</b> · ⏱️ ${calcDays(inst.entryDate)} Tage im Lager
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary" style="width:auto; min-height:26px; padding:2px 10px; font-size:11px;" onclick="window.addSellDirect('${item.id}', '${inst.id}')">
+        ✚ Korb
+      </button>
+    </div>
+  `).join('');
+
+  if(!html){
+    l.innerHTML = '<div class="empty" style="padding:10px;">Keine vorrätigen Lager-Exemplare vorhanden.</div>';
     return;
   }
-  if(!s.group){ l.innerHTML = '<div class="empty">Bitte zuerst eine Gruppe wählen.</div>'; return; }
-  const cid=new Set(state.sellCart.filter(c=>!c.isBestaKorpusVirtual).map(c=>c.inst.id)), m=[];
-  state.open.forEach(i=>{
-    if(!i) return;
-    if(s.group && (i.group||'')!==s.group) return;
-    if(s.type && (i.productType||'')!==s.type) return;
-    if(s.article && (i.article||'')!==s.article) return;
-    if(s.size && String(i.size||'').trim()!==s.size.trim()) return;
-    if(s.color && String(i.color||'').trim().toLowerCase()!==s.color.trim().toLowerCase()) return;
-    (i.instances||[]).forEach(x=>{if(!cid.has(x.id)) m.push({item:i,inst:x});});
-  });
-  if(!m.length){ l.innerHTML = '<div class="empty">Keine Lager-Exemplare vorrätig.</div>'; return; }
-  l.innerHTML = m.map(x=>`<div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface2); padding:6px 10px; border-radius:var(--rad-sm); margin-bottom:6px;"><div><b style="font-size:var(--text-sm);">${esc(x.item.article||x.item.productType)} · ${esc(x.item.color||'–')} ${x.item.size?'(Gr. '+esc(x.item.size)+')':''}</b><div style="font-size:var(--text-xs); color:var(--muted);">EK: ${euro(x.inst.purchasePrice)} · ⏱️ ${calcDays(x.inst.entryDate)} Tage</div></div><button type="button" class="btn btn-primary" style="width:auto; min-height:28px; padding:2px 10px;" onclick="window.addSellDirect('${x.item.id}', '${x.inst.id}')">✚</button></div>`).join('');
+
+  l.innerHTML = html;
 };
 
 window.addSellKorpusComplete = function(m, c){
   const r = BESTA_BOM[m]; let p = 0;
-  for(const[pt,d] of Object.entries(r)){
-    let f=0;
-    state.open.forEach(i=>{
-      if(i.group==='Besta'&&i.productType==='Korpus Bauteil'&&String(i.article||'').toLowerCase().trim()===String(pt).toLowerCase().trim()&&String(i.size||'').trim()===String(d.s).trim()&&String(i.color||'').toLowerCase().trim()===String(c).toLowerCase().trim()){
-        (i.instances||[]).forEach(x=>{ if(f<d.q){ p+=(x.purchasePrice||0); f++; } });
+  for(const [pt, d] of Object.entries(r)){
+    let f = 0;
+    state.open.forEach(i => {
+      if(i.group === 'Besta' && i.productType === 'Korpus Bauteil' && String(i.article || '').toLowerCase().trim() === String(pt).toLowerCase().trim() && String(i.size || '').trim() === String(d.s).trim() && String(i.color || '').toLowerCase().trim() === String(c).toLowerCase().trim()){
+        (i.instances || []).forEach(x => { if(f < d.q){ p += (x.purchasePrice || 0); f++; } });
       }
     });
   }
-  state.sellCart.push({ isBestaKorpusVirtual:true, model:m, color:c, reqs:r, item:{group:'Besta',productType:'Korpus',article:m,color:c}, inst:{id:'virt_'+uid(), purchasePrice:p, entryDate:today(), profitshare:false} });
-  window.renderSellCart(); toast(`Korpus "${m}" im Warenkorb ✓`);
+  state.sellCart.push({ isBestaKorpusVirtual: true, model: m, color: c, reqs: r, item: { group: 'Besta', productType: 'Korpus', article: m, color: c }, inst: { id: 'virt_' + uid(), purchasePrice: p, entryDate: today(), profitshare: false } });
+  window.renderSellCart();
+  window.renderSellQuick();
+  toast(`Korpus "${m}" im Warenkorb ✓`);
 };
 
 window.addSellDirect = function(iId, inId){
@@ -1727,7 +1894,7 @@ window.addSellDirect = function(iId, inId){
     state.sellCart.push({ item: i, inst: x });
     window.renderSellCart();
     window.renderSellQuick();
-    toast('Position in Warenkorb');
+    toast(`${i.article || i.productType} in den Warenkorb gelegt ✓`);
   }
 };
 
@@ -1753,7 +1920,7 @@ window.renderSellCart = function(){
         <b>${i+1}.</b> ${p.isBestaKorpusVirtual ? esc(p.model)+' ('+esc(p.color)+') [BAUSATZ]' : esc(p.item.article||p.item.productType)+' ('+esc(p.item.color||'')+(p.item.size?', '+esc(p.item.size):'')+')'}
         <span style="color:var(--primary); font-weight:700;">${euro(p.inst.purchasePrice)}</span>
       </div>
-      <button type="button" class="btn btn-danger" onclick="window.removeSellPosition(${i})">✕</button>
+      <button type="button" class="btn btn-danger" style="padding:2px 8px; font-size:11px;" onclick="window.removeSellPosition(${i})">✕</button>
     </div>
   `).join('');
   window.updateSellPreview();
